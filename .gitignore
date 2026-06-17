@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+.vscode/
+*:Zone.Identifier
+
+# Project memory is local by default. Only the versioned skeleton is tracked
+# (templates + a redacted example), so a fresh clone can bootstrap init_context.py.
+# Real project memory, people notes, and raw evidence carry PII and stay untracked.
+.ai/memory/*
+!.ai/memory/_templates/
+!.ai/memory/_templates/**
+!.ai/memory/README.md
+!.ai/memory/active-context.example.md
+
+# Skill eval run artefacts (regenerated per run; kept local)
+.claude/skills/*/workspace/
+.claude/benchmark_all.json
+.claude/eval-report.html
+
+# Local-only Claude Code settings (permissions, machine paths)
+.claude/settings.local.json
+.mcp.json
+
+# Per-content hard-gate sentinels (regenerated per session)
+.claude/.humanized/
+.claude/.anti-slop/
+.claude/.inference-discipline/

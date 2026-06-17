@@ -1,0 +1,4 @@
+# Glossary
+
+## Terms
+- **Term**: definition

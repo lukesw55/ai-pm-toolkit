@@ -1,0 +1,199 @@
+# Python Patterns
+
+Padrões de Python para análises reproduzíveis em Claude Code.
+
+## Path and seed setup
+
+```python
+from pathlib import Path
+import random
+import numpy as np
+import pandas as pd
+
+ROOT = Path.cwd()
+DATA_RAW = ROOT / "data" / "raw"
+DATA_PROCESSED = ROOT / "data" / "processed"
+REPORTS = ROOT / "reports"
+FIGURES = REPORTS / "figures"
+
+for path in [DATA_PROCESSED, REPORTS, FIGURES]:
+    path.mkdir(parents=True, exist_ok=True)
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+```
+
+## Safe loading
+
+```python
+from pathlib import Path
+import pandas as pd
+
+def read_table(path: str | Path) -> pd.DataFrame:
+    path = Path(path)
+    if path.suffix.lower() == ".csv":
+        return pd.read_csv(path)
+    if path.suffix.lower() in [".tsv", ".tab"]:
+        return pd.read_csv(path, sep="\t")
+    if path.suffix.lower() in [".parquet"]:
+        return pd.read_parquet(path)
+    if path.suffix.lower() in [".xlsx", ".xls"]:
+        return pd.read_excel(path)
+    raise ValueError(f"Unsupported file type: {path.suffix}")
+```
+
+## Column normalization
+
+```python
+import re
+
+def clean_column_name(name: str) -> str:
+    name = name.strip().lower()
+    name = re.sub(r"[^0-9a-zA-Z]+", "_", name)
+    name = re.sub(r"_+", "_", name).strip("_")
+    return name
+
+df = df.rename(columns={c: clean_column_name(c) for c in df.columns})
+```
+
+## Audit summary
+
+```python
+def audit_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    for col in df.columns:
+        s = df[col]
+        rows.append({
+            "column": col,
+            "dtype": str(s.dtype),
+            "non_null": int(s.notna().sum()),
+            "missing": int(s.isna().sum()),
+            "missing_pct": float(s.isna().mean()),
+            "n_unique": int(s.nunique(dropna=True)),
+            "sample_values": ", ".join(map(str, s.dropna().head(5).tolist())),
+        })
+    return pd.DataFrame(rows)
+```
+
+## Join validation
+
+```python
+def validate_join(left, right, on, how="left", expected_max_multiplier=1.0):
+    before = len(left)
+    out = left.merge(right, on=on, how=how, indicator=True)
+    after = len(out)
+    multiplier = after / before if before else 0
+
+    print(f"Rows before: {before:,}")
+    print(f"Rows after:  {after:,}")
+    print(f"Multiplier:  {multiplier:.3f}")
+    print(out["_merge"].value_counts(dropna=False))
+
+    if multiplier > expected_max_multiplier:
+        raise ValueError(f"Join expanded rows more than expected: {multiplier:.3f}")
+
+    return out.drop(columns=["_merge"])
+```
+
+## Missingness table
+
+```python
+missing = (
+    df.isna()
+      .mean()
+      .mul(100)
+      .rename("missing_pct")
+      .reset_index()
+      .rename(columns={"index": "column"})
+      .sort_values("missing_pct", ascending=False)
+)
+```
+
+## Train/test split with leakage protection
+
+```python
+from sklearn.model_selection import train_test_split
+
+target = "target"
+leakage_candidates = ["future_status", "closed_at", "target_encoded_field"]
+
+X = df.drop(columns=[target] + [c for c in leakage_candidates if c in df.columns])
+y = df[target]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y if y.nunique() < 20 else None
+)
+```
+
+## Sklearn baseline pipeline
+
+```python
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import classification_report, roc_auc_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.linear_model import LogisticRegression
+
+numeric_features = X_train.select_dtypes(include="number").columns.tolist()
+categorical_features = X_train.select_dtypes(exclude="number").columns.tolist()
+
+preprocess = ColumnTransformer(
+    transformers=[
+        ("num", Pipeline([
+            ("imputer", SimpleImputer(strategy="median")),
+            ("scaler", StandardScaler())
+        ]), numeric_features),
+        ("cat", Pipeline([
+            ("imputer", SimpleImputer(strategy="most_frequent")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore"))
+        ]), categorical_features),
+    ]
+)
+
+model = Pipeline([
+    ("preprocess", preprocess),
+    ("model", LogisticRegression(max_iter=1000, class_weight="balanced"))
+])
+
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+
+print(classification_report(y_test, pred))
+```
+
+## Figure saving
+
+```python
+import matplotlib.pyplot as plt
+
+ax = df["amount"].hist(bins=40)
+ax.set_title("Distribution of amount shows a long right tail")
+ax.set_xlabel("Amount")
+ax.set_ylabel("Rows")
+plt.tight_layout()
+plt.savefig(FIGURES / "amount_distribution.png", dpi=160, bbox_inches="tight")
+plt.close()
+```
+
+## Reproducible output metadata
+
+```python
+import json
+from datetime import datetime, timezone
+
+metadata = {
+    "created_at": datetime.now(timezone.utc).isoformat(),
+    "input_rows": len(df),
+    "input_columns": list(df.columns),
+    "seed": 42,
+    "notes": "Generated by data-science-analyst skill."
+}
+
+with open(REPORTS / "run_metadata.json", "w", encoding="utf-8") as f:
+    json.dump(metadata, f, indent=2, ensure_ascii=False)
+```

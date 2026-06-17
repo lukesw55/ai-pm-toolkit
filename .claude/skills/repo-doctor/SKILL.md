@@ -1,0 +1,36 @@
+---
+name: repo-doctor
+description: Read-only health check for this workspace. Use before committing changes under .claude/ or .github/agents/, when validating skills/hooks/memory consistency, or when the user asks "valida o repo", "checa as skills", "tem ref quebrada?", "algum binário grande?", "repo lint", "repo-doctor". Verifies stage aliases, memory skeleton, real path references, large files (working tree + git history), hooks cited in docs, skill frontmatter, and tracked-vs-ignored local artifacts. Reports findings only — never edits, deletes, or touches the remote.
+---
+
+# repo-doctor
+
+Read-only consistency check for this PM workspace. Run the checks below, then emit the findings table. Never edit, delete, or run anything that touches the git remote.
+
+## Checks
+
+Run each from the repo root. Treat any surprising result as a finding.
+
+1. **Stage schema** — `python3 scripts/validate_context.py` (exit 0 = ok) and `python3 scripts/advance_stage.py --list`. Confirm `active-context.md` resolves to a canonical stage; flag a raw `discover` that is not being aliased to `discovery`.
+1b. **Memory caps** — `python3 scripts/memory.py doctor` (exit 0 = ok). Flags: pointer over 2 KB, more or fewer than one ACTIVE block, missing `Current stage:`, parked slugs without a `projects/` dir or `state.md`, changelogs holding more than 3 entries or over the 6 KB soft cap (distill candidates).
+2. **Memory skeleton versioned** — `git status --short --ignored .ai/memory` should show `_templates/*` and `active-context.example.md` as versionable while real memory stays ignored. Confirm with `git check-ignore -v .ai/memory/active-context.md .ai/memory/projects .ai/memory/inbox.md .ai/memory/index.md` (no real memory leaking into git).
+3. **Real path references** — for each `references/...md` or `.claude/skills/...md` path mentioned in any `SKILL.md`, confirm the target file exists. Resolve the path before flagging (a sibling skill's `references/` dir is valid). This is the corrected check: do not flag a skill just because its own folder lacks a `references/` dir.
+4. **Large files** — working tree: `find . -type f -size +5M -not -path './.git/*'`. History: `git rev-list --objects --all | git cat-file --batch-check='%(objecttype) %(objectsize) %(rest)' | awk '/^blob/{print $2,$3}' | sort -rn | head`. Flag big blobs and note whether they are in the working tree, history, or both.
+5. **Hooks cited vs present** — for every `*.sh` named in `CLAUDE.md` and `.claude/settings*.json`, confirm the file exists under `.claude/hooks/`.
+6. **Skill frontmatter** — every `.claude/skills/*/SKILL.md` (excluding `external/`) has a YAML frontmatter block with `name` and `description`.
+7. **Local artifacts ignored** — `git status --short` shows no large untracked junk; `git check-ignore` covers `*.deb`, `**/node_modules/`, and `.ai/memory/projects/**/.browser-profile/`.
+
+## Guardrails
+
+- Read-only. Never `Edit`/`Write`/`rm`, never `git push`/`filter-repo`/`rebase`, never delete memory.
+- Cite a `path` or the exact command output for every finding.
+- Suggest a fix; do not apply it.
+
+## Output contract
+
+```
+| Severity | Area | Finding | Path / command | Suggested fix |
+|----------|------|---------|----------------|---------------|
+```
+
+Severity = Alta / Média / Baixa. End with a one-line verdict: clean, or N findings (M Alta).
