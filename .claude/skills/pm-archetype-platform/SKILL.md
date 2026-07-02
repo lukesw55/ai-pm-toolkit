@@ -107,7 +107,7 @@ explicit hand-off list before implementation
 - Transversals: `pm-transversal-stakeholder` (consumer teams as a first-class stakeholder group), `pm-transversal-docs` (developer docs, OpenAPI specs, changelog discipline).
 - Engineering pairings: your engineering architecture partner (cross-service blast radius), your backend tech lead (per-service idioms), your QA lead (contract tests, version-skew probes).
 - Inventory: run a service-inventory pass to map current consumers before changing a contract.
-- Copilot mirror: [.github/agents/pm-platform.agent.md](.github/agents/pm-platform.agent.md).
+- Copilot mirror: [.github/agents/pm-platform.agent.md](../../../.github/agents/pm-platform.agent.md).
 
 ## Success criteria
 

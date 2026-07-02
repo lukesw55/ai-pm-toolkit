@@ -12,6 +12,18 @@
 
 set -uo pipefail
 
+hash_stdin() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 | awk '{print $1}'
+  else
+    echo "hash: need sha256sum or shasum" >&2
+    return 127
+  fi
+}
+
+PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
 INPUT="$(cat)"
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // "unknown"')
 BODY=$(printf '%s' "$INPUT" | jq -r '
@@ -36,8 +48,8 @@ EOF
   exit 2
 fi
 
-HASH=$(printf '%s' "$BODY" | sha256sum | awk '{print $1}')
-FLAG_DIR="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/.humanized"
+HASH=$(printf '%s' "$BODY" | hash_stdin)
+FLAG_DIR="$PROJECT_ROOT/.claude/.humanized"
 FLAG="$FLAG_DIR/$HASH.flag"
 
 if [ -f "$FLAG" ]; then
@@ -57,9 +69,9 @@ Required workflow:
      stacks, superficial -ing analyses, vague attributions, filler).
 
   2. Mark the EXACT FINAL bytes you intend to publish:
-        $CLAUDE_PROJECT_DIR/.claude/hooks/humanize-mark.sh "<final prose body>"
+        $PROJECT_ROOT/.claude/hooks/humanize-mark.sh "<final prose body>"
      Or via stdin (recommended for multi-line bodies):
-        printf '%s' "<final body>" | $CLAUDE_PROJECT_DIR/.claude/hooks/humanize-mark.sh -
+        printf '%s' "<final body>" | $PROJECT_ROOT/.claude/hooks/humanize-mark.sh -
 
   3. Re-call $TOOL_NAME with that exact text.
 

@@ -67,29 +67,83 @@ Project memory is layered so it never floods the context window:
 
 Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `doctor`), which rotates old changelog entries into archives and keeps the pointer under its size cap. PII and raw-evidence paths are never rotated, distilled, or ingested. The shipped tree contains only the templates, so a fresh clone bootstraps its own memory.
 
+## Requirements
+
+- Claude Code with project-level `.claude/settings.json` enabled.
+- Python 3.10+ for memory, workflow, eval, and repo validation scripts.
+- Bash for hooks.
+- `jq` for hook JSON parsing.
+- Either `sha256sum` (Linux) or `shasum -a 256` (macOS) for per-content sentinels.
+
+Run the local preflight first:
+
+```bash
+bash scripts/check_requirements.sh
+```
+
 ## Install
 
-Clone into your Claude Code skills directory:
+Clone into your Claude Code skills directory or use it as a project repo:
 
 ```bash
 git clone https://github.com/lukesw55/ai-pm-toolkit.git ~/.claude/skills/ai-pm-toolkit
+cd ~/.claude/skills/ai-pm-toolkit
+bash scripts/check_requirements.sh
+python3 scripts/validate_repo.py
 ```
 
-Then in Claude Code, invoke any skill by name (for example `pm-phase-discover`), or run the orchestration entrypoint described in [`SKILL.md`](SKILL.md). The orchestrator is a skill codenamed **Umberto**: it detects the working mode, sequences the four phases, and loads the right skill at each stage.
+Then in Claude Code, invoke any skill by name (for example `pm-phase-discover`), or run the orchestration entrypoint described in [`SKILL.md`](SKILL.md). The orchestrator is a skill codenamed **Umberto**: it detects the working mode, sequences the eight workflow stages, and loads the right skill at each stage.
 
 ## Quickstart
 
 ```bash
 # 1. Bootstrap a project context
-python scripts/init_context.py my-product
+python3 scripts/init_context.py "my-product"
 
-# 2. Fill in .ai/app.md and the project profile under .ai/memory/projects/my-product/
+# 2. Verify the memory pointer and workflow hook contract
+python3 scripts/memory.py doctor
+python3 scripts/stage_context.py
 
-# 3. In Claude Code:
-#   We are starting my-product. Read the context files.
-#   Run Discover and Define. Ask only the highest-leverage missing questions.
-#   Create an experiment plan for the smallest viable proof. Update memory when done.
+# 3. Fill in .ai/app.md and the project profile under:
+#    .ai/memory/projects/my-product/
+
+# 4. In Claude Code:
+#    We are starting my-product. Read the context files.
+#    Run Discover and Define. Ask only the highest-leverage missing questions.
+#    Create an experiment plan for the smallest viable proof. Update memory when done.
 ```
+
+## Validation
+
+Use the repo doctor before shipping changes to the toolkit itself:
+
+```bash
+python3 -m py_compile scripts/*.py
+bash -n .claude/hooks/*.sh
+python3 scripts/validate_repo.py
+python3 scripts/memory.py doctor
+```
+
+`validate_repo.py` checks skill frontmatter, local markdown links, workflow-stage parsing, Claude hook settings, hook syntax, and the memory bootstrap contract. It is intentionally zero-dependency except for optional PyYAML; when PyYAML is unavailable, it falls back to minimal frontmatter checks.
+
+## Progressive loading model
+
+Each skill keeps `SKILL.md` as the control plane and pushes deeper material into `references/`. Long-running or specialized skills include `references/progressive-loading.md` with a simple table:
+
+```text
+File | Purpose | Load when
+```
+
+This keeps Claude Code from loading entire catalogues unless the task actually needs them.
+
+## Troubleshooting
+
+- **`memory.py doctor` says there is no ACTIVE block:** run `python3 scripts/init_context.py "Project Name"` or activate a project with `python3 scripts/memory.py activate <slug>`.
+- **Hooks fail with `jq: command not found`:** install `jq`, then rerun `bash scripts/check_requirements.sh`.
+- **macOS hash command fails:** hooks now fall back from `sha256sum` to `shasum -a 256`; if both are missing, install the standard command-line tools.
+- **A publish tool is blocked by `humanize-gate`:** run the `humanizer` pass, then mark the exact final bytes with `.claude/hooks/humanize-mark.sh`.
+- **A file edit is blocked by inference discipline:** remove unresolved `[INFER:]`, `[ASSUMING:]`, `[UNVERIFIED:]`, `[FROM MEMORY:]`, or `[RECALL:]` markers, or explicitly approve and mark the exact exception.
+- **Workflow stage output is too thin:** check `.ai/memory/active-context.md` has `Current stage` set to one of the canonical slugs in `.claude/skills/WORKFLOW.md`.
 
 ## Repository layout
 

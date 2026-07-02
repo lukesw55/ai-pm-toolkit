@@ -1,6 +1,14 @@
 ---
 name: pm-phase-develop
-description: Lean Double Diamond **Develop phase** skill for PMs. Invoke when the wedge is defined and the team needs to convert it into **context-rich, executable work**: PRD writing, scope slicing, backlog structure, dependency & risk management, cross-functional orchestration, and the **measurement instrumentation** that must be in place before launch. Trigger on "write a PRD", "escreva a spec", "quebre esse épico", "quais dependências?", "tracking plan", "event schema", "instrumentation", "acceptance criteria", "feature flag strategy", or when the team is about to code without a measurement plan. Also covers the PM lens on technical fluency for software products. Bridges to `pm-phase-deliver` for post-launch monitoring and A/B interpretation.
+description: >-
+  Lean Double Diamond **Develop phase** skill for PMs. Invoke when the wedge is defined and the team
+  needs to convert it into **context-rich, executable work**: PRD writing, scope slicing, backlog
+  structure, dependency & risk management, cross-functional orchestration, and the **measurement
+  instrumentation** that must be in place before launch. Trigger on "write a PRD", "escreva a spec",
+  "quebre esse épico", "quais dependências?", "tracking plan", "event schema", "instrumentation",
+  "acceptance criteria", "feature flag strategy", or when the team is about to code without a
+  measurement plan. Also covers the PM lens on technical fluency for software products. Bridges to
+  `pm-phase-deliver` for post-launch monitoring and A/B interpretation.
 ---
 
 # PM Phase — Develop

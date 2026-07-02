@@ -32,6 +32,17 @@
 
 set -uo pipefail
 
+hash_stdin() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 | awk '{print $1}'
+  else
+    echo "hash: need sha256sum or shasum" >&2
+    return 127
+  fi
+}
+
 INPUT="$(cat)"
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // "unknown"' 2>/dev/null || echo "unknown")
 FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' 2>/dev/null || echo "")
@@ -54,7 +65,7 @@ OLD=$(printf '%s' "$INPUT" | jq -r '
 
 # Sentinel override: if the user marked the exact NEW content, allow.
 if [ -n "$NEW" ]; then
-  HASH=$(printf '%s' "$NEW" | sha256sum | awk '{print $1}')
+  HASH=$(printf '%s' "$NEW" | hash_stdin)
   FLAG="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/.anti-slop/$HASH.flag"
   if [ -f "$FLAG" ]; then
     exit 0

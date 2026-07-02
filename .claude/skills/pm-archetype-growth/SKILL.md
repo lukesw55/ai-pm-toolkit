@@ -117,7 +117,7 @@ confounds, novelty, interaction with other tests
 - Launch phase: `pm-phase-deliver` (experiment interpretation, metric quality, decision).
 - Transversals: `pm-transversal-analysis` (when a number moves and you need to know why), `pm-transversal-docs` (experiment log structure in Confluence, Jira ticket hygiene around variants).
 - Engineering pairings: your QA lead (tracking-plan QA, experiment integrity), `data-science-analyst` (validate SQL / A/B maths), your engineering architecture partner when feature-flag plumbing crosses services.
-- Copilot mirror: [.github/agents/pm-growth.agent.md](.github/agents/pm-growth.agent.md).
+- Copilot mirror: [.github/agents/pm-growth.agent.md](../../../.github/agents/pm-growth.agent.md).
 
 ## Success criteria
 

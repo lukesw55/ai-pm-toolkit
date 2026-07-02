@@ -58,7 +58,7 @@ LABEL_TO_SLUG = {
 def load_stage_contract(workflow_path: Path) -> dict[str, dict[str, str]]:
     """Parse the "Stage -> Skill -> Artefact map" table in WORKFLOW.md.
 
-    Returns {slug: {pm, designer, reference, artefact, gate}}. WORKFLOW.md is the
+    Returns {slug: {pm, reference, artefact, gate}}. WORKFLOW.md is the
     single source of truth; this avoids a second hand-maintained mapping that
     would drift. Returns {} on any problem so the caller falls back to
     STAGE_TO_SKILL.
@@ -84,15 +84,14 @@ def load_stage_contract(workflow_path: Path) -> dict[str, dict[str, str]]:
             continue
         if set("".join(cells)) <= {"-"}:
             continue  # |---|---| separator row
-        if len(cells) < 7:
+        if len(cells) < 6:
             continue
-        _num, stage_label, pm, designer, reference, artefact, gate = cells[:7]
+        _num, stage_label, pm, reference, artefact, gate = cells[:6]
         slug = LABEL_TO_SLUG.get(stage_label.lower())
         if not slug:
             continue
         contract[slug] = {
             "pm": pm,
-            "designer": designer,
             "reference": reference,
             "artefact": artefact,
             "gate": gate,
@@ -126,7 +125,7 @@ def build_stage_block(stage: str, contract: dict[str, dict[str, str]]) -> list[s
     return [
         f"Current workflow stage: {stage}{pos}",
         "## Inputs",
-        f"- Layer 3 (reference, stable): {row['pm']} + {row['designer']}; ref: {row['reference']}",
+        f"- Layer 3 (reference, stable): {row['pm']}; ref: {row['reference']}",
         f"- Layer 4 (working, this project): {layer4}",
         "## Process",
         "Produce the stage artefact with the reference skills above; transversais apply at every stage.",

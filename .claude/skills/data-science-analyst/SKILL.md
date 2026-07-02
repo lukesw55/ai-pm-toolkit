@@ -7,6 +7,10 @@ description: Technical data-science / analyst lens for a product PM workspace. U
 
 > Cross-phase technical skill. Sits **under** the PM analytical layer (`pm-transversal-analysis`): that one decides *what the data means for product*; this one decides *whether the analysis itself is sound*.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## When to invoke
 
 Pull this skill when the user has actual data or analytical code in front of them and needs the **technical correctness** of the analysis to be the load-bearing question:

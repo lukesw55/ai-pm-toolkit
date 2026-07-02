@@ -108,7 +108,7 @@ technical, compliance, commercial, change-management
 - Launch: `pm-phase-deliver` with extra-staged rollout and per-account activation.
 - Transversals: `pm-transversal-stakeholder` (admin/IT/security alignment, exec sign-off), `pm-transversal-docs` (DPA-friendly Confluence pages, audit-event catalogue).
 - Engineering pairings: your engineering architecture partner (identity and data-model decisions), your QA lead (audit log coverage, deprovisioning checks), your security/compliance lead (CRA evidence trail).
-- Copilot mirror: [.github/agents/pm-enterprise.agent.md](.github/agents/pm-enterprise.agent.md).
+- Copilot mirror: [.github/agents/pm-enterprise.agent.md](../../../.github/agents/pm-enterprise.agent.md).
 
 ## Success criteria
 

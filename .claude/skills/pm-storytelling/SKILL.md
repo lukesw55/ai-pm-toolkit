@@ -7,6 +7,10 @@ description: Turn raw PM source material — discovery transcripts, evidence dos
 
 Forked from the standalone `assignment-storytelling` skill and adapted for the PM skills repo. The job is the same: take an assignment, brief, evidence pile, or rough draft and produce a clear, compelling narrative that preserves the original intent. The change is the lane: this skill **generates** narrative; voice polish and outbound delivery are someone else's job in this repo (see next section).
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## Why this exists
 
 A lot of PM output reads like an assembled report — facts stacked on facts, no spine, no point of view. Storytelling adds a spine. But "more story" is not the goal — clarity is. Every scene, hook, metaphor, and example must serve the assignment, not decorate weak content. When source material is thin, the right move is to mark gaps explicitly (`[NEEDS SOURCE]`), not invent.

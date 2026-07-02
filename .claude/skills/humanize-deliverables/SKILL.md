@@ -1,6 +1,17 @@
 ---
 name: humanize-deliverables
-description: Force a humanizer pass before delivering ANY user-facing prose artefact — Confluence pages, Slack messages, emails, release notes, exec memos, PRDs, DACI rationale, customer-facing copy, status reports, FAQs, knowledge-base articles, public docs. Trigger BEFORE the artefact leaves the workspace, never after the user has already seen the "final" draft. Pull `.claude/skills/humanizer/SKILL.md` and apply its 29-pattern catalog. Skip ONLY for inline conversational replies to the user, raw machine output (logs/JSON/CSV), code/config, and structured ticket fields. Pushy by design — when in doubt, humanize. Trigger phrases: "post to Confluence", "send to Slack", "draft the release notes", "memo for leadership", "customer email", "publica essa página", "manda no Slack", "rascunha o comms", "final draft", or whenever about to call MCP tools that publish/send text (`createConfluencePage`, `updateConfluencePage`, `slack_send_message`, `slack_send_message_draft`).
+description: >-
+  Force a humanizer pass before delivering ANY user-facing prose artefact — Confluence pages, Slack
+  messages, emails, release notes, exec memos, PRDs, DACI rationale, customer-facing copy, status
+  reports, FAQs, knowledge-base articles, public docs. Trigger BEFORE the artefact leaves the
+  workspace, never after the user has already seen the "final" draft. Pull
+  `.claude/skills/humanizer/SKILL.md` and apply its 29-pattern catalog. Skip ONLY for inline
+  conversational replies to the user, raw machine output (logs/JSON/CSV), code/config, and structured
+  ticket fields. Pushy by design — when in doubt, humanize. Trigger phrases: "post to Confluence",
+  "send to Slack", "draft the release notes", "memo for leadership", "customer email", "publica essa
+  página", "manda no Slack", "rascunha o comms", "final draft", or whenever about to call MCP tools
+  that publish/send text (`createConfluencePage`, `updateConfluencePage`, `slack_send_message`,
+  `slack_send_message_draft`).
 ---
 
 # Humanize-deliverables: voice gate before delivery

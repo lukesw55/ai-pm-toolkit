@@ -119,7 +119,7 @@ legal / privacy / safety review needed; regulated-domain implications
 - Downstream: `pm-phase-deliver` (release gate by eval pass-rate, post-launch A/B interpretation with AI variance in mind).
 - Transversals: `pm-transversal-analysis` (qualitative review of outputs), `pm-transversal-docs` (model card, eval log, failure-mode log in Confluence).
 - Engineering pairings: your engineering architecture partner for inference architecture; your QA lead for eval / failure-probe design; `claude-api` skill for Anthropic SDK implementation.
-- Copilot mirror: [.github/agents/pm-ai.agent.md](.github/agents/pm-ai.agent.md) (kept for GitHub Copilot harness compatibility).
+- Copilot mirror: [.github/agents/pm-ai.agent.md](../../../.github/agents/pm-ai.agent.md) (kept for GitHub Copilot harness compatibility).
 
 ## Success criteria
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-grade_evals.py — Grade eval runs across all 7 PM skills.
+grade_evals.py — Grade eval runs across PM and data-analysis skills.
 
 Walks .claude/skills/<skill>/workspace/iteration-1/ and produces:
 - grading.json per run (with_skill + without_skill)
@@ -157,6 +157,39 @@ ASSERTIONS = {
             ("Acknowledges pattern alignment or mixed signal", hasr(r"aligned|pattern 1|both support|converge|reinforc|support each other")),
         ],
     },
+    "data-science-analyst": {
+        "audit-powerbi-export-data-quality": [
+            ("Says not to trust/ship the metric yet", hasr(r"no|não|do not|don't|hold|not ship|não confiar")),
+            ("Flags stage normalization", hasr(r"stage|closed won|cw|normaliz|map|allowlist")),
+            ("Flags amount parsing", hasr(r"amount|usd|strip|comma|numeric|parse")),
+            ("Flags mixed date parsing", hasr(r"created_date|date|to_datetime|coerce|null")),
+            ("Clarifies cohort definition", hasr(r"cohort|definition|first deal|signup|quarter")),
+            ("Recommends profiling / validation before analysis", hasr(r"profile_dataset|profile|clean|validat|audit")),
+        ],
+        "validate-ab-test-significance": [
+            ("Computes or states ~1.2pp lift", hasr(r"1\.2|1,2|percentage point|pp")),
+            ("Finds not statistically significant", hasr(r"not significant|não significativo|p.?value|p\s*[≈=]|0\.1[5-9]|0,1[5-9]")),
+            ("Mentions confidence interval crossing zero", hasr(r"confidence interval|ci|interval|cross|straddl|zero")),
+            ("Mentions underpowered / more sample needed", hasr(r"power|underpower|sample|22k|n\s*≈")),
+            ("Requires SRM check", hasr(r"srm|sample ratio mismatch|chi.?square")),
+            ("Requires guardrails / retention checks", hasr(r"guardrail|retention|day.?7|day.?14")),
+        ],
+        "cohort-retention-sql-audit": [
+            ("Finds missing denominator / cohort size", hasr(r"denominator|cohort size|cohort_size|retention rate")),
+            ("Flags week-offset / week-0 issue", hasr(r"week.?0|week offset|off.?by.?one|activation week")),
+            ("Mentions weekday-of-activation bias", hasr(r"weekday|monday|sunday|partial week|bias")),
+            ("Requires post-activation event filter", hasr(r"event_date.*cohort_date|post.?activation|after activation")),
+            ("Recommends rewrite / validation", hasr(r"rewrite|fix|validat|not ship|fails?")),
+        ],
+        "leakage-check-baseline-ml-churn-model": [
+            ("Treats AUC 0.94 as leakage signal", hasr(r"leakage|too good|0\.94|strong signal")),
+            ("Flags temporal leakage", hasr(r"temporal|as.?of|snapshot|future")),
+            ("Questions last-login/support-window features", hasr(r"last.?login|support.?ticket|90.?day")),
+            ("Rejects random split; recommends time split", hasr(r"random|80/20|time.?based|q1|q4")),
+            ("Requires target definition", hasr(r"target definition|churned|cancellation|no.?activity|mrr")),
+            ("Recommends baseline comparison/rebuild", hasr(r"logistic|baseline|rebuild|re.?evaluat")),
+        ],
+    }
 }
 
 
@@ -198,7 +231,7 @@ def load_timing(path: Path):
 def grade_all():
     results_by_skill = {}
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
-        if not skill_dir.is_dir() or not skill_dir.name.startswith("pm-"):
+        if not skill_dir.is_dir() or (not skill_dir.name.startswith("pm-") and skill_dir.name != "data-science-analyst"):
             continue
         skill = skill_dir.name
         iteration = skill_dir / "workspace" / "iteration-1"

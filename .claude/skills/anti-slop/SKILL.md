@@ -9,6 +9,10 @@ Remove AI tells from code, comments, docs, repo structure, PR text, and Claude C
 
 This skill is a **gate**, not a writing style guide. Use it before producing or modifying anything that might enter the codebase or a developer workflow.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## Non-negotiables
 
 1. Ship the smallest useful change.

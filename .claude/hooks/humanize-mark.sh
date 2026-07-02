@@ -12,6 +12,17 @@
 
 set -euo pipefail
 
+hash_stdin() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 | awk '{print $1}'
+  else
+    echo "hash: need sha256sum or shasum" >&2
+    return 127
+  fi
+}
+
 if [ "$#" -ge 1 ] && [ "$1" != "-" ]; then
   BODY="$1"
 else
@@ -23,7 +34,7 @@ if [ -z "$BODY" ]; then
   exit 1
 fi
 
-HASH=$(printf '%s' "$BODY" | sha256sum | awk '{print $1}')
+HASH=$(printf '%s' "$BODY" | hash_stdin)
 DIR="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/.humanized"
 mkdir -p "$DIR"
 touch "$DIR/$HASH.flag"

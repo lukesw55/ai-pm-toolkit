@@ -7,6 +7,10 @@ description: Force every inference, assumption, or unverified claim to be surfac
 
 Every claim the assistant emits is either **verified** (anchored to a tool call in this transcript, an explicit user statement, or a fresh file read) or **inferred** (filled in from priors, pattern-matching, or convenience). Veiled inference is when inferred content is presented as verified. This skill makes that impossible.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## Prime directive
 
 > No silent inference. Every inference is labelled. Every blocking inference is approved before action.

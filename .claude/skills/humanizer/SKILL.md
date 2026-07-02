@@ -33,6 +33,10 @@ Remove signs of AI-generated writing from prose so it reads as human-written and
 
 The methodology is rooted in what these detectors actually compute, not vibes. Vocabulary cleanup alone fails — detectors operate on three signal layers and every layer must be unremarkable for the text to pass.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## Your task
 
 When given text to humanise:

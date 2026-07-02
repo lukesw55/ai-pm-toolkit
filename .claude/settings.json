@@ -4,15 +4,23 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/memory-context.sh", "timeout": 5, "statusMessage": "Loading memory hot layer..." }
+          {
+            "type": "command",
+            "command": ".claude/hooks/memory-context.sh",
+            "timeout": 5,
+            "statusMessage": "Loading memory hot layer..."
+          }
         ]
       }
     ],
     "UserPromptSubmit": [
       {
-        "matcher": "*",
         "hooks": [
-          { "type": "command", "command": "python3 scripts/stage_context.py", "timeout": 5000 }
+          {
+            "type": "command",
+            "command": "python3 scripts/stage_context.py",
+            "timeout": 5
+          }
         ]
       }
     ],
@@ -20,28 +28,52 @@
       {
         "matcher": "Read|Edit|Write",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/check-project-isolation.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/check-project-isolation.sh",
+            "timeout": 5
+          }
         ]
       },
       {
         "matcher": "Write|Edit|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/anti-slop-gate.sh", "timeout": 5 },
-          { "type": "command", "command": ".claude/hooks/inference-discipline-gate.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/anti-slop-gate.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/inference-discipline-gate.sh",
+            "timeout": 5
+          }
         ]
       },
       {
         "matcher": "mcp__claude_ai_Atlassian_Rovo__(createConfluencePage|updateConfluencePage|createJiraIssue|editJiraIssue|addCommentToJiraIssue|createConfluenceFooterComment|createConfluenceInlineComment)|mcp__claude_ai_Slack__(slack_send_message|slack_send_message_draft|slack_schedule_message|slack_create_canvas|slack_update_canvas)",
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/humanize-gate.sh", "timeout": 5 },
-          { "type": "command", "command": ".claude/hooks/inference-discipline-gate.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/humanize-gate.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/inference-discipline-gate.sh",
+            "timeout": 5
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": ".claude/hooks/scope-bloat-gate.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": ".claude/hooks/scope-bloat-gate.sh",
+            "timeout": 5
+          }
         ]
       }
     ]
