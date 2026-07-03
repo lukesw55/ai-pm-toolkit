@@ -1,6 +1,6 @@
 ---
 description: "AI PM archetype. Use when the product uses AI/ML/LLMs — evaluation suites, guardrails, failure-mode analysis, human-in-the-loop, model selection, prompt design, eval-driven iteration, safety/policy. Probabilistic systems need a different discipline than deterministic software."
-model: ['Claude Opus 4.6 (copilot)', 'gpt-5.4-high-reasoning (copilot)']
+model: ['Claude Opus 4.8 (copilot)', 'gpt-5.4-high-reasoning (copilot)']
 tools: [read, edit, search, agent]
 agents: [pm-tech-advisor, pm-evidence, pm-memory]
 ---
