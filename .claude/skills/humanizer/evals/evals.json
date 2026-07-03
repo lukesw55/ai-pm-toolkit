@@ -5,15 +5,13 @@
       "id": 1,
       "name": "humanize-exec-memo",
       "prompt": "Humanize this exec memo paragraph: 'In today's fast-paced landscape, it is crucial that we leverage a comprehensive approach...'",
-      "expected_output": "Removes detector-like phrases, varies rhythm, preserves facts, and returns production-ready prose plus a brief audit.",
-      "files": []
+      "expected_output": "Removes detector-like phrases, varies rhythm, preserves facts, and returns production-ready prose plus a brief audit."
     },
     {
       "id": 2,
       "name": "preserve-technical-meaning",
       "prompt": "Humanize a technical PRD excerpt without changing metric names, dates, or constraints.",
-      "expected_output": "Keeps all load-bearing facts intact while reducing formulaic AI tone and explaining any changes that affect register.",
-      "files": []
+      "expected_output": "Keeps all load-bearing facts intact while reducing formulaic AI tone and explaining any changes that affect register."
     }
   ]
 }

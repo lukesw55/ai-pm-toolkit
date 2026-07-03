@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Soft project-isolation guard.
-# PreToolUse hook on Read|Edit|Write. Warns (does not block) when a tool
-# touches `.ai/memory/projects/<slug>/...` and <slug> is not the active
-# project recorded in `.ai/memory/active-context.md`.
+# PreToolUse hook on Read|Edit|Write|NotebookEdit. Warns (does not block)
+# when a tool touches `.ai/memory/projects/<slug>/...` and <slug> is not
+# the active project recorded in `.ai/memory/active-context.md`.
 #
 # Same customer can legitimately appear in two projects on different
 # product surfaces — but the warning forces an explicit confirmation
@@ -14,7 +14,7 @@
 set -euo pipefail
 
 INPUT="$(cat)"
-FILE_PATH="$(jq -r '.tool_input.file_path // empty' <<<"$INPUT")"
+FILE_PATH="$(jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' <<<"$INPUT")"
 TOOL_NAME="$(jq -r '.tool_name // "?"' <<<"$INPUT")"
 
 [[ -z "$FILE_PATH" ]] && exit 0

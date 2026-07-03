@@ -2,8 +2,7 @@
 # SessionStart hook: inject the hot memory layer (index + active-context pointer).
 # Both files are policy-capped (pointer <=2 KB, index ~1 line/project); the 8 KB
 # guard below only trips if that policy drifts -- memory.py doctor flags it first.
-# Register in .claude/settings.json under hooks.SessionStart once the Janice hook
-# (~/Janice/personal-secretary/scripts/session-start-hook.sh) stops injecting umberto memory.
+# Registered in .claude/settings.json under hooks.SessionStart.
 
 set -u
 

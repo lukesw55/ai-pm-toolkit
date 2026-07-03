@@ -1,21 +1,19 @@
 ---
 name: humanizer
 version: 3.0.0
-description: |
+description: >-
   Remove signs of AI-generated writing from text so it passes production AI
   detectors (GPTZero, Copyleaks, Originality.ai, Turnitin AI, Winston, Sapling,
   Pangram). Use when editing or reviewing any prose that needs to read as
-  human-written: essays, articles, blog posts, exec memos, Confluence pages,
-  Slack messages, release notes, customer comms, LinkedIn posts, ghostwritten
-  drafts, AI-generated text that needs rewriting. Methodology rooted in the
-  three signal layers detectors combine — token-level perplexity, sentence-level
-  burstiness, and n-gram / lexical / structural fingerprints — with concrete
-  counter-moves for each. Pairs with anti-slop (structural patterns), and is
-  the hard gate inside humanize-deliverables for outbound prose. Trigger on
-  "humanise this", "passa no detector", "remove AI tells", "make this sound
-  human", "fix the AI tone", "GPTZero", "Copyleaks", "Originality", "esse
-  texto tá com cara de IA", "tira o ar de ChatGPT", "detector de IA",
-  "burstiness", "perplexity", "stylometry", "AI-written".
+  human-written: essays, exec memos, Confluence pages, Slack messages, release
+  notes, customer comms, ghostwritten drafts, any AI-generated text that needs
+  rewriting. Methodology rooted in the three signal layers detectors combine —
+  token-level perplexity, sentence-level burstiness, and n-gram / lexical /
+  structural fingerprints — with concrete counter-moves for each. For purely
+  structural tells (label-colon bullets, emoji headings) use anti-slop instead;
+  this skill owns the prose. Trigger on "humanise this", "passa no detector",
+  "remove AI tells", "esse texto tá com cara de IA", "GPTZero" — full trigger
+  list and related skills live in the skill body.
 license: MIT
 compatibility: claude-code opencode
 allowed-tools:
@@ -32,6 +30,16 @@ allowed-tools:
 Remove signs of AI-generated writing from prose so it reads as human-written and passes production AI detectors (GPTZero, Copyleaks, Originality.ai, Turnitin AI, Winston, Sapling, Pangram).
 
 The methodology is rooted in what these detectors actually compute, not vibes. Vocabulary cleanup alone fails — detectors operate on three signal layers and every layer must be unremarkable for the text to pass.
+
+## Trigger phrases
+
+Invoke on: "humanise this", "passa no detector", "remove AI tells", "make this sound human", "fix the AI tone", "GPTZero", "Copyleaks", "Originality", "esse texto tá com cara de IA", "tira o ar de ChatGPT", "detector de IA", "burstiness", "perplexity", "stylometry", "AI-written".
+
+Typical material: essays, articles, blog posts, exec memos, Confluence pages, Slack messages, release notes, customer comms, LinkedIn posts, ghostwritten drafts, AI-generated text that needs rewriting.
+
+## Related skills
+
+Pairs with `anti-slop`, which owns the structural patterns (label-colon bullets, decorative emoji headings, follow-up spam); this skill owns the prose, and when text mixes prose and structure both apply. This skill is also the hard gate inside `humanize-deliverables` for outbound prose — the note at the end of the Pattern catalogue section has the details.
 
 ## Progressive loading
 

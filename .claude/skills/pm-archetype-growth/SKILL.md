@@ -1,6 +1,18 @@
 ---
 name: pm-archetype-growth
-description: Growth PM archetype lens. Invoke when the focus is acquisition, activation, retention, expansion, monetisation, or funnel conversion — experimentation-heavy, analytical before prescriptive. Covers AARRR funnels, North Star → KPI tree cascades, hypothesis-driven A/B tests, primary metric + guardrail design, decision rules (ship/iterate/kill), winner's-curse traps, novelty effects, segment interactions. Trigger on "acquisition", "activation", "retention", "expansion", "monetisation", "AARRR", "funil", "funnel", "conversion", "drop-off", "onboarding flow", "upgrade flow", "pricing test", "lifecycle", "habit formation", "cohort retention", "viral coefficient", "NRR", "ARPU", "LTV/CAC", "ship/iterate/kill", "experiment design", "A/B test", "experimento", "primary metric", "guardrail metric", "novelty effect", "winner's curse", "novel funnel hipótese", "como melhorar a ativação?". Pairs with `pm-phase-define` (KPI trees + pricing), `pm-phase-develop` (instrumentation), `pm-phase-deliver` (experiment interpretation, metric quality, post-launch monitoring), `pm-transversal-analysis` (triangulating quali+quant when numbers move), and `data-science-analyst` (validating the SQL / experiment maths). For non-growth launch readouts (release notes, generic post-launch monitoring, A/B tests on features that aren't funnel-shaped), use `pm-phase-deliver` instead — this skill is the lens that brings growth-experimentation discipline.
+description: >-
+  Growth PM archetype lens. Invoke when the focus is acquisition, activation,
+  retention, expansion, monetisation, or funnel conversion —
+  experimentation-heavy, analytical before prescriptive. Covers AARRR funnels,
+  North Star → KPI tree cascades, hypothesis-driven A/B tests, primary metric +
+  guardrail design, decision rules (ship/iterate/kill), winner's-curse traps,
+  novelty effects, and segment interactions. Trigger on "AARRR", "funil",
+  "experimento", "como melhorar a ativação?", "ship/iterate/kill", and any ask
+  about funnel drop-offs, cohort retention, pricing tests, or A/B experiment
+  design. For non-growth launch readouts (release notes, generic post-launch
+  monitoring, A/B tests on features that aren't funnel-shaped), use
+  pm-phase-deliver instead — this skill is the lens that brings
+  growth-experimentation discipline.
 ---
 
 # PM Archetype — Growth products
@@ -23,6 +35,10 @@ The work is about moving a funnel-stage metric or a monetisation outcome:
 - revenue (MRR growth, ARPU, LTV:CAC)
 
 Also invoke when the team is about to run an A/B test and the metric / decision-rule design needs to be tightened.
+
+Trigger phrases that route here include "acquisition", "activation", "retention", "expansion", "monetisation", "AARRR", "funil", "funnel", "conversion", "drop-off", "onboarding flow", "upgrade flow", "pricing test", "lifecycle", "habit formation", "cohort retention", "viral coefficient", "NRR", "ARPU", "LTV/CAC", "ship/iterate/kill", "experiment design", "A/B test", "experimento", "primary metric", "guardrail metric", "novelty effect", "winner's curse", "novel funnel hipótese", "como melhorar a ativação?".
+
+Do not invoke for non-growth launch readouts — release notes, generic post-launch monitoring, A/B tests on features that aren't funnel-shaped. Those belong to `pm-phase-deliver`; this skill is the lens that brings growth-experimentation discipline.
 
 ## Required reading before output
 
@@ -112,10 +128,10 @@ confounds, novelty, interaction with other tests
 
 ## Integration
 
-- Upstream: `pm-phase-define` (KPI tree, cascade, North Star).
-- Build phase: `pm-phase-develop` (tracking plan + feature flag strategy + experiment scaffolding).
-- Launch phase: `pm-phase-deliver` (experiment interpretation, metric quality, decision).
-- Transversals: `pm-transversal-analysis` (when a number moves and you need to know why), `pm-transversal-docs` (experiment log structure in Confluence, Jira ticket hygiene around variants).
+- Upstream: `pm-phase-define` (KPI tree, cascade, North Star, pricing & packaging).
+- Build phase: `pm-phase-develop` (instrumentation — tracking plan + feature flag strategy + experiment scaffolding).
+- Launch phase: `pm-phase-deliver` (experiment interpretation, metric quality, post-launch monitoring, decision).
+- Transversals: `pm-transversal-analysis` (triangulating quali+quant when a number moves and you need to know why), `pm-transversal-docs` (experiment log structure in Confluence, Jira ticket hygiene around variants).
 - Engineering pairings: your QA lead (tracking-plan QA, experiment integrity), `data-science-analyst` (validate SQL / A/B maths), your engineering architecture partner when feature-flag plumbing crosses services.
 - Copilot mirror: [.github/agents/pm-growth.agent.md](../../../.github/agents/pm-growth.agent.md).
 

@@ -7,6 +7,10 @@ description: Cross-phase skill for **PM documentation in Confluence and Jira** â
 
 > Transversal skill. Applies to every Double Diamond phase. The question is never "do we need docs?" â€” it's "where does this live, what template, and how does it stay alive?"
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## When to use this skill
 
 Invoke when:

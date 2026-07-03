@@ -173,6 +173,10 @@ def main() -> int:
     if stage:
         contract = load_stage_contract(repo_root / ".claude" / "skills" / "WORKFLOW.md")
         lines.extend(build_stage_block(stage, contract))
+    elif not ctx_path.exists():
+        # Fresh clone: advance_stage.py exits 2 without a pointer, so point
+        # at the bootstrap that creates it.
+        lines.append('No project context yet. Run: python scripts/init_context.py "<project-name>"')
     else:
         lines.append("No active stage set. Run: python scripts/advance_stage.py <stage-slug>")
         lines.append(f"Valid stages: {', '.join(STAGES)}")

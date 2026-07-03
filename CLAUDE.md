@@ -73,7 +73,7 @@ Before stating any claim about external state, before any tool call whose input 
 
 Core rules:
 
-- Never present an inference as a fact. Tag it: `[INFER: ...]`, `[ASSUMING: ...]`, `[UNVERIFIED: ...]`, `[FROM MEMORY: ...]`.
+- Never present an inference as a fact. Tag it: `[INFER: ...]`, `[ASSUMING: ...]`, `[UNVERIFIED: ...]`, `[FROM MEMORY: ...]`, `[RECALL: ...]`.
 - Memory is prior, not proof. Reverify with a tool call before recommending action on a memorised fact.
 - Auto-pause and request approval before editing code on inferred intent, calling irreversible tools, writing memory with inferred facts, recommending a fix to a file not read this turn, converting relative dates to absolute, attributing a quote to a named person, or choosing between two plausible interpretations.
 - Platform evidence never proves variant status: a claim about a specific product variant stays **TBD** until evidence names that exact variant.

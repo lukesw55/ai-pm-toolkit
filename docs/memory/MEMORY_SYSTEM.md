@@ -16,12 +16,17 @@ This system is inspired by navigable memory structures: information is easier to
 
 ```text
 .ai/memory/
-├── active-context.md
-├── index.md
-├── inbox.md
+├── active-context.md        # hot pointer (≤2 KB), written by init/park/activate
+├── index.md                 # one line per known project
+├── inbox.md                 # manual scratch — no script reads or writes it
+├── context-events.jsonl     # context-switch log (memory.py + context_watch.py)
 ├── people/
 ├── projects/
 │   └── <slug>/
+│       ├── state.md             # read FIRST on resume; park/close blocks
+│       ├── session-kickoff.md   # working agreement; read after state.md
+│       ├── changelog.md         # 3 newest entries (memory.py log)
+│       ├── changelog-archive.md # older entries, rotated verbatim
 │       ├── profile.md
 │       ├── decisions.md
 │       ├── experiments.md
@@ -39,7 +44,16 @@ The single source for what project is currently in focus.
 A simple map of known projects, people, domains, and where to look next.
 
 ### `inbox.md`
-Temporary raw notes, copied facts, rough observations, meeting snippets, or loose findings that are not yet organized.
+Temporary raw notes, copied facts, rough observations, meeting snippets, or loose findings that are not yet organized. Manual only: no script creates, reads, or rotates it.
+
+### `projects/<slug>/state.md`
+Where things stand. Newest-first park/close blocks written by `memory.py park`; the pointer names it as the first file to read on resume.
+
+### `projects/<slug>/session-kickoff.md`
+The project's working agreement — goal, wedge, metric, stakeholders, traps. Read after `state.md`; `memory.py distill` warns when it grows past its soft cap.
+
+### `projects/<slug>/changelog.md`
+Session history via `memory.py log`. Keeps the 3 newest entries; older ones rotate verbatim into `changelog-archive.md`.
 
 ### `projects/<slug>/profile.md`
 The project's operating profile:
@@ -80,8 +94,8 @@ Patterns, lessons, recurring pitfalls, and what to repeat.
 Before a task:
 
 1. read `active-context.md`
-2. read the active project's `profile.md`
-3. scan `decisions.md` and `experiments.md`
+2. read the active project's `state.md`, then `session-kickoff.md`
+3. scan `profile.md`, `decisions.md`, `experiments.md`, and the newest `changelog.md` entries
 4. check `inbox.md` for fresh raw notes
 
 After a task:

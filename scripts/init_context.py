@@ -44,6 +44,22 @@ def main() -> int:
 
     title = " ".join(sys.argv[1:]).strip()
     slug = slugify(title)
+
+    # Guard the hot pointer: memory.py activate refuses to switch while a
+    # project is ACTIVE, and init must not clobber what activate protects —
+    # the ACTIVE block and the parked/closed list would be lost.
+    active_context = MEMORY / "active-context.md"
+    if active_context.exists():
+        pointer = active_context.read_text(encoding="utf-8", errors="replace")
+        match = re.search(r"^## ACTIVE: `([^`]+)`", pointer, re.M)
+        if match and match.group(1) != slug:
+            print(
+                f"Refusing to overwrite active-context.md: '{match.group(1)}' is still active.\n"
+                f"Run: python scripts/memory.py park {match.group(1)}  # then retry init",
+                file=sys.stderr,
+            )
+            return 2
+
     project_dir = PROJECTS / slug
     project_dir.mkdir(parents=True, exist_ok=True)
 
@@ -53,6 +69,8 @@ def main() -> int:
         "experiments.md": "experiment-log.md",
         "glossary.md": "glossary.md",
         "retrospective.md": "retrospective.md",
+        "state.md": "state.md",
+        "session-kickoff.md": "session-kickoff.md",
     }
 
     for output_name, template_name in files.items():
@@ -63,7 +81,12 @@ def main() -> int:
                 encoding="utf-8",
             )
 
-    active_context = MEMORY / "active-context.md"
+    # Warm-layer seed: memory.py log creates this on first entry, but the
+    # pointer tells readers to open it on resume, so it must exist from day 0.
+    changelog = project_dir / "changelog.md"
+    if not changelog.exists():
+        changelog.write_text(f"# {title}\n\n", encoding="utf-8")
+
     active_context.write_text(
         "\n".join(
             [
@@ -76,7 +99,7 @@ def main() -> int:
                 f"- **Project**: {title}",
                 f"- **Slug**: `{slug}`",
                 "- **Current stage**: discovery",
-                f"- Read FIRST on resume: `projects/{slug}/state.md`, then `session-kickoff.md`",
+                f"- Read FIRST on resume: `projects/{slug}/state.md`, then `projects/{slug}/session-kickoff.md`",
                 "- Next: Fill in the project profile, capture discovery notes, and define the first testable wedge.",
                 "",
                 "## Parked / closed (1 line each; detail in `projects/<slug>/state.md`)",

@@ -15,6 +15,10 @@ description: >-
 
 > Double Diamond Phase 3 of 4. Converts a defined wedge into executable work with explicit scope, acceptance, dependencies, instrumentation, and cross-functional alignment.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## When to use this skill
 
 Invoke when:

@@ -61,8 +61,13 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 | Transversal | `pm-transversal-stakeholder` | DACI/RACI/RAPID, exec reporting, stakeholder mapping |
 | Transversal | `pm-transversal-docs` | Confluence structure & templates, Jira ticket hygiene, linking & automation |
 | Transversal | `pm-transversal-analysis` | qualitative synthesis, quantitative analysis (HogQL), triangulation, media/transcript parsing |
+| Transversal | `pm-prioritization-regua-comum` | Impact × Effort with one shared ruler (ARR/Abrangência/CRA), Abrangência lock, HIPO weighting — used at stages 1 and 5 |
+| Transversal | `pm-storytelling` | narrative spine (tension → insight → change → takeaway) for memos, PRD openers, discovery syntheses, QBR storylines |
+| Transversal | `data-science-analyst` | technical correctness of the analysis itself: dataset profiling, SQL audits, A/B validation, leakage checks |
+| Quality gate | `inference-discipline` | every inference labelled and approved before action; the hallucination gate behind `inference-discipline-gate.sh` |
+| Quality gate | `anti-slop` + `humanizer` + `humanize-deliverables` | slop removal split by surface — see the slop-removal table in `WORKFLOW.md` |
 
-The 8-stage workflow and hooks for stage-advancement are documented in `.claude/skills/WORKFLOW.md`.
+The 8-stage workflow and hooks for stage-advancement are documented in `.claude/skills/WORKFLOW.md`. The archetype lenses (`pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform`) are skills too — they stack on top of any phase skill when the product context is non-default.
 
 ## Archetype agents (for specialised contexts)
 

@@ -7,6 +7,10 @@ description: Cross-phase skill for **stakeholder alignment, decision-rights desi
 
 > Transversal skill — useful in every Double Diamond phase whenever humans must converge on a decision. Complements the phase skills with explicit decision-architecture artefacts.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## When to use this skill
 
 Invoke when:

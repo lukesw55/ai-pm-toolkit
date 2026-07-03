@@ -12,6 +12,7 @@ Walks .claude/skills/<skill>/workspace/iteration-1/ and produces:
 import json
 import re
 import statistics
+import sys
 from html import escape
 from pathlib import Path
 
@@ -189,7 +190,83 @@ ASSERTIONS = {
             ("Requires target definition", hasr(r"target definition|churned|cancellation|no.?activity|mrr")),
             ("Recommends baseline comparison/rebuild", hasr(r"logistic|baseline|rebuild|re.?evaluat")),
         ],
-    }
+    },
+    "anti-slop": {
+        "remove-ai-slop-from-readme-section": [
+            ("Rewrite drops marketing hype", lambda t: not re.search(r"empowers|seamless|game.?chang|revolutioniz", t)),
+            ("Rewrite drops filler openers", lambda t: not re.search(r"in today's|it is crucial", t)),
+            ("Keeps the concrete function of the thing described", hasr(r"toolkit|skill|team|does|provides")),
+            ("Names what was cut and why", hasr(r"removed|cut|dropped|slop|hype|because")),
+        ],
+        "block-unrequested-plan-file": [
+            ("Flags PLAN.md/SUMMARY.md as forbidden artefacts", hasr(r"plan\.md|summary\.md")),
+            ("Recommends deleting the unrequested files", hasr(r"delete|remove|rm |drop")),
+            ("References the anti-slop rule or gate", hasr(r"anti.?slop|forbidden|unrequested|gate")),
+            ("Does not endorse keeping them", lambda t: not re.search(r"keep (?:the )?(?:plan|summary)", t)),
+        ],
+    },
+    "humanize-deliverables": {
+        "gate-before-slack-send": [
+            ("Names the humanizer pass as prerequisite", hasr(r"humaniz")),
+            ("Mentions the sha256 sentinel / mark script", hasr(r"sha256|sentinel|humanize-mark|mark")),
+            ("Says the gate blocks the send otherwise", hasr(r"block|gate|refus")),
+            ("Produces an actual Slack draft", hasr(r"draft|slack")),
+        ],
+    },
+    "humanizer": {
+        "humanize-exec-memo": [
+            ("Rewrite avoids 'fast-paced landscape'", not_has("fast-paced")),
+            ("Rewrite avoids 'leverage'", not_has("leverage")),
+            ("Rewrite avoids 'crucial'", not_has("crucial")),
+            ("Keeps the memo's substance", hasr(r"memo|we |our |team")),
+        ],
+        "preserve-technical-meaning": [
+            ("Retains numbers/dates", hasr(r"\d")),
+            ("States technical content preserved", hasr(r"preserv|unchanged|intact|same|não alter")),
+            ("Actually rewrites the prose", hasr(r"rewrit|humaniz|revis|adjust")),
+        ],
+    },
+    "inference-discipline": {
+        "ambiguous-flow-approval": [
+            ("Does not edit before clarifying", hasr(r"before edit|don't edit|não edit|ask|clarif|approv")),
+            ("Names the onboarding flow candidate", has("onboarding")),
+            ("Names the checkout flow candidate", has("checkout")),
+            ("Tags the interpretation as inference needing OK", hasr(r"\[infer|inference|assumption|needs ok|approval")),
+        ],
+        "memory-not-proof": [
+            ("Treats memory as prior, not proof", hasr(r"not proof|prior|reverif|re-?verif|stale")),
+            ("Requires verification before the outbound message", hasr(r"verif|check|confirm|source")),
+            ("Marks the launch date unverified until checked", hasr(r"\[unverified|\[from memory|unverified|tbd")),
+        ],
+    },
+    "pm-storytelling": {
+        "turn-synthesis-into-narrative-spine": [
+            ("Builds a narrative spine (tension/insight/change)", hasr(r"tension|insight|change|takeaway")),
+            ("Marks evidence gaps instead of inventing", hasr(r"needs source|\[needs|gap|no evidence|não invent")),
+            ("Produces a decision-memo shape", hasr(r"memo|decision|recommend")),
+            ("Anchors claims in the source notes", hasr(r"quote|evidence|note")),
+        ],
+    },
+    "repo-doctor": {
+        "validate-skill-repo-health": [
+            ("Checks skill frontmatter", hasr(r"frontmatter|description")),
+            ("Checks hooks/settings wiring", hasr(r"hook|settings")),
+            ("Checks the memory contract", hasr(r"memory")),
+            ("Cites concrete paths in findings", hasr(r"\.md|\.sh|\.py")),
+            ("Stays read-only (suggests, does not apply)", hasr(r"read.?only|suggest|do not apply|não aplica")),
+        ],
+    },
+    "pm-prioritization-regua-comum": {
+        "score-backlog-with-regua-comum": [
+            ("Scores ARR dimension", hasr(r"arr")),
+            ("Scores Abrangência dimension", hasr(r"abrang")),
+            ("Scores CRA/strategic dimension", hasr(r"cra|strateg")),
+            ("Applies confidence weighting", hasr(r"confian|confidence")),
+            ("Flags the single-account ask against the Abrangência lock", hasr(r"customiz|single account|uma conta|lock")),
+            ("Rates effort and plots the matrix", hasr(r"effort|esforço")),
+            ("Recommends an order of execution", hasr(r"first|primeiro|order|priorit")),
+        ],
+    },
 }
 
 
@@ -198,6 +275,9 @@ def grade_run(output_path: Path, skill: str, eval_name: str):
         return None
     text = output_path.read_text(encoding="utf-8", errors="replace").lower()
     checks = ASSERTIONS.get(skill, {}).get(eval_name, [])
+    if not checks:
+        # 0/0 would read as a silent pass in the report; make the gap loud.
+        print(f"WARN: no assertions for ({skill}, {eval_name}) — run graded as empty", file=sys.stderr)
     expectations = []
     for label, fn in checks:
         try:
@@ -231,7 +311,9 @@ def load_timing(path: Path):
 def grade_all():
     results_by_skill = {}
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
-        if not skill_dir.is_dir() or (not skill_dir.name.startswith("pm-") and skill_dir.name != "data-science-analyst"):
+        # Any skill with recorded runs is gradable — the old pm-* prefix
+        # filter silently skipped anti-slop, humanizer, and friends.
+        if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
             continue
         skill = skill_dir.name
         iteration = skill_dir / "workspace" / "iteration-1"

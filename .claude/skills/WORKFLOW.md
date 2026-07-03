@@ -49,6 +49,11 @@ Three skills plus one runtime hook split the "kill AI tells" job by surface:
 
 `humanizer` owns prose, `anti-slop` owns everything else (code, structure, replies, unsolicited files), the Stop hook owns runtime enforcement. When in doubt, run the matching skill: a sweep costs seconds; shipping AI-tinted material costs credibility.
 
+Two more transversals apply at every stage:
+
+- `inference-discipline` — the hallucination gate. Every claim about external state is either verified this turn or labelled and approved before action; `inference-discipline-gate.sh` blocks writes and outbound publishes that still carry unresolved markers.
+- `pm-storytelling` — the narrative layer. Any stage artefact meant to persuade (impact brief, one-pager, PRD opener, launch comms) gets a spine (tension → insight → change → takeaway) before `humanizer` polishes the voice.
+
 ## Why two prioritisations
 
 - **Discovery Prioritization (stage 1)** decides *which problems to invest discovery on*. Cheap inputs (hunch + limited evidence); picks the top N bets to research.

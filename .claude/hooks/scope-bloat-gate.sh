@@ -73,17 +73,20 @@ REASONS=()
 DOC_REGEX='doc|prd|p[áa]gina|page|post|memo|release notes|confluence|propos[ta]|escreva|draft|elabor|gere|crie a|construa|monta|expanda|detalh|completo|long-form|full|todos os|all the|enumere|liste'
 
 # Rule 1: scope bloat. Short prompt, long answer, no doc keyword.
+# Measured on PROSE (code fences stripped): a short question legitimately
+# answered with a large diff or code block is not bloat.
 if [[ $USER_LEN -gt 0 && $USER_LEN -lt 400 ]]; then
-  if [[ $ASSISTANT_LEN -gt $((USER_LEN * 5)) ]]; then
+  if [[ $PROSE_LEN -gt $((USER_LEN * 5)) ]]; then
     if ! printf '%s' "$LAST_USER" | grep -qiE "$DOC_REGEX"; then
-      REASONS+=("Scope bloat: resposta tem $ASSISTANT_LEN chars vs prompt de $USER_LEN chars (razão >5×). Pergunta curta sem pedido de doc — encolha pra responder só o que foi perguntado.")
+      REASONS+=("Scope bloat: resposta tem $PROSE_LEN chars de prosa vs prompt de $USER_LEN chars (razão >5×). Pergunta curta sem pedido de doc — encolha pra responder só o que foi perguntado.")
     fi
   fi
 fi
 
-# Rule 2: em-dash density (prose only, excludes code fences).
+# Rule 2: em-dash density (prose only, excludes code fences and block
+# quotes — quoted material reproduces someone else's punctuation).
 if [[ $PROSE_LEN -gt 200 ]]; then
-  EMDASH=$(printf '%s' "$PROSE" | grep -o '—' | wc -l | tr -d ' ')
+  EMDASH=$(printf '%s' "$PROSE" | grep -v '^[[:space:]]*>' | grep -o '—' | wc -l | tr -d ' ')
   EMDASH=${EMDASH:-0}
   DENSITY=$(( EMDASH * 1000 / PROSE_LEN ))
   if [[ $DENSITY -gt 4 ]]; then

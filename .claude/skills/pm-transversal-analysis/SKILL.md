@@ -1,11 +1,27 @@
 ---
 name: pm-transversal-analysis
-description: Cross-phase skill for **qualitative synthesis, quantitative analysis, triangulation of quali+quant evidence, and parsing of videos/audio/transcripts** into product insight. Invoke whenever the user hands over interview transcripts, user-test recordings, call notes, survey free-text, support tickets, session replays, analytics queries, or funnel/cohort data — and expects insight, not just a summary. Trigger on "sintetize essas entrevistas", "analyse these transcripts", "assista esse vídeo", "extraia insights", "coding temático", "triangule quali e quant", "cohort analysis", "funnel interpretation", "qualitative themes", "review session replays". Produces thematic syntheses with evidence quotes, cohort/funnel interpretations, and triangulated findings that make the team act differently. For interviews at the very start of a discovery (problem still soft, JTBD undefined, segments still in flux), use `pm-phase-discover` first to scope the research and only then chain to this skill for synthesis — this skill assumes the upstream framing is set and the work is "what does the evidence mean for product?".
+description: >-
+  Cross-phase skill for **qualitative synthesis, quantitative analysis, triangulation
+  of quali+quant evidence, and parsing of videos/audio/transcripts** into product
+  insight. Invoke whenever the user hands over interview transcripts, user-test
+  recordings, call notes, survey free-text, support tickets, session replays,
+  analytics queries, or funnel/cohort data — and expects insight, not just a summary.
+  Trigger on "sintetize essas entrevistas", "triangule quali e quant", "analyse these
+  transcripts", "cohort analysis", "funnel interpretation". Produces thematic
+  syntheses with evidence quotes, cohort/funnel interpretations, and triangulated
+  findings that make the team act differently. For interviews at the very start of a
+  discovery (problem still soft, JTBD undefined), use `pm-phase-discover` first to
+  scope the research, then chain to this skill for synthesis — this skill assumes the
+  upstream framing is set.
 ---
 
 # PM Transversal — Qualitative + Quantitative + Media analysis
 
 > Transversal skill. The analytical layer that sits under every phase. Discovery without synthesis is anecdote; analytics without qualitative grounding is confident guessing.
+
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
 
 ## When to use this skill
 
@@ -19,6 +35,10 @@ Invoke when:
 - an "analysis" is needed but nobody has said whether it's quali, quant, or both
 
 Skip for pure dashboard consumption (no synthesis needed) — that stays in `pm-phase-deliver/product-analytics.md`.
+
+Trigger phrases: "sintetize essas entrevistas", "analyse these transcripts", "assista esse vídeo", "extraia insights", "coding temático", "triangule quali e quant", "cohort analysis", "funnel interpretation", "qualitative themes", "review session replays".
+
+For interviews at the very start of a discovery (problem still soft, JTBD undefined, segments still in flux), use `pm-phase-discover` first to scope the research and only then chain to this skill for synthesis — this skill assumes the upstream framing is set and the work is "what does the evidence mean for product?".
 
 ## Prime directive
 

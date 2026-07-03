@@ -7,6 +7,10 @@ description: Lean Double Diamond **Define phase** skill for PMs. Invoke when dis
 
 > Double Diamond Phase 2 of 4. Turns discovery evidence into explicit choices and a measurement architecture that makes the choices legible and auditable.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## When to use this skill
 
 Invoke when:

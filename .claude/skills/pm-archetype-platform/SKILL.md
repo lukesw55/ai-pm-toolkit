@@ -1,6 +1,16 @@
 ---
 name: pm-archetype-platform
-description: Platform / API / infrastructure PM archetype lens. Invoke when the product is something other products are built on — internal platforms, public APIs, SDKs, CLI tools, partner integrations, infrastructure primitives. Users are usually developers (internal teams, external customers, partners) or downstream product teams. Optimises for leverage, reliability, adoption, abstraction quality, developer experience, and migration discipline — not end-user delight. Trigger on "platform", "API contract", "SDK", "CLI", "partner integration", "developer experience", "DevEx", "DX", "migration plan", "deprecation", "deprecation policy", "backwards compatibility", "breaking change", "versioning", "SLO", "SLA", "p95 latency", "error rate", "adoption rate", "consumer team", "downstream team", "infrastructure primitive", "reusable abstraction", "internal tool", "tool for engineers", "essa API ainda é usada?", "como deprecar X?", "quem consome esse endpoint?". Applies most strongly to the public API gateway, device SDKs, and shared libraries that many services depend on.
+description: >-
+  Platform / API / infrastructure PM archetype lens. Invoke when the product is
+  something other products are built on — internal platforms, public APIs,
+  SDKs, CLI tools, partner integrations, infrastructure primitives. Users are
+  usually developers (internal teams, external customers, partners) or
+  downstream product teams. Optimises for leverage, reliability, adoption,
+  abstraction quality, developer experience, and migration discipline — not
+  end-user delight. Trigger on "API contract", "deprecation policy", "breaking
+  change", "como deprecar X?", "quem consome esse endpoint?" — full
+  trigger-phrase list in the skill body. Applies most strongly to the public
+  API gateway, device SDKs, and shared libraries that many services depend on.
 ---
 
 # PM Archetype — Platform / API / infrastructure products
@@ -22,6 +32,10 @@ The product or feature is consumed by code, not clicked by an end-user:
 - platform capability that other features depend on (auth, identity, storage, telemetry)
 
 This archetype most often applies to the public API gateway, the device-side SDKs, the shared messaging/event library, and identity-provider extensions that other services depend on.
+
+### Trigger phrases
+
+Any of these in a request points here: "platform", "API contract", "SDK", "CLI", "partner integration", "developer experience", "DevEx", "DX", "migration plan", "deprecation", "deprecation policy", "backwards compatibility", "breaking change", "versioning", "SLO", "SLA", "p95 latency", "error rate", "adoption rate", "consumer team", "downstream team", "infrastructure primitive", "reusable abstraction", "internal tool", "tool for engineers", "essa API ainda é usada?", "como deprecar X?", "quem consome esse endpoint?".
 
 ## Required reading before output
 

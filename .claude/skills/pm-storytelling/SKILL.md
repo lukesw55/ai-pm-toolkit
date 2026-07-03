@@ -1,11 +1,28 @@
 ---
 name: pm-storytelling
-description: Turn raw PM source material — discovery transcripts, evidence dossiers, briefs, AI-generated drafts, scattered notes, assignments — into audience-ready narrative artefacts. Use whenever the output needs a spine (tension → insight → change → takeaway) rather than a flat summary. Covers PM-native formats (one-pager opener, PRD problem statement, exec / decision memo, release notes, discovery synthesis, QBR / slide storyline, customer case study, pitch deck) and generic prose (essay, article, video script, lesson, social sequence). Trigger on "rascunha a narrativa", "monta a história", "transforma essas notas em narrativa", "story for the exec memo", "PRD opener", "one-pager narrative", "release notes story", "discovery synthesis story", "case study from this customer", "pitch storyline", "slide narrative", "make this less generic", "give this a spine", "esse texto está sem alma", "make this memorable". Pushy by design — when source material has a real tension/insight/change to surface, prefer this over plain summarisation. Always pairs with `humanizer` for voice polish and with `humanize-deliverables` when the artefact ships outbound (Confluence, Slack, customer, leadership).
+description: >-
+  Turn raw PM source material — discovery transcripts, evidence dossiers,
+  briefs, AI-generated drafts, scattered notes, assignments — into
+  audience-ready narrative artefacts. Use whenever the output needs a spine
+  (tension → insight → change → takeaway) rather than a flat summary. Covers
+  PM-native formats (one-pager opener, PRD problem statement, exec / decision
+  memo, release notes, discovery synthesis, QBR / slide storyline, customer
+  case study, pitch deck) and generic prose (essay, article, video script,
+  lesson, social sequence). Trigger on "rascunha a narrativa", "monta a
+  história", "esse texto está sem alma", "give this a spine", "make this
+  memorable" — the full trigger list lives in the skill body. Pushy by design
+  — when source material has a real tension/insight/change to surface, prefer
+  this over plain summarisation. If the request is to tighten prose without
+  changing its shape, use humanizer instead.
 ---
 
 # pm-storytelling: turn source material into narrative without losing the assignment
 
 Forked from the standalone `assignment-storytelling` skill and adapted for the PM skills repo. The job is the same: take an assignment, brief, evidence pile, or rough draft and produce a clear, compelling narrative that preserves the original intent. The change is the lane: this skill **generates** narrative; voice polish and outbound delivery are someone else's job in this repo (see next section).
+
+## Trigger phrases
+
+The frontmatter description carries a subset; this is the full list. Invoke on: "rascunha a narrativa", "monta a história", "transforma essas notas em narrativa", "story for the exec memo", "PRD opener", "one-pager narrative", "release notes story", "discovery synthesis story", "case study from this customer", "pitch storyline", "slide narrative", "make this less generic", "give this a spine", "esse texto está sem alma", "make this memorable".
 
 ## Progressive loading
 
@@ -38,7 +55,7 @@ If the request is "tighten this prose" without "give it a spine" — use `humani
 
 ## Working with humanizer and humanize-deliverables
 
-Storytelling and humanizing are distinct jobs in this repo. Don't merge them.
+This skill always pairs with `humanizer` for voice polish, and with `humanize-deliverables` when the artefact ships outbound (Confluence, Slack, customer, leadership). Storytelling and humanizing are distinct jobs in this repo. Don't merge them.
 
 | Skill | Role | When |
 |---|---|---|

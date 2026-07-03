@@ -5,15 +5,13 @@
       "id": 1,
       "name": "remove-ai-slop-from-readme-section",
       "prompt": "Review this generated README section and rewrite it leaner: 'This comprehensive toolkit empowers teams to seamlessly leverage robust workflows...'",
-      "expected_output": "Identifies generic AI phrasing and rewrites to specific, smaller, lower-ceremony prose without adding new claims.",
-      "files": []
+      "expected_output": "Identifies generic AI phrasing and rewrites to specific, smaller, lower-ceremony prose without adding new claims."
     },
     {
       "id": 2,
       "name": "block-unrequested-plan-file",
       "prompt": "I generated a PLAN.md and SUMMARY.md while editing a small script. Review the repo change for slop.",
-      "expected_output": "Flags unrequested planning/summary files as slop and recommends deleting them unless explicitly requested.",
-      "files": []
+      "expected_output": "Flags unrequested planning/summary files as slop and recommends deleting them unless explicitly requested."
     }
   ]
 }

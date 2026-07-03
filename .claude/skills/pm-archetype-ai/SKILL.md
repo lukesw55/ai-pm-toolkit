@@ -1,6 +1,17 @@
 ---
 name: pm-archetype-ai
-description: AI / ML / LLM PM archetype lens. Invoke when the product is partly probabilistic — LLM features, agents, retrieval, classification, generation, recommendation, anomaly detection, model-in-the-loop tooling — and the work needs eval suites, guardrails, failure-mode analysis, human-in-the-loop, model selection, prompt design, eval-driven iteration, or safety/policy. Probabilistic systems need a different discipline than deterministic software. Trigger on "AI feature", "LLM", "modelo de ML", "evals", "eval suite", "guardrail", "hallucination", "HITL", "human in the loop", "model selection", "prompt strategy", "fallback chain", "drift", "red team", "safety policy", "esse feature usa modelo?", "tem AI nisso?", "what's the eval threshold to ship?", "como medimos qualidade do modelo?". Pairs with `pm-phase-develop` (PRD with eval plan), `pm-phase-deliver` (release gate by eval pass-rate), `pm-transversal-analysis` (qualitative eval of outputs), and the `claude-api` skill for Claude-API-specific implementation.
+description: >-
+  AI / ML / LLM PM archetype lens. Invoke when the product is partly
+  probabilistic — LLM features, agents, retrieval, classification, generation,
+  recommendation, anomaly detection, model-in-the-loop tooling — and the work
+  needs eval suites, guardrails, failure-mode analysis, human-in-the-loop,
+  model selection, prompt design, eval-driven iteration, or safety/policy.
+  Probabilistic systems need a different discipline than deterministic
+  software. Trigger on "eval suite", "guardrail", "hallucination", "esse
+  feature usa modelo?", "como medimos qualidade do modelo?". For
+  Claude-API-specific implementation use the `claude-api` skill instead — this
+  skill is the PM lens, not the implementation reference. The full
+  trigger-phrase list and phase-skill pairings live in the skill body.
 ---
 
 # PM Archetype — AI / ML / LLM products
@@ -25,12 +36,18 @@ The product or feature includes any of:
 
 Skip this skill when the AI piece is purely backend optimisation users never see (e.g. internal log clustering with no user-facing surface).
 
+### Trigger phrases
+
+"AI feature", "LLM", "modelo de ML", "evals", "eval suite", "guardrail", "hallucination", "HITL", "human in the loop", "model selection", "prompt strategy", "fallback chain", "drift", "red team", "safety policy", "esse feature usa modelo?", "tem AI nisso?", "what's the eval threshold to ship?", "como medimos qualidade do modelo?".
+
 ## Required reading before output
 
 - `.ai/rules.md`, `.ai/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior eval results are load-bearing**; if the team has shipped anything AI-shaped before, the eval log determines what's possible now
 
 ## References this skill chains to
+
+Pairs with `pm-phase-develop` (PRD with eval plan), `pm-phase-deliver` (release gate by eval pass-rate), `pm-transversal-analysis` (qualitative eval of outputs), and the `claude-api` skill for Claude-API-specific implementation. Specific references:
 
 - `.claude/skills/pm-phase-develop/references/prd-writing.md` — AI PRDs emphasise failure modes + eval plan + HITL
 - `.claude/skills/pm-phase-develop/references/tracking-plan-design.md` — AI apps need bespoke events (inference called, tool used, fallback triggered, user rated output)

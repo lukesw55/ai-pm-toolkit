@@ -1,11 +1,27 @@
 ---
 name: pm-phase-deliver
-description: Lean Double Diamond **Deliver phase** skill for PMs. Invoke when a feature/product is shipping or just shipped and the team needs **launch readiness, release communications, post-launch monitoring, experiment interpretation, or decision on next move** (iterate/scale/rollback/stop). Trigger on "prepare a launch", "write release notes", "post-launch review", "did the A/B work?", "interpret these results", "launch scorecard", "did adoption happen?", "should we ship the variant?", "release notes para o time comercial". Covers GTM launch readiness, release notes (user + internal + customer comms), post-launch monitoring, A/B experiment interpretation, product analytics narratives, and metric quality/guardrails. Bridges to `pm-transversal-analysis` for deeper quali/quant synthesis. For funnel-shaped or growth-specific A/B tests (acquisition / activation / retention / monetisation experiments where the discipline matters more than the launch readout), use `pm-archetype-growth` for the interpretation lens — this skill covers feature-level A/B and post-launch decisions across all product types.
+description: >-
+  Lean Double Diamond **Deliver phase** skill for PMs. Invoke when a
+  feature/product is shipping or just shipped and the team needs **launch
+  readiness, release communications, post-launch monitoring, experiment
+  interpretation, or decision on next move** (iterate/scale/rollback/stop).
+  Covers GTM launch readiness, release notes (user + internal + customer
+  comms), post-launch monitoring, A/B experiment interpretation, product
+  analytics narratives, and metric quality/guardrails. Trigger on "prepare a
+  launch", "write release notes", "post-launch review", "did the A/B work?",
+  "release notes para o time comercial". For funnel-shaped or growth-specific
+  A/B tests (acquisition/activation/retention/monetisation), use
+  `pm-archetype-growth` for the interpretation lens — this skill covers
+  feature-level A/B and post-launch decisions across all product types.
 ---
 
 # PM Phase — Deliver
 
 > Double Diamond Phase 4 of 4. Release is the start of proof, not the end of the work.
+
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
 
 ## When to use this skill
 
@@ -19,7 +35,9 @@ Invoke when:
 - a post-launch review or close-out is being written
 - metric quality or guardrails have thrown a flag
 
-Don't use for discovery/strategy (→ earlier phase skills) or for post-mortem of a technical incident (that's eng's loop).
+Trigger phrases: "prepare a launch", "write release notes", "post-launch review", "did the A/B work?", "interpret these results", "launch scorecard", "did adoption happen?", "should we ship the variant?", "release notes para o time comercial".
+
+Don't use for discovery/strategy (→ earlier phase skills) or for post-mortem of a technical incident (that's eng's loop). For funnel-shaped or growth-specific A/B tests (acquisition / activation / retention / monetisation experiments where the discipline matters more than the launch readout), use `pm-archetype-growth` for the interpretation lens — this skill covers feature-level A/B and post-launch decisions across all product types.
 
 ## Prime directive
 
@@ -115,7 +133,7 @@ Anti-patterns: one-metric obsession, shipping on averages that hide segment harm
 ## Integration
 
 - Upstream: `pm-phase-develop` (PRD, tracking plan, acceptance).
-- Transversais: `pm-transversal-docs` (publishing release notes in Confluence, Jira tickets for iterate/rollback), `pm-transversal-analysis` (quali+quant triangulation on user-feedback post-launch), `pm-transversal-stakeholder` (exec readout, DACI for ship decision).
+- Transversais: `pm-transversal-docs` (publishing release notes in Confluence, Jira tickets for iterate/rollback), `pm-transversal-analysis` (the bridge for deeper quali+quant synthesis and triangulation on user-feedback post-launch), `pm-transversal-stakeholder` (exec readout, DACI for ship decision).
 - Cross-functional pairings: your QA lead stress-tests metric interpretation and experiment integrity; your designer reviews UX post-launch; a data-science partner validates the maths when an A/B looks like a win.
 - Archetype lenses (load when the product type warrants): `pm-archetype-growth` for funnel/activation/retention readouts; `pm-archetype-ai` when the launch is a model and the release gate is an eval threshold; `pm-archetype-enterprise` for staged-rollout governance; `pm-archetype-platform` for adoption / migration / SLO tracking.
 

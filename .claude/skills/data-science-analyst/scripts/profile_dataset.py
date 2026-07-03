@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import re
 import statistics
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -33,10 +34,18 @@ def is_missing(value: str | None) -> bool:
     return value.strip() == "" or value.strip().lower() in {"na", "n/a", "null", "none", "nan"}
 
 
+THOUSANDS_RE = re.compile(r"^-?\d{1,3}(,\d{3})+(\.\d+)?$")
+
+
 def try_float(value: str) -> float | None:
     if is_missing(value):
         return None
-    text = value.strip().replace(",", "")
+    text = value.strip()
+    # Only strip commas that match the US thousands pattern ("1,234.5").
+    # A blanket strip would silently turn European decimals ("1,5") into 15
+    # and misclassify the column as numeric.
+    if THOUSANDS_RE.match(text):
+        text = text.replace(",", "")
     try:
         x = float(text)
         if math.isfinite(x):

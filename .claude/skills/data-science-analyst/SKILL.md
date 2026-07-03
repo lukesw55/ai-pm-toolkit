@@ -1,6 +1,20 @@
 ---
 name: data-science-analyst
-description: Technical data-science / analyst lens for a product PM workspace. Use whenever the user has a **dataset, query, notebook, experiment, or model** in front of them and needs the analysis itself to be technically correct — profiling a CSV / Power BI export / Excel, validating joins, writing or auditing SQL (cohort, retention, funnel, KPI), checking for data leakage, building a baseline ML model, validating an A/B test, or reviewing a notebook for statistical and reproducibility bugs. Trigger on "analise esse CSV", "audita esse notebook", "cohort retention", "funil", "validar A/B test", "checar leakage", "baseline ML", "Power BI export", "esse SQL tá certo?", "dataset profile", "experiment design", "EDA desse arquivo", "model card", "data quality audit", "missing values", "data dictionary", "pull this from PostHog and compute X". Produces audited datasets, validated SQL, EDA notebooks, statistical analyses, baseline ML artefacts, and decision-ready analytical reports — NOT polished BI dashboards and NOT product/strategic synthesis. For the PM lens (themes from interviews, "what does this funnel mean for the roadmap?"), use `pm-transversal-analysis` instead — and the two skills are designed to chain.
+description: >-
+  Technical data-science / analyst lens for a product PM workspace. Use
+  whenever the user has a **dataset, query, notebook, experiment, or model**
+  in front of them and needs the analysis itself to be technically correct —
+  profiling a CSV / Power BI export / Excel, validating joins, writing or
+  auditing SQL (cohort, retention, funnel, KPI), checking for data leakage,
+  building a baseline ML model, validating an A/B test, or reviewing a
+  notebook for statistical and reproducibility bugs. Trigger on "analise esse
+  CSV", "audita esse notebook", "esse SQL tá certo?", "checar leakage",
+  "cohort retention" — full trigger list in the skill body. Produces audited
+  datasets, validated SQL, EDA notebooks, statistical analyses, baseline ML
+  artefacts, and decision-ready analytical reports — NOT polished BI
+  dashboards and NOT product/strategic synthesis. For the PM lens (themes
+  from interviews, "what does this funnel mean for the roadmap?"), use
+  `pm-transversal-analysis` instead.
 ---
 
 # Data Science Analyst — technical lens
@@ -21,6 +35,8 @@ Pull this skill when the user has actual data or analytical code in front of the
 - an A/B test or experiment must be analysed: SRM, balance, effect size, CI, practical vs statistical significance
 - a baseline ML model is needed (and only then, complexity)
 - a colleague's notebook or PR must be reviewed for data-quality bugs that could change the conclusion
+
+Full trigger-phrase list: "analise esse CSV", "audita esse notebook", "cohort retention", "funil", "validar A/B test", "checar leakage", "baseline ML", "Power BI export", "esse SQL tá certo?", "dataset profile", "experiment design", "EDA desse arquivo", "model card", "data quality audit", "missing values", "data dictionary", "pull this from PostHog and compute X".
 
 **Skip and use `pm-transversal-analysis` instead** when the work is interview synthesis, theme coding, qualitative-quant triangulation for product decisions, or "what does this funnel imply for the roadmap?" — those are PM synthesis, not technical audit.
 

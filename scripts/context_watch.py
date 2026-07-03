@@ -52,7 +52,7 @@ def append_event(slug, ts=None):
 def sync_log(slug, set_date):
     """Make the log's tail agree with the pointer. Empty log gets seeded with the
     pointer's set-date at 00:00 (best info available); otherwise the change is
-    stamped now."""
+    stamped now. Only `watch` calls this — status/report must stay pure reads."""
     events = load_events()
     if events and events[-1]["slug"] == slug:
         return events
@@ -62,6 +62,20 @@ def sync_log(slug, set_date):
     else:
         append_event(slug)
     return load_events()
+
+
+def observed_events(slug, set_date):
+    """Read-only counterpart of sync_log: same tail-agreement logic, but the
+    correction stays in memory. A statusline polling `status` every second
+    must not grow context-events.jsonl."""
+    events = load_events()
+    if not slug or (events and events[-1]["slug"] == slug):
+        return events
+    if not events and set_date:
+        ts = datetime.fromisoformat(f"{set_date}T00:00:00").astimezone()
+    else:
+        ts = datetime.now().astimezone()
+    return events + [{"ts": ts.isoformat(timespec="seconds"), "slug": slug}]
 
 
 def totals(events, now):
@@ -109,13 +123,13 @@ def cmd_watch():
 
 def cmd_status():
     slug, stage, set_date = read_pointer()
-    events = sync_log(slug, set_date)
+    events = observed_events(slug, set_date)
     print(render(slug, stage, events, datetime.now().astimezone()))
 
 
 def cmd_report():
     slug, _, set_date = read_pointer()
-    events = sync_log(slug, set_date)
+    events = observed_events(slug, set_date)
     now = datetime.now().astimezone()
     for s, secs in sorted(totals(events, now).items(), key=lambda kv: -kv[1]):
         mark = "  ← ativo" if s == slug else ""

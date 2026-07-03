@@ -9,6 +9,10 @@ description: Lean Double Diamond **Discover phase** skill for PMs. Invoke whenev
 
 Convert scattered requests, symptoms, and anecdotes into a sharp, evidence-backed picture of **who has which problem, how painful it is, and what would count as a useful learning step**.
 
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
+
 ## When to use this skill
 
 Invoke this skill whenever the work upstream of building is still soft:

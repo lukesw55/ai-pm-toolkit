@@ -5,8 +5,7 @@
       "id": 1,
       "name": "turn-synthesis-into-narrative-spine",
       "prompt": "Turn raw PM discovery notes into a decision memo with a narrative spine, without inventing evidence.",
-      "expected_output": "Extracts protagonist/friction/turning point/takeaway, preserves assignment constraints, and separates evidence from narrative structure.",
-      "files": []
+      "expected_output": "Extracts protagonist/friction/turning point/takeaway, preserves assignment constraints, and separates evidence from narrative structure."
     }
   ]
 }

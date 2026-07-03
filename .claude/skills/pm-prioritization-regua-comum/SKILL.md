@@ -15,14 +15,15 @@ description: >
   Framework as a working premise: impact is leverage on the North Star Metric
   through its inputs. The ruler is the same for everyone; who asks changes the
   *evidence*, not the *score*.
-metadata:
-  version: "0.1.0"
-  source: "Régua Comum v2 — product prioritization model"
 ---
 
 # Régua Comum — product prioritization
 
 One shared impact ruler for every team. Whoever asks (sales, customer, CS, engineering, leadership) changes the **evidence**, not the **ruler**. Impact is always computed the same way, regardless of who brought the request or how urgent it looks.
+
+## Progressive loading
+
+Load this `SKILL.md` first. For large or specialized tasks, use `references/progressive-loading.md` to choose the narrowest supporting reference before reading more.
 
 ## Core principle
 

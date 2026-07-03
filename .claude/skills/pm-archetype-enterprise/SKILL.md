@@ -1,6 +1,19 @@
 ---
 name: pm-archetype-enterprise
-description: Enterprise / B2B PM archetype lens. Invoke when the product serves organisations rather than individuals — admins, IT, security teams, procurement, auditors, end-users inheriting corporate policies. Covers identity (SSO/SCIM), access control (RBAC/ABAC), audit logs, compliance (SOC 2 / GDPR / HIPAA / FedRAMP), data residency, encryption / KMS, admin experience (bulk ops, policy templates), procurement readiness (DPA/MSA/security questionnaires), staged rollout to large accounts, and integration surface (APIs, webhooks, warehouse exports). Trigger on "SSO", "SCIM", "RBAC", "audit log", "SOC 2", "GDPR", "HIPAA", "compliance", "tenant", "multi-tenant", "admin experience", "data residency", "DPA", "security questionnaire", "RFP", "procurement", "enterprise customer", "rollout to a large account", "permission model", "deprovisioning", "offboarding", "SAML", "OIDC", "key management", "BYOK", "private networking", "air-gapped". Pairs with `pm-phase-discover` (admin/end-user/security JTBDs), `pm-phase-define` (business case for enterprise bets, packaging), `pm-phase-develop` (permission model + audit log shape in the PRD), `pm-phase-deliver` (staged rollout), and `pm-transversal-stakeholder` (many stakeholders by design).
+description: >-
+  Enterprise / B2B PM archetype lens. Invoke when the product serves
+  organisations rather than individuals — admins, IT, security teams,
+  procurement, auditors, end-users inheriting corporate policies. Covers
+  identity (SSO/SCIM), access control (RBAC/ABAC), audit logs, compliance
+  (SOC 2 / GDPR / HIPAA / FedRAMP), data residency, encryption / KMS, admin
+  experience (bulk ops, policy templates), procurement readiness
+  (DPA/MSA/security questionnaires), staged rollout to large accounts, and
+  integration surface (APIs, webhooks, warehouse exports). Trigger on "SSO",
+  "RBAC", "audit log", "SOC 2", "security questionnaire" — and on any
+  permission-model, tenant, deprovisioning, procurement, or compliance
+  question about an enterprise account or a rollout to a large one. Pairs
+  with the pm-phase-* skills and pm-transversal-stakeholder; the full
+  trigger list and pairings live in the skill body.
 ---
 
 # PM Archetype — Enterprise / B2B products
@@ -26,6 +39,10 @@ The product or feature is sold to or operated by organisations, and any of the f
 - integration (API surface, webhooks, partner connectors, data warehouse exports)
 
 For a B2B SaaS product this archetype applies to most of the product surface — multi-tenant fleets, large industrial customers, signed updates, audit obligations.
+
+### Trigger phrases
+
+"SSO", "SCIM", "RBAC", "audit log", "SOC 2", "GDPR", "HIPAA", "compliance", "tenant", "multi-tenant", "admin experience", "data residency", "DPA", "security questionnaire", "RFP", "procurement", "enterprise customer", "rollout to a large account", "permission model", "deprovisioning", "offboarding", "SAML", "OIDC", "key management", "BYOK", "private networking", "air-gapped".
 
 ## Required reading before output
 
@@ -103,7 +120,7 @@ technical, compliance, commercial, change-management
 
 ## Integration
 
-- Upstream: `pm-phase-discover` (admin / security / end-user JTBDs), `pm-phase-define` (business case + packaging).
+- Upstream: `pm-phase-discover` (admin / security / end-user JTBDs), `pm-phase-define` (business case for enterprise bets + packaging).
 - Build phase: `pm-phase-develop` (PRD with permission model + audit log shape + migration wizard).
 - Launch: `pm-phase-deliver` with extra-staged rollout and per-account activation.
 - Transversals: `pm-transversal-stakeholder` (admin/IT/security alignment, exec sign-off), `pm-transversal-docs` (DPA-friendly Confluence pages, audit-event catalogue).
