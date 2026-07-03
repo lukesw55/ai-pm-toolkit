@@ -71,7 +71,7 @@ The 8-stage workflow and hooks for stage-advancement are documented in `.claude/
 
 ## Archetype agents (for specialised contexts)
 
-On top of the core agents (Lang, Umberto, Torvalds, Margaret, Rand, Mnemosyne), the repo ships four archetype agents under `.github/agents/`:
+On top of the core agents (pm-kickoff, pm-orchestrator, pm-tech-advisor, pm-evidence, pm-design, pm-memory), the repo ships four archetype agents under `.github/agents/`:
 
 - **pm-platform** — API/infra/platform PMs (reliability, adoption, migration, deprecation)
 - **pm-growth** — acquisition/activation/retention/expansion PMs (AARRR, experiments, monetisation)

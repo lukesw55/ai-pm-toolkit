@@ -30,12 +30,12 @@ All agents must treat these files as authoritative:
 
 | Agent | File | Purpose |
 |---|---|---|
-| Lang | `.github/agents/lang.agent.md` | Kickstarts a new project or re-frames a drifting one using Discover and Define |
-| Umberto | `.github/agents/umberto.agent.md` | Main builder; runs work through Lean Double Diamond and ships validated increments |
-| Torvalds | `.github/agents/torvalds.agent.md` | Architecture and tradeoffs; protects reversibility and codebase coherence |
-| Margaret | `.github/agents/margaret.agent.md` | TDD, failure analysis, metric quality & experiment integrity |
-| Rand | `.github/agents/rand.agent.md` | Design planning and review; keeps UX aligned with the design system |
-| Mnemosyne | `.github/agents/mnemosyne.agent.md` | Memory steward; captures durable context, decisions, experiments, and retrieval hints |
+| pm-kickoff | `.github/agents/pm-kickoff.agent.md` | Kickstarts a new project or re-frames a drifting one using Discover and Define |
+| pm-orchestrator | `.github/agents/pm-orchestrator.agent.md` | Main builder; runs work through Lean Double Diamond and ships validated increments |
+| pm-tech-advisor | `.github/agents/pm-tech-advisor.agent.md` | Architecture and tradeoffs; protects reversibility and codebase coherence |
+| pm-evidence | `.github/agents/pm-evidence.agent.md` | Failure analysis, metric quality & experiment integrity; turns assumptions into evidence |
+| pm-design | `.github/agents/pm-design.agent.md` | Design planning and review; keeps UX aligned with the design system |
+| pm-memory | `.github/agents/pm-memory.agent.md` | Memory steward; captures durable context, decisions, experiments, and retrieval hints |
 
 ### PM archetypes (load when the product context matches)
 
@@ -53,13 +53,13 @@ Agents load skills under `.claude/skills/` (see `SKILL.md` for the mapping). The
 ## Default orchestration
 
 ### New project
-Lang → (pm-phase-discover) → Torvalds → Mnemosyne
+pm-kickoff → (pm-phase-discover) → pm-tech-advisor → pm-memory
 
 ### Feature or bug
-Umberto → (pm-phase-develop) → Torvalds → Margaret → Rand (if UI) → (pm-phase-deliver on launch) → Mnemosyne
+pm-orchestrator → (pm-phase-develop) → pm-tech-advisor → pm-evidence → pm-design (if UI) → (pm-phase-deliver on launch) → pm-memory
 
 ### Rescue / re-scope
-Lang or Umberto → (pm-phase-discover / pm-phase-define as needed) → Torvalds → Mnemosyne
+pm-kickoff or pm-orchestrator → (pm-phase-discover / pm-phase-define as needed) → pm-tech-advisor → pm-memory
 
 ### Specialised context
 Appropriate archetype (pm-platform / pm-growth / pm-enterprise / pm-ai) leads + core agents support.

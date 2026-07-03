@@ -139,7 +139,7 @@ Writing memory goes through [`scripts/memory.py`](scripts/memory.py) (`log`, `pa
 
 ## The agents
 
-[`.github/agents/`](.github/agents/) holds ten agents. Six are core: **Lang** (kickstart and reframing), **Umberto** (the main builder), **Torvalds** (architecture and tradeoffs), **Margaret** (TDD and metric quality), **Rand** (design), **Mnemosyne** (memory steward). Four mirror the archetype skills — `pm-platform`, `pm-growth`, `pm-enterprise`, `pm-ai` — for non-default product contexts. Default orchestration chains live in [`AGENTS.md`](AGENTS.md).
+[`.github/agents/`](.github/agents/) holds ten agents. Six are core: **pm-kickoff** (kickstart and reframing), **pm-orchestrator** (the main builder), **pm-tech-advisor** (architecture and tradeoffs), **pm-evidence** (failure analysis and metric quality), **pm-design** (design planning and review), **pm-memory** (memory steward). Four mirror the archetype skills — `pm-platform`, `pm-growth`, `pm-enterprise`, `pm-ai` — for non-default product contexts. Default orchestration chains live in [`AGENTS.md`](AGENTS.md).
 
 ## Install
 

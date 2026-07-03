@@ -94,7 +94,7 @@ Anti-patterns: treating stakeholders as a single undifferentiated group, engagin
 
 - Every phase: `pm-phase-discover`, `pm-phase-define`, `pm-phase-develop`, `pm-phase-deliver` all need decision-rights clarity at key moments.
 - Paired: `pm-transversal-docs` (DACI published in Confluence), `pm-phase-define/decision-memo-daci.md` (template).
-- Agents: invoked implicitly by every agent when cross-function decisions arise; explicitly by `@umberto` and archetype agents for launch decisions, pricing changes, deprecation decisions, etc.
+- Agents: invoked implicitly by every agent when cross-function decisions arise; explicitly by `@pm-orchestrator` and archetype agents for launch decisions, pricing changes, deprecation decisions, etc.
 
 Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is a 1-page DACI + recommendation; Standard is the full memo with options and trade-offs; Caveman is a 4-line driver / approver / ask / date.
 

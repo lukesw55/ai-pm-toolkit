@@ -122,7 +122,7 @@ What prompted this. 3–5 sentences.
 - Every phase: `pm-phase-define` publishes strategy/DACI in Confluence; `pm-phase-develop` publishes PRDs and opens Jira epics; `pm-phase-deliver` publishes release notes and monitoring dashboards with Confluence context.
 - Transversais: `pm-transversal-stakeholder` publishes DACI via this skill's Confluence template; `pm-transversal-analysis` publishes interview synthesis in Confluence insight repo.
 - MCP tools: when `mcp__claude_ai_Atlassian_Rovo__*` is available, this skill's templates can be pushed directly.
-- Agents: `@umberto` uses this skill on every PRD + ticket creation; `@lang` for discovery-page publication; archetype agents for area-specific templates.
+- Agents: `@pm-orchestrator` uses this skill on every PRD + ticket creation; `@pm-kickoff` for discovery-page publication; archetype agents for area-specific templates.
 
 Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is a compact template with TL;DR + body + open questions; Standard is a full Confluence page with appendices; Caveman is the ticket-sized minimum viable write-up.
 
