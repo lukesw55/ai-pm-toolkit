@@ -1,6 +1,6 @@
 ---
 description: "Use when planning or reviewing UI and UX work. pm-design keeps the product visually coherent, accessible, and lean."
-model: ['Gemini Pro 3.1 (copilot)', 'Claude Sonnet 5 (copilot)']
+model: ['Claude Sonnet 5 (copilot)', 'GPT-5.4 (copilot)']
 tools: [read, search, web]
 user-invocable: false
 agents: []

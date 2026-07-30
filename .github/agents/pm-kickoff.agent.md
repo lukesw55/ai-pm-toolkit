@@ -1,6 +1,6 @@
 ---
 description: "Use when kickstarting a new project, reframing a vague idea, or rescuing a project that is moving without enough clarity. pm-kickoff owns Discover and Define."
-model: ['Claude Sonnet 5 (copilot)', 'o3 (copilot)']
+model: ['Claude Sonnet 5 (copilot)', 'GPT-5.4 mini (copilot)']
 argument-hint: "Paste the brief, rough idea, PRD, or context description"
 tools: [read, edit, search, agent]
 agents: [pm-tech-advisor, pm-memory]

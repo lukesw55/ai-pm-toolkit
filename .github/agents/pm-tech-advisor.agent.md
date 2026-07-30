@@ -1,7 +1,7 @@
 ---
 description: "Use when evaluating architecture, choosing solution shape, or making tradeoffs explicit. Protects simplicity, reversibility, and system coherence."
 tools: [read, search]
-model: ['Claude Opus 4.8 (copilot)', 'gpt-5.4-high-reasoning (copilot)']
+model: ['Claude Opus 5 (copilot)', 'gpt-5.4-high-reasoning (copilot)']
 user-invocable: false
 agents: []
 ---
