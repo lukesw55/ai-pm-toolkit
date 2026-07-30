@@ -153,7 +153,12 @@ def check_hook_syntax(errors: list[str], warnings: list[str]) -> None:
         warn(warnings, "bash not found; skipped hook syntax checks")
         return
     for path in sorted(HOOKS.glob("*.sh")):
-        res = subprocess.run(["bash", "-n", str(path)], cwd=ROOT, text=True, capture_output=True)
+        # Relative POSIX path: a native Windows path (C:\...) loses its
+        # backslashes when Git Bash parses the argument.
+        res = subprocess.run(
+            ["bash", "-n", path.relative_to(ROOT).as_posix()],
+            cwd=ROOT, text=True, capture_output=True,
+        )
         if res.returncode != 0:
             err(errors, f"{rel(path)}: bash -n failed: {res.stderr.strip()}")
 
@@ -163,17 +168,18 @@ def check_memory_bootstrap(errors: list[str]) -> None:
         tmp = Path(td) / ROOT.name
         ignore = shutil.ignore_patterns(".git", "workspace", ".claude/.anti-slop", ".claude/.humanized", ".claude/.inference-discipline")
         shutil.copytree(ROOT, tmp, ignore=ignore)
+        py = sys.executable  # "python3" is not on PATH in every environment (e.g. Windows)
         cmds = [
-            ["python3", "scripts/init_context.py", "Validation Demo"],
-            ["python3", "scripts/memory.py", "doctor"],
-            ["python3", "scripts/stage_context.py"],
+            [py, "scripts/init_context.py", "Validation Demo"],
+            [py, "scripts/memory.py", "doctor"],
+            [py, "scripts/stage_context.py"],
         ]
         for cmd in cmds:
             res = subprocess.run(cmd, cwd=tmp, text=True, capture_output=True)
             if res.returncode != 0:
                 err(errors, f"{' '.join(cmd)} failed: {res.stderr.strip() or res.stdout.strip()}")
                 return
-        out = subprocess.run(["python3", "scripts/stage_context.py"], cwd=tmp, text=True, capture_output=True).stdout
+        out = subprocess.run([py, "scripts/stage_context.py"], cwd=tmp, text=True, capture_output=True).stdout
         if "## Inputs" not in out or "## Output / gate" not in out:
             err(errors, "scripts/stage_context.py: did not emit rich stage contract after init_context.py")
 

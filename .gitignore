@@ -7,6 +7,10 @@ __pycache__/
 .vscode/
 *:Zone.Identifier
 
+# Local artefacts that must never land in git
+*.deb
+**/node_modules/
+
 # Project memory is local by default. Only the versioned skeleton is tracked
 # (templates + a redacted example), so a fresh clone can bootstrap init_context.py.
 # Real project memory, people notes, and raw evidence carry PII and stay untracked.
