@@ -125,7 +125,7 @@ Anti-patterns: "I watched the video and vibed with it", summarising before codin
 - `pm-phase-discover` — feeds research synthesis, segment models, opportunity ranking.
 - `pm-phase-deliver` — interprets post-launch metrics, A/B results with quali context.
 - Transversais: `pm-transversal-docs` (synthesis published in Confluence insight repo), `pm-transversal-stakeholder` (exec memo citing triangulated evidence).
-- MCP tools: when PostHog MCP is available (product analytics), this skill can query directly (`mcp__claude_ai_PostHog__query-run`, `insights-list`, etc.) for quantitative inputs. When the team uses Zoom/Gong/Otter, transcript files come in via Read.
+- MCP tools: when PostHog MCP is available (product analytics), this skill can query directly (`query-run`, `insights-list`, etc.; the `mcp__<server>__` prefix varies by environment) for quantitative inputs. When the team uses Zoom/Gong/Otter, transcript files come in via Read.
 
 Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is ranked findings + implications + confidence; Standard is the full synthesis memo with method + findings + quotes; Caveman is the top 3 findings in 2 lines each.
 

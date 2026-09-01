@@ -192,6 +192,67 @@ def check_hooks_neutral(errors: list[str]) -> None:
             err(errors, f"{rel(path)}: shared hook depends on CLAUDE_PROJECT_DIR (Claude-only); resolve root via BASH_SOURCE instead")
 
 
+def _publish_matcher(path: Path) -> str | None:
+    """Find the PreToolUse matcher on the block that wires humanize-gate.sh,
+    in either adapter file."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    for block in data.get("hooks", {}).get("PreToolUse", []):
+        if any("humanize-gate.sh" in h.get("command", "") for h in block.get("hooks", [])):
+            return block.get("matcher")
+    return None
+
+
+def _matcher_tool_suffixes(matcher: str) -> set[str]:
+    """Extract every 'ServerName__toolName' suffix the dual-prefix publish
+    matcher covers, independent of the optional (claude_ai_)? prefix group
+    (skipped explicitly so it isn't mistaken for a server__(tools) group)."""
+    suffixes = set()
+    stripped = matcher.replace(r"(claude_ai_)?", "")
+    # Anchored to the literal "mcp__" prefix so a non-greedy server-name
+    # capture stops at the real server/tool-group boundary — an unanchored
+    # \w+ would swallow "mcp__Atlassian_Rovo" as one token (both segments
+    # are \w, including the double underscore between them).
+    for server, alternation in re.findall(r"mcp__(\w+?)__\(([^)]+)\)", stripped):
+        for tool in alternation.split("|"):
+            suffixes.add(f"{server}__{tool}")
+    return suffixes
+
+
+def _gate_arm_suffixes(gate_path: Path) -> set[str]:
+    """Extract every '*ServerName__toolName' case-arm pattern inference-
+    discipline-gate.sh actually recognises. Scoped to real case-pattern
+    lines (a run of '*Server__tool' alternatives ending in ')'), not prose
+    that happens to mention the shape in a comment."""
+    arm_line = re.compile(r"^\s*(\*\w+__\w+)(\|\*\w+__\w+)*\)\s*$")
+    suffixes = set()
+    for line in gate_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if not arm_line.match(line):
+            continue
+        for server, tool in re.findall(r"\*(\w+)__(\w+)", line):
+            suffixes.add(f"{server}__{tool}")
+    return suffixes
+
+
+def check_publish_scope(errors: list[str]) -> None:
+    """B1: the publish matcher in each adapter decides *when* the gates run;
+    inference-discipline-gate.sh's case arms decide whether it recognises the
+    tool once routed there. If a tool is added to the matcher without a
+    matching arm, the gate silently falls through to its `*) exit 0 ;;`
+    default — this is exactly the failure mode that produced B1 in the first
+    place, so keep the two in sync automatically rather than by discipline."""
+    gate_arms = _gate_arm_suffixes(HOOKS / "inference-discipline-gate.sh")
+    for adapter in [ROOT / ".claude" / "settings.json", ROOT / ".codex" / "hooks.json"]:
+        matcher = _publish_matcher(adapter)
+        if not matcher:
+            continue  # check_settings / check_codex_hooks already flag a missing/malformed adapter
+        for suffix in sorted(_matcher_tool_suffixes(matcher)):
+            if suffix not in gate_arms:
+                err(errors, f"{rel(adapter)}: publish matcher covers '{suffix}' but hooks/inference-discipline-gate.sh has no matching case arm")
+
+
 def check_hook_syntax(errors: list[str], warnings: list[str]) -> None:
     if shutil.which("bash") is None:
         warn(warnings, "bash not found; skipped hook syntax checks")
@@ -256,6 +317,7 @@ def main() -> int:
     check_codex_hooks(errors, warnings)
     check_hook_syntax(errors, warnings)
     check_hooks_neutral(errors)
+    check_publish_scope(errors)
     check_mirror_drift(errors)
     check_memory_bootstrap(errors)
 

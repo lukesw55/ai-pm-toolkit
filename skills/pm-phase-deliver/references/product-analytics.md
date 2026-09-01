@@ -175,12 +175,12 @@ Any segments where retention differs materially?
 
 ## Using MCP for PostHog (if available)
 
-If PostHog MCP is available (`mcp__claude_ai_PostHog__*`), you can query and build analyses directly in conversation:
+If a PostHog MCP server is available (tools named `mcp__<server>__<tool>`; the server prefix varies by environment), you can query and build analyses directly in conversation:
 
-- `mcp__claude_ai_PostHog__query-run` — run a HogQL query
-- `mcp__claude_ai_PostHog__insight-create` / `insight-query` — pre-built insights (funnel, retention, trends)
-- `mcp__claude_ai_PostHog__dashboards-get-all` — see existing dashboards
-- `mcp__claude_ai_PostHog__event-definitions-list` — verify tracking plan is honoured
+- `query-run` — run a HogQL query
+- `insight-create` / `insight-query` — pre-built insights (funnel, retention, trends)
+- `dashboards-get-all` — see existing dashboards
+- `event-definitions-list` — verify tracking plan is honoured
 - See `pm-transversal-analysis/references/quantitative-analysis.md` for query patterns
 
 Use MCP to answer ad-hoc questions faster, but persist the interpretation + decision in `.ai/memory/` — MCP calls are ephemeral; decisions must be durable.

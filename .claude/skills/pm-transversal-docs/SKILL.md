@@ -72,7 +72,7 @@ Outputs: linking map, automation recipe list, Confluence ↔ Jira integration hi
 3. **Write TL;DR first** — the first paragraph should let a busy colleague decide whether to read more.
 4. **Link explicitly** — every PRD has epic links; every epic has PRD link; every release note has launch-plan link. Orphan docs rot.
 5. **Keep "last updated" honest** — add a status block (draft / in review / decided / implemented / archived).
-6. **When MCP Atlassian is available** — use `mcp__claude_ai_Atlassian_Rovo__createConfluencePage` / `createJiraIssue` / `editJiraIssue` to persist; otherwise output content for paste.
+6. **When MCP Atlassian is available** — use `createConfluencePage` / `createJiraIssue` / `editJiraIssue` (tool names are the `mcp__<server>__<tool>` suffix; the server prefix varies by environment) to persist; otherwise output content for paste.
 
 ## Output contract (Confluence page)
 
@@ -121,7 +121,7 @@ What prompted this. 3–5 sentences.
 
 - Every phase: `pm-phase-define` publishes strategy/DACI in Confluence; `pm-phase-develop` publishes PRDs and opens Jira epics; `pm-phase-deliver` publishes release notes and monitoring dashboards with Confluence context.
 - Transversais: `pm-transversal-stakeholder` publishes DACI via this skill's Confluence template; `pm-transversal-analysis` publishes interview synthesis in Confluence insight repo.
-- MCP tools: when `mcp__claude_ai_Atlassian_Rovo__*` is available, this skill's templates can be pushed directly.
+- MCP tools: when an Atlassian MCP server is available (the `mcp__<server>__` prefix varies by environment), this skill's templates can be pushed directly.
 - Agents: `@pm-orchestrator` uses this skill on every PRD + ticket creation; `@pm-kickoff` for discovery-page publication; archetype agents for area-specific templates.
 
 Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is a compact template with TL;DR + body + open questions; Standard is a full Confluence page with appendices; Caveman is the ticket-sized minimum viable write-up.

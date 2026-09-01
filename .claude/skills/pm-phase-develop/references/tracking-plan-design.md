@@ -183,4 +183,4 @@ A PRD without a tracking plan is incomplete. Template:
 
 ## Files
 
-`.ai/memory/projects/<slug>/tracking.md`. If PostHog MCP is available (`mcp__claude_ai_PostHog__event-definitions-list` and related tools), validate against existing event definitions before inventing new ones.
+`.ai/memory/projects/<slug>/tracking.md`. If PostHog MCP is available (`event-definitions-list` and related tools; the `mcp__<server>__` prefix varies by environment), validate against existing event definitions before inventing new ones.

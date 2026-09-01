@@ -375,16 +375,16 @@ Week 1: attend [reviews]
 
 ## Using these templates via MCP
 
-If MCP Atlassian is available, you can create pages directly:
+If MCP Atlassian is available, you can create pages directly (tool names below are the `<tool>` suffix of `mcp__<server>__<tool>` — the server prefix varies by environment):
 
 ```
-mcp__claude_ai_Atlassian_Rovo__createConfluencePage
+createConfluencePage
   with: spaceKey, title, body (in wiki markup or markdown depending on integration)
 ```
 
 For updates:
 ```
-mcp__claude_ai_Atlassian_Rovo__updateConfluencePage
+updateConfluencePage
 ```
 
 Otherwise: draft locally in markdown, paste into Confluence, adjust formatting.

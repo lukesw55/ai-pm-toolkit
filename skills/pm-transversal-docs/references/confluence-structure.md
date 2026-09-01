@@ -178,4 +178,4 @@ Don't let perfect migration paralyse new work.
 
 ## Files
 
-Confluence is the "publish" target. Draft in `.ai/memory/projects/<slug>/` in markdown, then publish. If MCP Atlassian is available, use `mcp__claude_ai_Atlassian_Rovo__createConfluencePage` / `updateConfluencePage` / `getConfluencePage` — see `jira-linking-automation.md` for patterns.
+Confluence is the "publish" target. Draft in `.ai/memory/projects/<slug>/` in markdown, then publish. If MCP Atlassian is available, use `createConfluencePage` / `updateConfluencePage` / `getConfluencePage` (Atlassian MCP; the server prefix varies by environment) — see `jira-linking-automation.md` for patterns.

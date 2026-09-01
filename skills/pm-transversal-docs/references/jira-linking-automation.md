@@ -98,28 +98,28 @@ Save named filters for the ones you use weekly. Dashboard widgets beat re-typing
 
 ## Using MCP for Jira
 
-If MCP Atlassian is available:
+If MCP Atlassian is available (tool names below are the `<tool>` suffix of `mcp__<server>__<tool>` — the server prefix varies by environment):
 
 ```
-mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql
+searchJiraIssuesUsingJql
   with: jql = "your JQL query"
 ```
 
 Create issues:
 ```
-mcp__claude_ai_Atlassian_Rovo__createJiraIssue
+createJiraIssue
   with: projectKey, issuetype, summary, description, fields (links, labels, components, parent)
 ```
 
 Link issues:
 ```
-mcp__claude_ai_Atlassian_Rovo__createIssueLink
+createIssueLink
   with: inwardIssueKey, outwardIssueKey, linkTypeName (e.g. "Blocks")
 ```
 
 Transition:
 ```
-mcp__claude_ai_Atlassian_Rovo__transitionJiraIssue
+transitionJiraIssue
   with: issueKey, transitionId (check via getTransitionsForJiraIssue first)
 ```
 

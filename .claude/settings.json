@@ -51,7 +51,7 @@
         ]
       },
       {
-        "matcher": "mcp__claude_ai_Atlassian_Rovo__(createConfluencePage|updateConfluencePage|createJiraIssue|editJiraIssue|addCommentToJiraIssue|createConfluenceFooterComment|createConfluenceInlineComment)|mcp__claude_ai_Slack__(slack_send_message|slack_send_message_draft|slack_schedule_message|slack_create_canvas|slack_update_canvas)",
+        "matcher": "mcp__(claude_ai_)?Atlassian_Rovo__(createConfluencePage|updateConfluencePage|createJiraIssue|editJiraIssue|addCommentToJiraIssue|createConfluenceFooterComment|createConfluenceInlineComment)|mcp__(claude_ai_)?Slack__(slack_send_message|slack_send_message_draft|slack_schedule_message|slack_create_canvas|slack_update_canvas)",
         "hooks": [
           {
             "type": "command",

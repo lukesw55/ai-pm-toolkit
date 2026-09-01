@@ -21,14 +21,14 @@ Numbers without interpretation are trivia. Interpretation without numbers is opi
 
 ## Using PostHog (product analytics)
 
-When PostHog MCP tools are available, useful entry points:
+When PostHog MCP tools are available, useful entry points (tool names below are the `<tool>` suffix of `mcp__<server>__<tool>` — the server prefix varies by environment):
 
-- `mcp__claude_ai_PostHog__query-run` — run a HogQL query (see `posthog:query` skill and `posthog:query-examples` for patterns)
-- `mcp__claude_ai_PostHog__insight-query` — pre-built insight types
-- `mcp__claude_ai_PostHog__insights-list` / `insight-get` — browse existing insights
-- `mcp__claude_ai_PostHog__dashboards-get-all` — see existing dashboards
-- `mcp__claude_ai_PostHog__event-definitions-list` — verify events before writing queries
-- `mcp__claude_ai_PostHog__properties-list` — check available properties
+- `query-run` — run a HogQL query (see `posthog:query` skill and `posthog:query-examples` for patterns)
+- `insight-query` — pre-built insight types
+- `insights-list` / `insight-get` — browse existing insights
+- `dashboards-get-all` — see existing dashboards
+- `event-definitions-list` — verify events before writing queries
+- `properties-list` — check available properties
 
 Always verify event/property definitions before querying. A query with a bad property name returns 0 silently.
 

@@ -56,7 +56,14 @@ case "$FILE_PATH" in
     ;;
 esac
 
-# Extract content to inspect — varies by tool.
+# Extract content to inspect — varies by tool. MCP tool names are matched by
+# suffix (*ServerName__toolName), not a fixed server prefix: the same logical
+# server (Atlassian Rovo, Slack) can be registered under a different prefix
+# per environment (a connector name, a plugin scope, or none at all). The
+# server segment stays in the glob so a same-named tool on an unrelated
+# server can't collide. The settings.json / .codex/hooks.json matcher is the
+# real gatekeeper of *when* this runs; these arms just need to recognise the
+# tool once routed here.
 CONTENT=""
 case "$TOOL_NAME" in
   Write|Edit|NotebookEdit)
@@ -64,27 +71,27 @@ case "$TOOL_NAME" in
       .tool_input.new_string // .tool_input.content // .tool_input.new_source // empty
     ' 2>/dev/null || echo "")
     ;;
-  mcp__claude_ai_Atlassian_Rovo__createConfluencePage|mcp__claude_ai_Atlassian_Rovo__updateConfluencePage)
+  *Atlassian_Rovo__createConfluencePage|*Atlassian_Rovo__updateConfluencePage)
     CONTENT=$(printf '%s' "$INPUT" | jq -r '
       [.tool_input.title // empty, .tool_input.body // empty] | join("\n")
     ' 2>/dev/null || echo "")
     ;;
-  mcp__claude_ai_Atlassian_Rovo__createJiraIssue|mcp__claude_ai_Atlassian_Rovo__editJiraIssue)
+  *Atlassian_Rovo__createJiraIssue|*Atlassian_Rovo__editJiraIssue)
     CONTENT=$(printf '%s' "$INPUT" | jq -r '
       [.tool_input.summary // empty, .tool_input.description // empty, (.tool_input.fields // {} | tostring)] | join("\n")
     ' 2>/dev/null || echo "")
     ;;
-  mcp__claude_ai_Atlassian_Rovo__addCommentToJiraIssue|mcp__claude_ai_Atlassian_Rovo__createConfluenceFooterComment|mcp__claude_ai_Atlassian_Rovo__createConfluenceInlineComment)
+  *Atlassian_Rovo__addCommentToJiraIssue|*Atlassian_Rovo__createConfluenceFooterComment|*Atlassian_Rovo__createConfluenceInlineComment)
     CONTENT=$(printf '%s' "$INPUT" | jq -r '
       .tool_input.body // .tool_input.commentBody // .tool_input.comment // empty
     ' 2>/dev/null || echo "")
     ;;
-  mcp__claude_ai_Slack__slack_send_message|mcp__claude_ai_Slack__slack_send_message_draft|mcp__claude_ai_Slack__slack_schedule_message)
+  *Slack__slack_send_message|*Slack__slack_send_message_draft|*Slack__slack_schedule_message)
     CONTENT=$(printf '%s' "$INPUT" | jq -r '
       .tool_input.text // .tool_input.message // empty
     ' 2>/dev/null || echo "")
     ;;
-  mcp__claude_ai_Slack__slack_create_canvas|mcp__claude_ai_Slack__slack_update_canvas)
+  *Slack__slack_create_canvas|*Slack__slack_update_canvas)
     CONTENT=$(printf '%s' "$INPUT" | jq -r '
       [.tool_input.title // empty, .tool_input.content // empty, .tool_input.document_content // empty] | join("\n")
     ' 2>/dev/null || echo "")

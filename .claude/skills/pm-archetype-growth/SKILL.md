@@ -44,7 +44,7 @@ Do not invoke for non-growth launch readouts — release notes, generic post-lau
 
 - `.ai/rules.md`, `.ai/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior experiment logs are load-bearing**; without them the team re-tests dead ideas
-- live PostHog data (use the `mcp__claude_ai_PostHog__*` tools) when sizing the bet — never propose without baseline
+- live PostHog data (via the PostHog MCP tools, e.g. `query-run`) when sizing the bet — never propose without baseline
 
 ## References this skill chains to
 

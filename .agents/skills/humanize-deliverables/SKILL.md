@@ -26,8 +26,8 @@ Your deliverables — exec memos, PRDs, Confluence pages, Slack updates, custome
 
 **Always trigger before:**
 
-- calling `mcp__claude_ai_Atlassian_Rovo__createConfluencePage` / `updateConfluencePage` / `createConfluenceFooterComment` / `createConfluenceInlineComment`
-- calling `mcp__claude_ai_Slack__slack_send_message` / `slack_send_message_draft` / `slack_create_canvas` / `slack_update_canvas`
+- calling the Atlassian MCP `createConfluencePage` / `updateConfluencePage` / `createConfluenceFooterComment` / `createConfluenceInlineComment` (tool names shown as their `mcp__<server>__<tool>` suffix — the server prefix varies by environment)
+- calling the Slack MCP `slack_send_message` / `slack_send_message_draft` / `slack_create_canvas` / `slack_update_canvas`
 - calling Jira comment tools (`addCommentToJiraIssue`)
 - pasting "here is the final X" into chat for the user to copy-paste elsewhere
 - producing release notes, launch comms, FAQs, public-docs copy
@@ -75,7 +75,7 @@ When unsure → run the gate. The cost of an unnecessary pass is seconds; the co
 
 6. **Preserve voice, strip polish.** Write lean, direct, evidence-first, with explicit decisions and named asks. The gate removes AI texture; it does not remove the author's cadence, jargon, or evidence density. Concretely: keep shorthand the reader shares and drop internal jargon they do not; attribute load-bearing quotes to a named source; drop framework labels lifted into prose; prefer a humble peer voice over a presenter voice.
 
-7. **Mark the final bytes (REQUIRED for hard-gated tools).** A `PreToolUse` hook in `.claude/settings.local.json` blocks the publish/send MCP tools (`createConfluencePage`, `updateConfluencePage`, `createConfluenceFooterComment`, `createConfluenceInlineComment`, `addCommentToJiraIssue`, `slack_send_message`, `slack_send_message_draft`, `slack_create_canvas`, `slack_update_canvas`) until a sha256 sentinel matches the prose body. Run:
+7. **Mark the final bytes (REQUIRED for hard-gated tools).** A `PreToolUse` hook in `.claude/settings.json` (Claude Code) and `.codex/hooks.json` (Codex) blocks the publish/send MCP tools (`createConfluencePage`, `updateConfluencePage`, `createConfluenceFooterComment`, `createConfluenceInlineComment`, `createJiraIssue`, `editJiraIssue`, `addCommentToJiraIssue`, `slack_send_message`, `slack_send_message_draft`, `slack_schedule_message`, `slack_create_canvas`, `slack_update_canvas`) until a sha256 sentinel matches the prose body. Run:
 
    ```bash
    printf '%s' "<final body, exact bytes>" | hooks/humanize-mark.sh -
@@ -111,10 +111,10 @@ Different destinations want different shapes; the gate respects that.
 
 ## Enforcement (hard, since 2026-04-27)
 
-The publish/send MCP tools listed in step 7 are **hard-gated** by `hooks/humanize-gate.sh` via a `PreToolUse` hook in `.claude/settings.local.json`. The hook computes sha256 over the longest string in `tool_input` (the prose body, in practice) and blocks the call unless `.ai/gates/humanized/<hash>.flag` exists.
+The publish/send MCP tools listed in step 7 are **hard-gated** by `hooks/humanize-gate.sh` via a `PreToolUse` hook in `.claude/settings.json` (Claude Code) and `.codex/hooks.json` (Codex) — same script, same matcher, wired to both harnesses. The hook computes sha256 over the longest string in `tool_input` (the prose body, in practice) and blocks the call unless `.ai/gates/humanized/<hash>.flag` exists.
 
 This means: forgetting to humanize → tool call fails with stderr instructions to mark and retry. The skill body still teaches the *what* and *why*; the hook enforces the *that*.
 
-Out-of-scope tools (e.g. reading Confluence, listing Slack channels, structured Jira field updates without prose) are not matched and run normally. To extend the gate, add tool names to the matcher regex in `.claude/settings.local.json`.
+Out-of-scope tools (e.g. reading Confluence, listing Slack channels, structured Jira field updates without prose) are not matched and run normally. To extend the gate, add tool names to the matcher regex in both `.claude/settings.json` and `.codex/hooks.json` — they must stay in sync.
 
 If the gate ever needs to be bypassed for a legitimate non-prose call (e.g. Confluence page with only a table and no prose), narrow the matcher rather than disabling the script.

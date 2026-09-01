@@ -14,7 +14,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 
 | # | Item | Categoria | Evidência | G | U | T | GUT | Status |
 |---|---|---|---|---|---|---|---|---|
-| B1 | Corrigir prefixo MCP dos gates de publish | Enforcement | verificado | 5 | 4 | 4 | 80 | em execução (batch 1) |
+| B1 | Corrigir prefixo MCP dos gates de publish | Enforcement | verificado | 5 | 4 | 4 | 80 | feito |
 | B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 | em execução (batch 1) |
 | B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
 | B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
@@ -23,7 +23,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B6 | Produção de decks: assertion-evidence + storyline QBR → .pptx | Conteúdo PM | pesquisa | 3 | 3 | 3 | 27 |
 | B7 | Consolidação de memória executável (distill episódico → semântico) | Memória | pesquisa | 3 | 2 | 4 | 24 |
 | B8 | Corrigir crash do `grade_evals.py` em clone fresco | Bug | verificado | 3 | 3 | 2 | 18 |
-| B9 | `humanize-deliverables` aponta para settings.local.json inexistente (3×) | Docs | verificado | 3 | 3 | 2 | 18 |
+| B9 | `humanize-deliverables` aponta para settings.local.json inexistente (3×) | Docs | verificado | 3 | 3 | 2 | 18 | absorvido pelo B1 |
 | B10 | Humanizer vendorizado: re-sync ou fork-own + atribuição no root | Skills | agente | 3 | 2 | 3 | 18 |
 | B11 | Ampliar suíte de evals (28 casos, 7 skills com 1–2, zero adversarial) | Skills | verificado | 3 | 2 | 3 | 18 |
 | B12 | Opportunity Solution Tree + assumption mapping em Discover/Define | Framework | pesquisa | 3 | 2 | 3 | 18 |
@@ -38,7 +38,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 
 ### B1 — Prefixo MCP dos gates de publish (GUT 80)
 
-O matcher `PreToolUse` em `.claude/settings.json` e ~30 referências nas skills usam `mcp__claude_ai_Atlassian_Rovo__*` / `mcp__claude_ai_Slack__*` / `mcp__claude_ai_PostHog__*`. No ambiente desta sessão os tools reais chamam-se `mcp__Atlassian_Rovo__*`; se o ambiente local do usuário seguir o mesmo padrão, o humanize-gate e o inference-gate de publicação nunca disparam, e a promessa central do repo ("enforcement, not vibes") fica inerte na superfície outbound. G5 porque desativa o gate-bandeira em silêncio; U4 porque qualquer publish hoje passa sem gate; T4 porque cada nova skill copia o prefixo errado. Pré-requisito: confirmar o nome dos tools no ambiente local antes de trocar (pode exigir matcher que aceite os dois padrões).
+**Feito.** Matcher `PreToolUse` em `.claude/settings.json` e `.codex/hooks.json` (byte-idênticos) agora aceita os dois prefixos via `mcp__(claude_ai_)?<Server>__(...)`; os case arms de `hooks/inference-discipline-gate.sh` casam por sufixo de servidor+tool (`*Atlassian_Rovo__createConfluencePage` etc.), agnóstico ao prefixo. As ~11 referências server-agnósticas restantes nas skills canônicas (fora dos espelhos) foram reescritas citando o tool pelo sufixo com nota de que o prefixo varia por ambiente. `validate_repo.py` ganhou `check_publish_scope`: extrai os sufixos do matcher dos dois adapters e confere que cada um tem case arm correspondente — falha antes que a lacuna original (matcher com tool novo sem arm) se repita em silêncio. Absorveu o **B9** (ver abaixo). Verificado: payloads sintéticos com ambos os prefixos bloqueiam nos dois gates; tool fora de escopo passa; `test_hooks.py` (17 casos) e `validate_repo.py` verdes.
 
 ### B2 — Anti-sycophancy testável (GUT 80)
 
@@ -70,7 +70,7 @@ Em clone fresco (sem `workspace/iteration-1/` gravado), `main()` imprime `ov['wi
 
 ### B9 — settings.local.json fantasma (GUT 18)
 
-`humanize-deliverables/SKILL.md` cita `.claude/settings.local.json` três vezes como local da fiação do hook, inclusive na instrução "para estender o gate, edite o matcher em settings.local.json". A fiação real está em `.claude/settings.json`; quem seguir a instrução cria um override local vazio e não estende nada.
+**Absorvido pelo B1.** `humanize-deliverables/SKILL.md` citava `.claude/settings.local.json` três vezes como local da fiação do hook. Corrigido para `.claude/settings.json` + `.codex/hooks.json` (a fiação real, nos dois harnesses); a lista de tools do step 7 foi completada com `createJiraIssue`, `editJiraIssue`, `slack_schedule_message` para bater com o matcher real.
 
 ### B10 — Humanizer vendorizado drifted (GUT 18)
 

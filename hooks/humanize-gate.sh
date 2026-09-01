@@ -42,8 +42,8 @@ Either the tool has no string fields, or its shape changed. The gate fails close
 on purpose: silently allowing publish without a humanizer pass defeats the gate.
 
 If $TOOL_NAME does not carry user-facing prose and should be exempt, narrow the
-matcher in .claude/settings.local.json (or .claude/settings.json) instead of
-loosening this script.
+matcher in .claude/settings.json (and .codex/hooks.json, kept in sync) instead
+of loosening this script.
 EOF
   exit 2
 fi

@@ -65,6 +65,23 @@ case(
     payload(tool_name="Write", tool_input={"file_path": "/tmp/x/doc.md", "content": f"claim {_marker}"}),
     2,
 )
+# B1: MCP tool-name case arms match by suffix now, so both the bare prefix
+# (mcp__<Server>__<tool>) and the claude_ai_-prefixed one must be recognised
+# — the matcher in settings.json/hooks.json decides *whether* this hook runs
+# at all; these two cases confirm the content-scanning logic itself doesn't
+# silently go inert on either prefix once it does.
+case(
+    "inference-discipline: bare-prefix MCP tool name recognised",
+    ["bash", str(HOOKS / "inference-discipline-gate.sh")],
+    payload(tool_name="mcp__Atlassian_Rovo__createConfluencePage", tool_input={"title": "t", "body": f"claim {_marker}"}),
+    2,
+)
+case(
+    "inference-discipline: claude_ai_-prefixed MCP tool name recognised",
+    ["bash", str(HOOKS / "inference-discipline-gate.sh")],
+    payload(tool_name="mcp__claude_ai_Atlassian_Rovo__createConfluencePage", tool_input={"title": "t", "body": f"claim {_marker}"}),
+    2,
+)
 case(
     "inference-discipline: skip-path for shared hooks/*.sh",
     ["bash", str(HOOKS / "inference-discipline-gate.sh")],

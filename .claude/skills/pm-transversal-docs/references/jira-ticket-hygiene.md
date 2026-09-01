@@ -253,13 +253,13 @@ Stories that fail Ready enter refinement, not planning.
 
 ## Using Jira via MCP
 
-If MCP Atlassian is available:
+If MCP Atlassian is available (tool names below are the `<tool>` suffix of `mcp__<server>__<tool>` — the server prefix varies by environment):
 
-- `mcp__claude_ai_Atlassian_Rovo__createJiraIssue` — create with the template
-- `mcp__claude_ai_Atlassian_Rovo__editJiraIssue` — update fields
-- `mcp__claude_ai_Atlassian_Rovo__getJiraIssue` — fetch
-- `mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql` — run saved queries
-- `mcp__claude_ai_Atlassian_Rovo__transitionJiraIssue` — move through workflow (to "In progress", "Done", etc.)
+- `createJiraIssue` — create with the template
+- `editJiraIssue` — update fields
+- `getJiraIssue` — fetch
+- `searchJiraIssuesUsingJql` — run saved queries
+- `transitionJiraIssue` — move through workflow (to "In progress", "Done", etc.)
 
 See `jira-linking-automation.md` for linking patterns and automations.
 
