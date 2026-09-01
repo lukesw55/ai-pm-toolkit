@@ -18,12 +18,12 @@
 #   - PreToolUse on outbound MCP publish tools   → scan body / message fields
 #
 # Override per-content via sha256 sentinel (same mechanism as anti-slop-mark.sh):
-#   .claude/hooks/inference-discipline-mark.sh "<final content>"
-#   → writes .claude/.inference-discipline/<hash>.flag
+#   hooks/inference-discipline-mark.sh "<final content>"
+#   → writes .ai/gates/inference-discipline/<hash>.flag
 #
 # Skipped paths (the gate would block itself otherwise):
-#   - .claude/skills/inference-discipline/**   (the skill doc references the tags)
-#   - .claude/hooks/**                          (this script references them)
+#   - skills/inference-discipline/** (canonical and both mirrors carry the tags)
+#   - hooks/*.sh                       (the shell gates reference them)
 #   - CLAUDE.md                                 (documents the tags)
 #   - vendored / generated / external paths
 #
@@ -31,6 +31,8 @@
 # correctness gate — a bash bug must never block legitimate work.
 
 set -uo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 hash_stdin() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -49,7 +51,7 @@ FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.n
 
 # Skip paths where the tags are documented or vendored.
 case "$FILE_PATH" in
-  */.claude/skills/inference-discipline/*|*/.claude/hooks/*|*/CLAUDE.md|*/node_modules/*|*/dist/*|*/build/*|*/.venv/*|*/venv/*|*/__pycache__/*|*/.git/*|*/coverage/*|*/.next/*|*/.nuxt/*|*/target/*)
+  */skills/inference-discipline/*|skills/inference-discipline/*|*/hooks/*.sh|hooks/*.sh|*/CLAUDE.md|CLAUDE.md|*/node_modules/*|*/dist/*|*/build/*|*/.venv/*|*/venv/*|*/__pycache__/*|*/.git/*|*/coverage/*|*/.next/*|*/.nuxt/*|*/target/*)
     exit 0
     ;;
 esac
@@ -96,7 +98,7 @@ esac
 
 # Sentinel override.
 HASH=$(printf '%s' "$CONTENT" | hash_stdin)
-FLAG="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/.inference-discipline/$HASH.flag"
+FLAG="$ROOT/.ai/gates/inference-discipline/$HASH.flag"
 if [ -f "$FLAG" ]; then
   exit 0
 fi
@@ -130,8 +132,8 @@ fi
   echo
   echo "If this is a legitimate exception (writing memory that audits inferred premises,"
   echo "or a draft the user explicitly asked to keep with markers), override per-content:"
-  echo "  .claude/hooks/inference-discipline-mark.sh \"<final content>\""
+  echo "  hooks/inference-discipline-mark.sh \"<final content>\""
   echo
-  echo "See .claude/skills/inference-discipline/SKILL.md for the full discipline."
+  echo "See skills/inference-discipline/SKILL.md for the full discipline."
 } >&2
 exit 2

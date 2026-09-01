@@ -2,11 +2,11 @@
 # SessionStart hook: inject the hot memory layer (index + active-context pointer).
 # Both files are policy-capped (pointer <=2 KB, index ~1 line/project); the 8 KB
 # guard below only trips if that policy drifts -- memory.py doctor flags it first.
-# Registered in .claude/settings.json under hooks.SessionStart.
+# Wired by the harness adapters: .claude/settings.json and .codex/hooks.json (SessionStart).
 
 set -u
 
-MEM="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}/.ai/memory"
+MEM="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.ai/memory"
 
 idx="(missing)"
 active="(missing)"

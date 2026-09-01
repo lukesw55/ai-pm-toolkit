@@ -2,8 +2,8 @@
 # humanize-gate.sh — PreToolUse hook for the humanize-deliverables hard gate.
 #
 # Blocks Confluence/Slack/Jira publish tools unless a sha256 sentinel flag
-# matching the prose body exists in .claude/.humanized/<hash>.flag.
-# The flag is written by .claude/hooks/humanize-mark.sh after the humanizer
+# matching the prose body exists in .ai/gates/humanized/<hash>.flag.
+# The flag is written by hooks/humanize-mark.sh after the humanizer
 # pass produces the FINAL bytes that will be passed to the tool.
 #
 # Body extraction strategy: the longest string value (recursive) in tool_input.
@@ -23,7 +23,7 @@ hash_stdin() {
   fi
 }
 
-PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INPUT="$(cat)"
 TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name // "unknown"')
 BODY=$(printf '%s' "$INPUT" | jq -r '
@@ -49,7 +49,7 @@ EOF
 fi
 
 HASH=$(printf '%s' "$BODY" | hash_stdin)
-FLAG_DIR="$PROJECT_ROOT/.claude/.humanized"
+FLAG_DIR="$PROJECT_ROOT/.ai/gates/humanized"
 FLAG="$FLAG_DIR/$HASH.flag"
 
 if [ -f "$FLAG" ]; then
@@ -63,15 +63,15 @@ The longest prose string in tool_input has not passed through the humanizer.
 
 Required workflow:
 
-  1. Apply .claude/skills/humanizer/SKILL.md to the prose body
+  1. Apply skills/humanizer/SKILL.md to the prose body
      (the 29-pattern catalogue: em-dashes, rule of three, link-words,
      inflated vocabulary, promotional register, passive voice, hedging
      stacks, superficial -ing analyses, vague attributions, filler).
 
   2. Mark the EXACT FINAL bytes you intend to publish:
-        $PROJECT_ROOT/.claude/hooks/humanize-mark.sh "<final prose body>"
+        $PROJECT_ROOT/hooks/humanize-mark.sh "<final prose body>"
      Or via stdin (recommended for multi-line bodies):
-        printf '%s' "<final body>" | $PROJECT_ROOT/.claude/hooks/humanize-mark.sh -
+        printf '%s' "<final body>" | $PROJECT_ROOT/hooks/humanize-mark.sh -
 
   3. Re-call $TOOL_NAME with that exact text.
 

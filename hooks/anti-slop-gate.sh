@@ -2,7 +2,7 @@
 # anti-slop-gate.sh — PreToolUse hook for the anti-slop hard gate.
 #
 # Blocks Write / Edit / NotebookEdit when the target file or content matches
-# the high-signal subset of .claude/skills/anti-slop/SKILL.md:
+# the high-signal subset of skills/anti-slop/SKILL.md:
 #
 #   1. Forbidden file basenames (D1: PLAN.md, NOTES.md, IMPLEMENTATION.md,
 #      SUMMARY.md, CHANGES.md, ANALYSIS.md, TODO.md — case-insensitive).
@@ -17,7 +17,7 @@
 #   3. Decorative emoji headings in markdown (B6). Diff-aware: same logic.
 #
 # Overridable per-content via sha256 sentinel:
-#   anti-slop-mark.sh "<final content>"  → .claude/.anti-slop/<hash>.flag
+#   anti-slop-mark.sh "<final content>"  → .ai/gates/anti-slop/<hash>.flag
 #
 # False-positive mitigations:
 #   - Banner regex requires the comment line to be ONLY '=' chars after the
@@ -31,6 +31,8 @@
 # stay in the skill catalogue — gating them via regex misfires more than helps.
 
 set -uo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 hash_stdin() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -66,7 +68,7 @@ OLD=$(printf '%s' "$INPUT" | jq -r '
 # Sentinel override: if the user marked the exact NEW content, allow.
 if [ -n "$NEW" ]; then
   HASH=$(printf '%s' "$NEW" | hash_stdin)
-  FLAG="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/.anti-slop/$HASH.flag"
+  FLAG="$ROOT/.ai/gates/anti-slop/$HASH.flag"
   if [ -f "$FLAG" ]; then
     exit 0
   fi
@@ -133,14 +135,14 @@ fi
   echo "tool config that demands it, emoji that the project already uses,"
   echo "user explicitly asked for the file) — mark the EXACT bytes:"
   echo
-  echo "    \$CLAUDE_PROJECT_DIR/.claude/hooks/anti-slop-mark.sh \"<final content>\""
-  echo "    printf '%s' \"<final content>\" | \$CLAUDE_PROJECT_DIR/.claude/hooks/anti-slop-mark.sh -"
+  echo "    hooks/anti-slop-mark.sh \"<final content>\""
+  echo "    printf '%s' \"<final content>\" | hooks/anti-slop-mark.sh -"
   echo
   if [ -n "$HASH" ]; then
     echo "Hash expected for this call: $HASH"
-    echo "Flag file the gate looked for: ${CLAUDE_PROJECT_DIR:-\$PWD}/.claude/.anti-slop/$HASH.flag"
+    echo "Flag file the gate looked for: $ROOT/.ai/gates/anti-slop/$HASH.flag"
     echo
   fi
-  echo "Full catalogue and override examples: .claude/skills/anti-slop/SKILL.md"
+  echo "Full catalogue and override examples: skills/anti-slop/SKILL.md"
 } >&2
 exit 2

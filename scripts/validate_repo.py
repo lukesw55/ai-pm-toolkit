@@ -30,7 +30,7 @@ except Exception:  # pragma: no cover - optional dependency in some installs
 
 ROOT = Path(__file__).resolve().parent.parent
 SKILLS = ROOT / ".claude" / "skills"
-HOOKS = ROOT / ".claude" / "hooks"
+HOOKS = ROOT / "hooks"
 STAGES = {
     "discovery-prioritization",
     "impact-brief",
@@ -142,10 +142,9 @@ def check_settings(errors: list[str], warnings: list[str]) -> None:
                 if isinstance(timeout, (int, float)) and timeout > 120:
                     err(errors, f"{rel(path)}: timeout {timeout} on {event}[{idx}] looks like milliseconds; use seconds")
                 command = hook.get("command", "")
-                if command.startswith(".claude/hooks/"):
-                    script = ROOT / command
-                    if not script.exists():
-                        err(errors, f"{rel(path)}: missing hook command target {command}")
+                target = re.search(r"hooks/[\w.-]+\.sh", command)
+                if target and not (ROOT / target.group(0)).exists():
+                    err(errors, f"{rel(path)}: missing hook command target {target.group(0)}")
 
 
 def check_hook_syntax(errors: list[str], warnings: list[str]) -> None:
@@ -166,7 +165,10 @@ def check_hook_syntax(errors: list[str], warnings: list[str]) -> None:
 def check_memory_bootstrap(errors: list[str]) -> None:
     with tempfile.TemporaryDirectory(prefix="ai-pm-validate-") as td:
         tmp = Path(td) / ROOT.name
-        ignore = shutil.ignore_patterns(".git", "workspace", ".claude/.anti-slop", ".claude/.humanized", ".claude/.inference-discipline")
+        # "memory" / "gates" exclude .ai/memory and .ai/gates: local session state
+        # (an active project, sentinel flags) that must not leak into the
+        # fresh-clone bootstrap simulation below.
+        ignore = shutil.ignore_patterns(".git", "workspace", "memory", "gates")
         shutil.copytree(ROOT, tmp, ignore=ignore)
         py = sys.executable  # "python3" is not on PATH in every environment (e.g. Windows)
         cmds = [

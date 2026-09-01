@@ -36,7 +36,8 @@ if [ -z "$BODY" ]; then
 fi
 
 HASH=$(printf '%s' "$BODY" | hash_stdin)
-DIR="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/.inference-discipline"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DIR="$ROOT/.ai/gates/inference-discipline"
 mkdir -p "$DIR"
 touch "$DIR/$HASH.flag"
 echo "$HASH"

@@ -29,7 +29,5 @@ __pycache__/
 .claude/settings.local.json
 .mcp.json
 
-# Per-content hard-gate sentinels (regenerated per session)
-.claude/.humanized/
-.claude/.anti-slop/
-.claude/.inference-discipline/
+# Per-content hard-gate sentinels (regenerated per session; shared by both harnesses)
+.ai/gates/

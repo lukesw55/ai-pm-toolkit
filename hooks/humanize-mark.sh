@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# anti-slop-mark.sh — write the sha256 sentinel that unlocks anti-slop-gate.sh
-# for one specific Write / Edit / NotebookEdit content blob.
+# humanize-mark.sh — write the sha256 sentinel flag that unlocks the
+# humanize-gate.sh PreToolUse hook for one specific prose body.
 #
 # Usage:
-#   anti-slop-mark.sh "<final content>"
-#   printf '%s' "<final content>" | anti-slop-mark.sh -
+#   humanize-mark.sh "<final prose body>"
+#   printf '%s' "<final body>" | humanize-mark.sh -
 #
-# Run AFTER deciding the gate-flagged content is legitimate, with the EXACT
-# bytes that will go to the tool. The hash must match what the gate computes
+# Run AFTER applying skills/humanizer/SKILL.md, with the EXACT bytes
+# that will go to the publish tool. The hash must match what the gate computes
 # on tool_input — any byte change invalidates the flag.
 
 set -euo pipefail
@@ -30,12 +30,13 @@ else
 fi
 
 if [ -z "$BODY" ]; then
-  echo "anti-slop-mark: refusing to mark an empty body" >&2
+  echo "humanize-mark: refusing to mark an empty body" >&2
   exit 1
 fi
 
 HASH=$(printf '%s' "$BODY" | hash_stdin)
-DIR="${CLAUDE_PROJECT_DIR:-$PWD}/.claude/.anti-slop"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DIR="$ROOT/.ai/gates/humanized"
 mkdir -p "$DIR"
 touch "$DIR/$HASH.flag"
 echo "$HASH"

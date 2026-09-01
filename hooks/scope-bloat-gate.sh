@@ -24,35 +24,44 @@ INPUT="$(cat)"
 STOP_ACTIVE=$(printf '%s' "$INPUT" | jq -r '.stop_hook_active // false' 2>/dev/null || echo "false")
 [[ "$STOP_ACTIVE" == "true" ]] && exit 0
 
-TRANSCRIPT=$(printf '%s' "$INPUT" | jq -r '.transcript_path // empty' 2>/dev/null || echo "")
-[[ -z "$TRANSCRIPT" || ! -f "$TRANSCRIPT" ]] && exit 0
+# Codex Stop delivers the reply inline as last_assistant_message (no JSONL
+# transcript to parse); Claude Code delivers a transcript_path. Same gate,
+# two documented input shapes — rules that need the user prompt self-disable
+# when the harness does not provide one.
+LAST_ASSISTANT=$(printf '%s' "$INPUT" | jq -r '.last_assistant_message // empty' 2>/dev/null || echo "")
+LAST_USER=""
 
-# Last 300 events is enough to find the most recent assistant + user turn.
-TAIL=$(tail -n 300 "$TRANSCRIPT" 2>/dev/null) || exit 0
-[[ -z "$TAIL" ]] && exit 0
+if [[ -z "$LAST_ASSISTANT" ]]; then
+  TRANSCRIPT=$(printf '%s' "$INPUT" | jq -r '.transcript_path // empty' 2>/dev/null || echo "")
+  [[ -z "$TRANSCRIPT" || ! -f "$TRANSCRIPT" ]] && exit 0
 
-# Extract last assistant text (concatenated text blocks of the last
-# assistant message that has any text content).
-LAST_ASSISTANT=$(printf '%s' "$TAIL" | jq -rs '
-  map(select(.type == "assistant"))
-  | map(.message.content)
-  | map(if type == "array" then [.[] | select(.type == "text") | .text] | join("\n") else "" end)
-  | map(select(. != null and . != ""))
-  | last // ""
-' 2>/dev/null) || exit 0
+  # Last 300 events is enough to find the most recent assistant + user turn.
+  TAIL=$(tail -n 300 "$TRANSCRIPT" 2>/dev/null) || exit 0
+  [[ -z "$TAIL" ]] && exit 0
 
-# Extract last user prompt text (excludes tool_result blocks).
-LAST_USER=$(printf '%s' "$TAIL" | jq -rs '
-  map(select(.type == "user"))
-  | map(.message.content)
-  | map(
-      if type == "string" then .
-      elif type == "array" then [.[] | select(.type == "text") | .text] | join("\n")
-      else "" end
-    )
-  | map(select(. != null and . != ""))
-  | last // ""
-' 2>/dev/null) || exit 0
+  # Extract last assistant text (concatenated text blocks of the last
+  # assistant message that has any text content).
+  LAST_ASSISTANT=$(printf '%s' "$TAIL" | jq -rs '
+    map(select(.type == "assistant"))
+    | map(.message.content)
+    | map(if type == "array" then [.[] | select(.type == "text") | .text] | join("\n") else "" end)
+    | map(select(. != null and . != ""))
+    | last // ""
+  ' 2>/dev/null) || exit 0
+
+  # Extract last user prompt text (excludes tool_result blocks).
+  LAST_USER=$(printf '%s' "$TAIL" | jq -rs '
+    map(select(.type == "user"))
+    | map(.message.content)
+    | map(
+        if type == "string" then .
+        elif type == "array" then [.[] | select(.type == "text") | .text] | join("\n")
+        else "" end
+      )
+    | map(select(. != null and . != ""))
+    | last // ""
+  ' 2>/dev/null) || exit 0
+fi
 
 [[ -z "$LAST_ASSISTANT" ]] && exit 0
 
@@ -113,7 +122,7 @@ USER_LINES=$(printf '%s' "$LAST_USER" | grep -c '.' || true)
 USER_LINES=${USER_LINES:-0}
 HEADER_COUNT=$(printf '%s' "$PROSE" | grep -cE '^##+[[:space:]]|^\*\*[^*]+\*\*:[[:space:]]*$' || true)
 HEADER_COUNT=${HEADER_COUNT:-0}
-if [[ $USER_LINES -le 2 && $USER_LEN -lt 300 && $HEADER_COUNT -gt 0 ]]; then
+if [[ $USER_LEN -gt 0 && $USER_LINES -le 2 && $USER_LEN -lt 300 && $HEADER_COUNT -gt 0 ]]; then
   if ! printf '%s' "$LAST_USER" | grep -qiE "$DOC_REGEX"; then
     REASONS+=("$HEADER_COUNT header(s) numa resposta a pergunta de $USER_LINES linha(s)/$USER_LEN chars. Resposta curta não precisa de seção — escreva inline.")
   fi

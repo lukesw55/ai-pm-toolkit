@@ -27,7 +27,7 @@ else
   missing=1
 fi
 
-for hook in .claude/hooks/*.sh; do
+for hook in hooks/*.sh; do
   if [ -x "$hook" ]; then
     printf 'OK    executable %s\n' "$hook"
   else

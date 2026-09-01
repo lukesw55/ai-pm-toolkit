@@ -19,7 +19,8 @@ TOOL_NAME="$(jq -r '.tool_name // "?"' <<<"$INPUT")"
 
 [[ -z "$FILE_PATH" ]] && exit 0
 
-ACTIVE_CTX="${CLAUDE_PROJECT_DIR:-$PWD}/.ai/memory/active-context.md"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ACTIVE_CTX="$ROOT/.ai/memory/active-context.md"
 [[ -f "$ACTIVE_CTX" ]] || exit 0
 
 ACTIVE_SLUG="$(grep -m1 -E '^- \*\*Slug\*\*:' "$ACTIVE_CTX" | grep -oE '`[^`]+`' | tr -d '`' || true)"
