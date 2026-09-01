@@ -4,12 +4,17 @@ Criado em 2026-09-01 a partir de (a) avaliação completa do repo (leitura dos ~
 
 Priorização pela escala GUT: Gravidade × Urgência × Tendência, cada uma de 1 a 5; score máximo 125. Coluna Evidência: **verificado** (reproduzido ou lido diretamente nesta sessão), **agente** (reportado pelos agentes de leitura, sem re-verificação linha a linha), **pesquisa** (boa prática externa, com fonte).
 
+## Restrição transversal: repo híbrido (Claude Code + Codex)
+
+Decisão de 2026-09-01 (ver `decisions.md` do projeto): o toolkit deve funcionar com excelência nos dois harnesses. Todo item deste backlog carrega esse critério de aceite: skill ou reference novo precisa ser consumível pelos dois; enforcement novo precisa de par no Codex (ou degradação explicitamente documentada); nenhum fix pode ser feito "só no lado Claude" sem registrar o débito do outro lado. O trabalho de arquitetura que viabiliza isso é o B19.
+
 ## Ranking
 
 | # | Item | Categoria | Evidência | G | U | T | GUT |
 |---|---|---|---|---|---|---|---|
 | B1 | Corrigir prefixo MCP dos gates de publish | Enforcement | verificado | 5 | 4 | 4 | 80 |
 | B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 |
+| B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 |
 | B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 |
 | B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 |
 | B5 | Resolver contradições de doutrina entre AGENTS.md, SKILL.md e docs de memória | Docs | agente | 3 | 3 | 3 | 27 |
@@ -101,6 +106,22 @@ O protocolo de memória do SKILL.md ("after work: update memory, log decision...
 
 Único módulo que escapou da limpeza vendor-neutral: âncoras de scoring hard-coded (CRA/SBOM/VEX/fTPM, tiers Developer→Professional), mistura PT/EN entre SKILL.md e references, e a mesma regra chamada "Trava de Abrangência" num arquivo e "TRAVA DE ALAVANCAGEM" noutro.
 
+### B19 — Arquitetura híbrida Claude Code + Codex (GUT 80)
+
+Hoje tudo vive no lado Claude: skills em `.claude/skills/`, gates em `.claude/settings.json` + `.claude/hooks/`, doutrina em `CLAUDE.md`; não existe `.agents/` nem `.codex/`, e o `AGENTS.md` atual é um registro de agents estilo Copilot, não a doutrina operacional que o Codex lê. Resultado: no Codex, o conteúdo só funciona se apontado manualmente e o enforcement inteiro (a metade "hooks enforce" da proposta do repo) não existe.
+
+As docs atuais do Codex tornam paridade real viável: AGENTS.md no root e aninhado lido no início da sessão; skills em `.agents/skills/` com o mesmo formato (SKILL.md, frontmatter name/description, references/, progressive disclosure); hooks em `.codex/hooks.json` ou `[hooks]` no config.toml com evento `PreToolUse`, matchers e capacidade de bloquear (hooks de projeto exigem trust do layer `.codex/`).
+
+Entregáveis, em ordem:
+
+1. Verificar no doc de hooks do Codex o catálogo completo de eventos e o schema de stdin (a existência de `PreToolUse` está confirmada; os campos de input, não — os gates atuais leem `tool_name`/`tool_input` do formato Claude e podem precisar de um adapter).
+2. Decidir o mecanismo de espelhamento das skills entre `.claude/skills/` e `.agents/skills/`: symlink é hostil ao suporte Windows recém-adicionado; alternativas são script de sync com verificação no `validate_repo.py` ou mover o canônico e apontar o outro lado.
+3. Portar os 4 gates para `.codex/hooks.json` (reusando os shell scripts via adapter), incluindo o equivalente de stage-awareness (UserPromptSubmit não tem par confirmado; fallback: instrução de leitura de `active-context.md` no AGENTS.md).
+4. Reescrever `AGENTS.md` como doutrina-espelho do `CLAUDE.md` para o Codex, mantendo o registro de agents como seção.
+5. Estender `validate_repo.py` com checagem de paridade (skill presente dos dois lados, hooks wired dos dois lados).
+
+Executar o desenho (passos 1 e 2) antes do B1: o fix do prefixo MCP muda de forma dependendo de onde os gates passam a viver.
+
 ## Frameworks avaliados e não aportados
 
 - **Shape Up (Basecamp)**: appetite/betting colide com a dupla priorização por régua comum já existente; adotaria vocabulário concorrente sem resolver gap real.
@@ -116,3 +137,4 @@ O protocolo de memória do SKILL.md ("after work: update memory, log decision...
 - Comunicação executiva: [Huryn — SCQA + Pyramid Principle para exec presentations](https://huryn.medium.com/how-to-nail-an-exec-presentation-and-be-noticed-6908f73ce178), [Management Consulted — SCQA Framework](https://managementconsulted.com/scqa-framework/)
 - Sycophancy: [arXiv — Sycophancy in LLMs: Causes and Mitigations](https://arxiv.org/pdf/2411.15287), [arXiv — Ask don't tell: Reducing sycophancy](https://arxiv.org/html/2602.23971v2), [arXiv — ELEPHANT: social sycophancy](https://arxiv.org/pdf/2505.13995)
 - Frameworks de discovery: [ProdPad — 16 Product Management Frameworks](https://www.prodpad.com/blog/product-management-frameworks/), [Productboard — Double Diamond Framework Guide](https://www.productboard.com/blog/double-diamond-framework-product-management/), [Great Question — Continuous discovery habits](https://greatquestion.co/blog/continuous-discovery-habits)
+- Codex (híbrido): [Codex — Customization (AGENTS.md, skills, hooks)](https://developers.openai.com/codex/concepts/customization), [Codex — Advanced configuration (hooks.json, PreToolUse)](https://developers.openai.com/codex/config-advanced), [Codex CLI](https://developers.openai.com/codex/cli)
