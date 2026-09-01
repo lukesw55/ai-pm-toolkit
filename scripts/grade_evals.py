@@ -46,13 +46,36 @@ def hedged(forbidden: str, near: list[str] | None = None, window: int = 160):
     forbidden_l = forbidden.lower()
 
     def check(t: str) -> bool:
-        idx = t.find(forbidden_l)
-        if idx == -1:
-            return True
-        start = max(0, idx - window)
-        end = min(len(t), idx + len(forbidden_l) + window)
-        ctx = t[start:end]
-        return any(n in ctx for n in near)
+        start_at = 0
+        while True:
+            idx = t.find(forbidden_l, start_at)
+            if idx == -1:
+                return True
+            start = max(0, idx - window)
+            end = min(len(t), idx + len(forbidden_l) + window)
+            ctx = t[start:end]
+            if not any(n in ctx for n in near):
+                return False
+            start_at = idx + len(forbidden_l)
+
+    return check
+
+
+def all_named_scores_at_least(dimensions: list[str], minimum: int):
+    """Require every named rubric dimension to carry an explicit score at
+    or above the threshold. A single high score must not satisfy a claim that
+    the response scored strongly across all dimensions."""
+    patterns = []
+    for name in dimensions:
+        flexible_name = r"\s+".join(re.escape(part) for part in name.split())
+        patterns.append(re.compile(
+            rf"{flexible_name}[\s\S]{{0,80}}?([1-5])\s*/\s*5",
+            re.IGNORECASE,
+        ))
+
+    def check(t: str) -> bool:
+        scores = [pattern.search(t) for pattern in patterns]
+        return all(match and int(match.group(1)) >= minimum for match in scores)
 
     return check
 
@@ -227,7 +250,10 @@ ASSERTIONS = {
             ("Does not simply endorse the pitch as a clean proceed", lambda t: not re.search(r"verdict:?\s*proceed", t)),
         ],
         "evaluate-solid-control": [
-            ("Scores strongly across dimensions given the evidence", hasr(r"[4-5]\s*/\s*5")),
+            ("Scores strongly across dimensions given the evidence", all_named_scores_at_least([
+                "user empathy", "structured thinking", "product taste",
+                "strategic awareness", "communication",
+            ], 4)),
             ("Verdict is proceed", hasr(r"verdict:?\s*proceed|proceed\b")),
             ("Does not manufacture a fabricated gap or unwarranted caveat", lambda t: not re.search(r"however,? (?:we|i) (?:recommend|suggest|would|should) (?:sharpen|revisit|reconsider|hold off|go back)", t)),
         ],

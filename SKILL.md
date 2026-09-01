@@ -1,6 +1,6 @@
 ---
 name: umberto
-description: Lean Double Diamond delivery skill for Claude Code. Use when turning an idea, brief, bug, or feature into the smallest validated increment. Guides work through Discover → Define → Develop → Deliver, with startup-speed experimentation, structured memory, and anti-overengineering guardrails.
+description: Lean Double Diamond delivery skill for Claude Code and Codex. Use when turning an idea, brief, bug, or feature into the smallest validated increment. Guides work through Discover → Define → Develop → Deliver, with startup-speed experimentation, structured memory, and anti-overengineering guardrails.
 ---
 
 # Umberto
@@ -31,7 +31,7 @@ Use Umberto when you need to:
 
 Read these in order before substantial work:
 
-1. `CLAUDE.md`
+1. `CLAUDE.md` (Claude Code) or `AGENTS.md` (Codex)
 2. `.ai/rules.md`
 3. `.ai/changelog.md`
 4. `.ai/app.md`

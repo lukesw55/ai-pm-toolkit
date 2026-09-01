@@ -58,7 +58,7 @@ Reply with A/B or "let's talk" if you need more context.
 - **First line carries the message.** If the reader stops there, they still know the point.
 - **One ask per message.** Multiple asks compete for attention and none gets answered.
 - **Name the decision-maker.** `@here` and `@channel` diffuse responsibility; a named person feels the ask.
-- **Confirmed vs. unconfirmed, always distinguished.** Chat moves fast, which is exactly when unverified claims slip out as fact — mark what you haven't checked yet (see `../inference-discipline/SKILL.md`).
+- **Confirmed vs. unconfirmed, always distinguished.** Chat moves fast, which is exactly when unverified claims slip out as fact — mark what you haven't checked yet (see `../../inference-discipline/SKILL.md`).
 - **Urgency stated, not implied.** "ASAP" is not a deadline. Say the actual time.
 
 ## Common anti-patterns

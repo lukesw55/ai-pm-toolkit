@@ -100,7 +100,7 @@ A BUILD walk-through that hits all six steps cleanly should convert into a One P
 
 ## Calibration examples (from Product Sense interview transcripts)
 
-Paraphrased, not quoted; source videos linked. See `../evaluation-rubric.md` for the EVALUATE-side calibration and `../../DOCTRINE.md` for the calibrated-disagreement material these overlap with.
+Paraphrased, not quoted; source videos linked. See `evaluation-rubric.md` for the EVALUATE-side calibration and `../../DOCTRINE.md` for the calibrated-disagreement material these overlap with.
 
 - **Enumerate before picking.** The framework's own walkthrough (a library redesign) explicitly warns against picking one user "out of the gate" — enumerate children, parents, and community members first, then choose deliberately which to focus on. ([Answer Product Sense Interview Questions Like A Pro](https://www.youtube.com/watch?v=WE0KeryvpXE))
 - **Rank pain points, don't list them flat.** The same walkthrough distinguishes a shallow pain point ("libraries are boring") from a more specific, more severe one tied to a particular user (a college student who can't find research material) — and treats the ranking itself as part of the answer, not an afterthought.

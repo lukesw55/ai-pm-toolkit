@@ -8,7 +8,7 @@ Checks:
   byte copies, so a broken link there is the same broken link in canonical).
 - WORKFLOW.md stage table parses into the canonical stage contract.
 - .claude/settings.json and .codex/hooks.json hook shape and command targets.
-- Hook shell syntax, and that shared hooks/*.sh carry no CLAUDE_PROJECT_DIR
+- Hook shell syntax, and that shared hooks/*.sh carry no harness-specific paths
   dependency (D4: shared enforcement logic must be harness-neutral).
 - Mirror drift: .claude/skills/ and .agents/skills/ match skills/ exactly.
 - Memory bootstrap contract: init_context.py creates an ACTIVE pointer that
@@ -184,13 +184,19 @@ def check_mirror_drift(errors: list[str]) -> None:
 
 def check_hooks_neutral(errors: list[str]) -> None:
     """D4: shared enforcement scripts in hooks/ must resolve their own root
-    and never depend on a harness-specific env var. CLAUDE_PROJECT_DIR is
-    Claude Code-only; a shared script that reads it silently breaks under
-    Codex instead of failing loudly, so this is a hard error, not a warning."""
+    and never depend on harness-specific variables or paths. Those details
+    belong in the thin lifecycle adapters, not shared enforcement."""
+    forbidden = {
+        "CLAUDE_PROJECT_DIR": "Claude-only environment variable",
+        ".claude/": "Claude-specific path",
+        ".codex/": "Codex-specific path",
+        ".agents/": "Codex discovery-mirror path",
+    }
     for path in sorted(HOOKS.glob("*.sh")):
         text = path.read_text(encoding="utf-8", errors="replace")
-        if "CLAUDE_PROJECT_DIR" in text:
-            err(errors, f"{rel(path)}: shared hook depends on CLAUDE_PROJECT_DIR (Claude-only); resolve root via BASH_SOURCE instead")
+        for token, reason in forbidden.items():
+            if token in text:
+                err(errors, f"{rel(path)}: shared hook contains {reason} ({token}); keep harness semantics in its adapter")
 
 
 def _publish_matcher(path: Path) -> str | None:
