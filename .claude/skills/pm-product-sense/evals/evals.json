@@ -1,0 +1,26 @@
+{
+  "skill_name": "pm-product-sense",
+  "evals": [
+    {
+      "id": 0,
+      "name": "build-onboarding-improvement",
+      "category": "standard",
+      "prompt": "BUILD mode: How would you improve the onboarding experience for a B2B project-management SaaS tool? Walk through the six-step framework — clarifying questions, strategy/goal, user types, pain points, solutions, MVP.",
+      "expected_output": "Follows the six steps in order: at least one real clarifying question or explicit scoping assumption; a stated strategy/goal the decision serves; more than one user type enumerated with a deliberate choice of which to target; pain points tied to the chosen user type and roughly ranked by severity; at least one solution proposed and at least one alternative explicitly rejected with a reason, both tied back to a named pain point; an MVP with explicit in/out scope and a named success metric. No solution appears before a user type and pain point have been named."
+    },
+    {
+      "id": 1,
+      "name": "evaluate-pet-feature",
+      "category": "skill-functional-adversarial",
+      "prompt": "EVALUATE mode: score this One Pager. --- One Pager: Gamified Achievements. The CEO saw a badges-and-leaderboard system in a consumer fitness app and loved it — we should add badges, a leaderboard, streaks, and avatar customization to our B2B project-management tool to drive engagement. Users will love having fun while they work. This will make the product stickier and more fun to use. Ask: approve for build next sprint.",
+      "expected_output": "Does not rubber-stamp the pitch with high scores across the board. Scores user empathy low (no specific user type or evidenced pain point named — 'users will love it' is generic, not evidence) and product taste low (no MVP cut — badges, leaderboard, streaks, and avatar customization all bundled with no scoping discipline, no rejected alternative). Reports the lowest score first rather than leading with a flattering dimension. Applies the ≤2-limits-verdict rule: verdict is sharpen or back-to-discovery, not proceed, given the scoring. Does not inflate the verdict because the pitch came from the CEO or because the writing itself is clear and enthusiastic."
+    },
+    {
+      "id": 2,
+      "name": "evaluate-solid-control",
+      "category": "negative-control",
+      "prompt": "EVALUATE mode: score this One Pager. --- One Pager: Bulk CSV User Import. Target user: team admins on 5-50 seat B2B accounts. Pain point: admins currently invite users one at a time; this is our #1 requested capability (14 support tickets over two quarters) and is tied to a signed customer commitment. Considered and rejected: a full SCIM/HR-sync integration — evidenced ask is specifically for CSV import, SCIM has no customer commitment behind it and would triple the timeline, so it's out of scope for this bet. MVP: CSV upload with validation and error reporting, explicitly excluding SCIM, custom field mapping, and real-time sync (listed as non-goals). Success metric: % of eligible admins using bulk import within 30 days of launch, target 25%. Ask: approve for build, prioritisation stage next.",
+      "expected_output": "Scores this artefact well across most or all five dimensions — a specific, evidenced user type and pain point, a rejected alternative with a stated reason, an explicit MVP scope with named non-goals, and a concrete success metric all support high scores on user empathy, structured thinking, and product taste in particular. Verdict is proceed, since no dimension should score ≤2 given the evidence provided. Does not manufacture a low score, a fabricated gap, or unwarranted caveats to appear rigorous — a well-evidenced One Pager gets scored on its actual merits, not penalised for looking too clean."
+    }
+  ]
+}

@@ -22,11 +22,11 @@ Your product is partly probabilistic. It can fail in novel ways. Users will form
 
 ## Skills and references you pull from
 
-- `.claude/skills/pm-phase-develop/references/prd-writing.md` — AI PRDs emphasise failure modes + eval plan + HITL
-- `.claude/skills/pm-phase-develop/references/tracking-plan-design.md` — AI apps need bespoke events (inference called, tool used, fallback triggered, user rated output)
-- `.claude/skills/pm-phase-deliver/references/experiment-interpretation.md` — A/B on AI outputs requires care (variance, subjectivity)
-- `.claude/skills/pm-phase-deliver/references/metric-quality-guardrails.md` — AI guardrails are critical
-- `.claude/skills/pm-transversal-analysis/` — qualitative eval of outputs is a core AI skill
+- `skills/pm-phase-develop/references/prd-writing.md` — AI PRDs emphasise failure modes + eval plan + HITL
+- `skills/pm-phase-develop/references/tracking-plan-design.md` — AI apps need bespoke events (inference called, tool used, fallback triggered, user rated output)
+- `skills/pm-phase-deliver/references/experiment-interpretation.md` — A/B on AI outputs requires care (variance, subjectivity)
+- `skills/pm-phase-deliver/references/metric-quality-guardrails.md` — AI guardrails are critical
+- `skills/pm-transversal-analysis/` — qualitative eval of outputs is a core AI skill
 
 ## AI-specific concerns
 

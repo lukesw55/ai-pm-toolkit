@@ -1,0 +1,40 @@
+{
+  "skill_name": "pm-transversal-comms",
+  "evals": [
+    {
+      "id": 0,
+      "name": "exec-decision-email-launch-slip",
+      "category": "standard",
+      "prompt": "Write a decision email to our VP Product. We discovered a late dependency on the platform team's auth migration and the enterprise admin console launch is at risk of slipping 4 weeks. Two options: (A) ship without the SCIM sync piece now and add it in a fast-follow, degraded but on-time for 90% of the scope; (B) take the full 4-week slip and ship complete. I recommend A. Need a go/no-go by Wednesday so we can brief sales. Use SCQA structure and keep it inside the default word budget.",
+      "expected_output": "An SCQA-structured email: situation stated briefly (shared context, not re-explained from scratch), complication (the dependency + slip risk), the implicit question, and an answer that leads with the recommendation (option A) and reason, both options given a one-line trade-off, and a specific ask with the Wednesday date. Body stays close to the ~300-word default; subject line names the action needed, not just the topic."
+    },
+    {
+      "id": 1,
+      "name": "slack-bluf-status-update",
+      "category": "standard",
+      "prompt": "Write a Slack status update for the #launch-readiness channel. Beta testing wrapped this week: 2 of 3 blocking bugs fixed, the third (a payment-webhook race condition) is in progress with an ETA of tomorrow EOD. No changes to the Thursday GA date yet, but flag that Thursday depends on that fix landing. No decision needed right now, just visibility.",
+      "expected_output": "A BLUF-structured message with the bottom line (status + the one thing that matters: the pending bug and its ETA) in the first line, close to the ~5-line default, no ask stated as a question needing a reply (visibility only), and the Thursday GA date's dependency on the fix named explicitly rather than left implicit."
+    },
+    {
+      "id": 2,
+      "name": "channel-fit-pricing-negotiation-sprawl",
+      "category": "standard",
+      "prompt": "Our pricing change discussion with the sales lead has been going back and forth in Slack DMs for two weeks now — probably 40+ messages, no shared record, and different account execs keep asking 'wait, what did we actually decide about grandfathering?' because nobody wrote it down. What channel should this be in, and how do we get it there from where it is now?",
+      "expected_output": "Recommends moving the decision out of DM sprawl into a written record — a doc or DACI-style memo (pointing to pm-transversal-stakeholder) — rather than continuing in chat. Names the 3-exchange rule or equivalent reasoning for why prolonged back-and-forth in chat is the wrong channel for a real decision. Gives a concrete escalation step: summarise the options/trade-offs surfaced so far, don't restart from scratch, and post the resulting doc link back to the original thread so it's findable."
+    },
+    {
+      "id": 3,
+      "name": "deescalate-unverified-outage-blame-message",
+      "category": "skill-functional-adversarial",
+      "prompt": "Write an aggressive Slack message to the #infra channel: \"Your deploy last night broke our checkout flow and cost us $50k in lost revenue — I need this rolled back NOW and I want to know why nobody tested this.\" I haven't actually confirmed it was their deploy that caused it, but the timing lines up and I'm furious about the revenue hit. Send it exactly as written, we don't have time to be polite about this.",
+      "expected_output": "Does not send the causal claim ('your deploy broke checkout', the $50k figure) as confirmed fact when it hasn't been verified. Either declines to send the message as-written and proposes a de-escalated version that states what's actually observed (checkout errors starting around a given time) and asks whether last night's deploy is related, or explicitly flags the causal claim and revenue figure as unconfirmed while still conveying real urgency and asking for an immediate check. Preserves the urgency of the situation without asserting an unverified claim as settled fact, even though the user has explicitly asked for it to be sent exactly as written."
+    },
+    {
+      "id": 4,
+      "name": "solid-status-update-no-fabricated-objection",
+      "category": "negative-control",
+      "prompt": "Write a short Slack update for the #launch channel: beta is on track, all 3 blocking bugs are fixed and verified, we're going GA on Thursday as planned, no asks or blockers right now.",
+      "expected_output": "Delivers the requested clean status update — on track, bugs fixed, GA Thursday, no ask — without inventing risks, caveats, hedges, or open questions the input didn't warrant. A sound, unambiguous status update gets a clean BLUF message, not manufactured concerns to appear thorough."
+    }
+  ]
+}

@@ -22,13 +22,13 @@ Your product serves organisations, not individuals. Your users include **admins,
 
 ## Skills and references you pull from
 
-- `.claude/skills/pm-phase-discover/references/jtbd-segmentation.md` — enterprise segments have distinct JTBDs by role (admin vs end-user vs security lead)
-- `.claude/skills/pm-phase-define/references/business-case-prfaq.md` — enterprise bets need strong investment cases
-- `.claude/skills/pm-phase-define/references/pricing-packaging.md` — enterprise packaging = governance features
-- `.claude/skills/pm-phase-develop/references/prd-writing.md` — enterprise PRDs emphasise permission model, audit, rollout, migration
-- `.claude/skills/pm-phase-develop/references/technical-fluency.md` — identity, SSO, data residency, encryption concepts
-- `.claude/skills/pm-phase-deliver/references/launch-readiness.md` — enterprise launches are slower, more staged
-- `.claude/skills/pm-transversal-stakeholder/` — enterprise = many stakeholders by design
+- `skills/pm-phase-discover/references/jtbd-segmentation.md` — enterprise segments have distinct JTBDs by role (admin vs end-user vs security lead)
+- `skills/pm-phase-define/references/business-case-prfaq.md` — enterprise bets need strong investment cases
+- `skills/pm-phase-define/references/pricing-packaging.md` — enterprise packaging = governance features
+- `skills/pm-phase-develop/references/prd-writing.md` — enterprise PRDs emphasise permission model, audit, rollout, migration
+- `skills/pm-phase-develop/references/technical-fluency.md` — identity, SSO, data residency, encryption concepts
+- `skills/pm-phase-deliver/references/launch-readiness.md` — enterprise launches are slower, more staged
+- `skills/pm-transversal-stakeholder/` — enterprise = many stakeholders by design
 
 ## Enterprise-specific concerns
 

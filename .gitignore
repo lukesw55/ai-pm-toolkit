@@ -20,16 +20,18 @@ __pycache__/
 !.ai/memory/README.md
 !.ai/memory/active-context.example.md
 
-# Skill eval run artefacts (regenerated per run; kept local)
+# Skill eval run artefacts (regenerated per run; kept local). Live only in
+# the canonical tree — sync_skills.py excludes workspace/ from both mirrors,
+# so a stray copy there is pre-sync noise, not a second source of truth.
+skills/*/workspace/
 .claude/skills/*/workspace/
-.claude/benchmark_all.json
-.claude/eval-report.html
+.agents/skills/*/workspace/
+/benchmark_all.json
+/eval-report.html
 
 # Local-only Claude Code settings (permissions, machine paths)
 .claude/settings.local.json
 .mcp.json
 
-# Per-content hard-gate sentinels (regenerated per session)
-.claude/.humanized/
-.claude/.anti-slop/
-.claude/.inference-discipline/
+# Per-content hard-gate sentinels (regenerated per session; shared by both harnesses)
+.ai/gates/

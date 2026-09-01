@@ -1,15 +1,16 @@
 # ai-pm-toolkit
 
-**A Claude Code operating system for product managers. Skills ask nicely; hooks enforce.**
+**An operating system for product managers, built for Claude Code and Codex alike. Skills ask nicely; hooks enforce.**
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](scripts/check_requirements.sh)
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-D97757)](https://docs.anthropic.com/en/docs/claude-code)
-[![Skills](https://img.shields.io/badge/skills-19-8250DF)](.claude/skills/)
-[![Blocking hooks](https://img.shields.io/badge/blocking%20hooks-4-critical)](.claude/hooks/)
+[![Built for Codex](https://img.shields.io/badge/built%20for-Codex-412991)](https://developers.openai.com/codex/cli)
+[![Skills](https://img.shields.io/badge/skills-21-8250DF)](skills/)
+[![Blocking hooks](https://img.shields.io/badge/blocking%20hooks-4-critical)](hooks/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/lukesw55/ai-pm-toolkit/pulls)
 
-This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 19 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** AI slop, unverified claims, and unhumanized prose before they land anywhere. The skills are benchmarked against a no-skill baseline, so you can see what each one actually buys you.
+This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** AI slop, unverified claims, and unhumanized prose before they land anywhere. The skills are benchmarked against a no-skill baseline, so you can see what each one actually buys you.
 
 It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks, and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
 
@@ -39,9 +40,10 @@ This toolkit encodes the corrections as reusable skills and as hooks the harness
 
 | Capability | What it does | Where |
 |---|---|---|
-| 8-stage pipeline | Discovery Prioritization through Delivery, one gate per stage, current stage auto-injected into every turn | [`.claude/skills/WORKFLOW.md`](.claude/skills/WORKFLOW.md) |
-| 19 hard-skill PM skills | 4 Double Diamond phases, 4 archetype lenses, 6 transversals, 4 quality gates, a repo doctor | [`.claude/skills/`](.claude/skills/) |
-| 4 blocking runtime hooks | Reject slop prose, unverified claims, scope bloat, and unhumanized publishes at tool-call time | [`.claude/hooks/`](.claude/hooks/) |
+| 8-stage pipeline | Discovery Prioritization through Delivery, one gate per stage, current stage auto-injected into every turn | [`skills/WORKFLOW.md`](skills/WORKFLOW.md) |
+| 21 hard-skill PM skills | 4 Double Diamond phases, 4 archetype lenses, 8 transversals, 4 quality gates, a repo doctor | [`skills/`](skills/) |
+| 4 blocking runtime hooks | Reject slop prose, unverified claims, scope bloat, and unhumanized publishes at tool-call time | [`hooks/`](hooks/) |
+| Claude Code + Codex, both first-class | Same skills, same gates, same doctrine in both harnesses — `.claude/` and `.codex/` are thin adapters over one canonical tree | [`skills/`](skills/), [`hooks/`](hooks/), [`.codex/`](.codex/) |
 | Skill benchmarking | Grades skill output against a no-skill baseline, emits an HTML report | [`scripts/grade_evals.py`](scripts/grade_evals.py) |
 | Layered memory | Hot / warm / cold context that survives project switching; PII is never rotated | [`scripts/memory.py`](scripts/memory.py) |
 | Orchestrator + 10 agents | "Umberto" detects the working mode and sequences stages; 6 core agents plus 4 PM archetypes | [`SKILL.md`](SKILL.md), [`.github/agents/`](.github/agents/) |
@@ -73,7 +75,7 @@ Each stage has a skill that produces its artefact and a gate that must pass befo
 | 7 | Tech Kickoff | `pm-phase-develop` | kickoff deck + epic | team aligned, dependencies and NFRs clear |
 | 8 | Delivery | `pm-phase-deliver` | launch kit + close-out | GA shipped, impact measured |
 
-The current stage lives in `.ai/memory/active-context.md` and is injected into every Claude Code turn by a `UserPromptSubmit` hook, so the model always knows where in the pipeline it is working. Stages advance with `python3 scripts/advance_stage.py <slug>`; the progression is a default, not a cage, and the bypass rules are documented in [`WORKFLOW.md`](.claude/skills/WORKFLOW.md).
+The current stage lives in `.ai/memory/active-context.md` and is injected into every turn (Claude Code and Codex alike) by a `UserPromptSubmit` hook, so the model always knows where in the pipeline it is working. Stages advance with `python3 scripts/advance_stage.py <slug>`; the progression is a default, not a cage, and the bypass rules are documented in [`WORKFLOW.md`](skills/WORKFLOW.md).
 
 The orchestrator is a skill codenamed **Umberto** ([`SKILL.md`](SKILL.md)). It detects the working mode first — Kickoff, Feature, Bug, or Rescue — then sequences the phases and loads the right skill at each stage.
 
@@ -83,19 +85,19 @@ The orchestrator is a skill codenamed **Umberto** ([`SKILL.md`](SKILL.md)). It d
 |---|---|---|
 | Phases (4) | `pm-phase-discover`, `pm-phase-define`, `pm-phase-develop`, `pm-phase-deliver` | problem framing and research; strategy, KPI trees, prioritisation, business cases; PRDs, scope slicing, instrumentation; launch readiness, release comms, experiment interpretation |
 | Archetype lenses (4) | `pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform` | evals and guardrails for probabilistic products; SSO/RBAC/compliance/procurement; funnels and experimentation discipline; APIs, DX, deprecation, SLOs |
-| Transversals (6) | `pm-transversal-stakeholder`, `pm-transversal-docs`, `pm-transversal-analysis`, `pm-prioritization-regua-comum`, `pm-storytelling`, `data-science-analyst` | DACI and exec reporting; Confluence/Jira hygiene; quali+quant triangulation; Impact × Effort with one shared ruler; narrative spines; technical correctness of the analysis itself |
+| Transversals (8) | `pm-transversal-stakeholder`, `pm-transversal-docs`, `pm-transversal-analysis`, `pm-transversal-comms`, `pm-prioritization-regua-comum`, `pm-storytelling`, `pm-product-sense`, `data-science-analyst` | DACI and exec reporting; Confluence/Jira hygiene; quali+quant triangulation; exec email (SCQA) and chat (BLUF); Impact × Effort with one shared ruler; narrative spines; product-sense BUILD/EVALUATE (shadow-gates stages 4 and 6); technical correctness of the analysis itself |
 | Quality gates (4) | `anti-slop`, `humanizer`, `humanize-deliverables`, `inference-discipline` | slop removal for code and structure; prose that passes AI detectors; a publish gate for outbound artefacts; the hallucination gate |
 | Tooling (1) | `repo-doctor` | read-only health check of this workspace |
 
 The archetype lenses are full skills, and each also ships as an agent in [`.github/agents/`](.github/agents/) for harnesses that speak that dialect. They stack on top of any phase skill when the product context is non-default.
 
-Every skill ships a `SKILL.md` as its control plane; 13 of 19 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so Claude loads the narrowest reference the task needs instead of a whole catalogue. 15 of 19 carry an `evals/` set so the skill can be graded rather than trusted.
+Every skill ships a `SKILL.md` as its control plane; 15 of 21 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so Claude loads the narrowest reference the task needs instead of a whole catalogue. 17 of 21 carry an `evals/` set so the skill can be graded rather than trusted.
 
 Skills support three output profiles (see [`docs/patterns/COMMUNICATION_MODES.md`](docs/patterns/COMMUNICATION_MODES.md)): Standard for stakeholder-grade analysis, Lean for routine work (the default), Caveman for token-constrained sessions.
 
 ## Enforcement, not vibes
 
-Four hooks in [`.claude/hooks/`](.claude/hooks/), wired through [`.claude/settings.json`](.claude/settings.json), reject bad output at tool-call time:
+Four hooks in [`hooks/`](hooks/), wired through [`.claude/settings.json`](.claude/settings.json) for Claude Code and [`.codex/hooks.json`](.codex/hooks.json) for Codex, reject bad output at tool-call time in both harnesses:
 
 | Hook | Fires on | Blocks |
 |---|---|---|
@@ -123,7 +125,7 @@ Each gate has an explicit, per-content override for legitimate exceptions, so th
 
 ## The toolkit grades itself
 
-15 of the 19 skills ship an `evals/evals.json` with realistic task prompts. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
+17 of the 21 skills ship an `evals/evals.json` with realistic task prompts. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
 
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 
@@ -143,20 +145,22 @@ Writing memory goes through [`scripts/memory.py`](scripts/memory.py) (`log`, `pa
 
 ## Install
 
-Clone it as a project repo and open it in Claude Code. The hooks in `.claude/settings.json` fire at the project level, so opening the folder as a project is what turns enforcement on:
+Works the same way in Claude Code and in Codex — clone it, open the folder as a project, and enforcement turns on. Claude Code reads `.claude/settings.json` and `.claude/skills/`; Codex reads `.codex/hooks.json` and `.agents/skills/`. Both are generated mirrors of the canonical `skills/` and `hooks/` trees, committed so a fresh clone needs no bootstrap step in either harness:
 
 ```bash
 git clone https://github.com/lukesw55/ai-pm-toolkit.git
 cd ai-pm-toolkit
 bash scripts/check_requirements.sh   # preflight: python3, jq, sha256
-python3 scripts/validate_repo.py     # structural self-check
+python3 scripts/validate_repo.py     # structural self-check (both harnesses)
 
 # bootstrap your first project context
 python3 scripts/init_context.py "my-product"
 python3 scripts/memory.py doctor
 ```
 
-Then, in Claude Code, invoke any skill by name (for example `pm-phase-discover`) or talk to the orchestrator:
+On Codex, run `/hooks` once to trust the shared enforcement scripts (re-run it after any edit to `hooks/*.sh` — Codex tracks trust by content hash).
+
+Then, in either harness, invoke any skill by name (for example `pm-phase-discover`) or talk to the orchestrator:
 
 ```text
 We are starting my-product. Read the context files.
@@ -176,7 +180,8 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `log_decision.py` | append a decision to the active project's decision log |
 | `validate_context.py` | schema check for `active-context.md` |
 | `grade_evals.py` | grade eval runs with-skill vs baseline; emit benchmark JSON + HTML report |
-| `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring, memory bootstrap |
+| `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), mirror drift, memory bootstrap |
+| `sync_skills.py` | regenerate `.claude/skills/` and `.agents/skills/` from the canonical `skills/` tree; `--check` for a read-only drift check |
 | `check_requirements.sh` | environment preflight (python3, jq, bash, sha256) |
 
 ## Validation
@@ -186,41 +191,51 @@ Run the repo doctor before shipping changes to the toolkit itself:
 ```bash
 bash scripts/check_requirements.sh
 python3 -m py_compile scripts/*.py
-bash -n .claude/hooks/*.sh
+bash -n hooks/*.sh
+python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
 python3 scripts/memory.py doctor
 ```
 
-`validate_repo.py` checks skill frontmatter, local markdown links, workflow-stage parsing, Claude hook settings, hook syntax, and the memory bootstrap contract. It is zero-dependency except for optional PyYAML; without PyYAML it falls back to minimal frontmatter checks. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
+`validate_repo.py` checks skill frontmatter, local markdown links, workflow-stage parsing, hook settings for both harnesses, hook syntax, mirror drift, and the memory bootstrap contract. It is zero-dependency except for optional PyYAML; without PyYAML it falls back to minimal frontmatter checks. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
 
 ## Repository layout
+
+Shared product logic — skills, enforcement, doctrine — lives once, at the top level. Claude Code and Codex are peers, each a thin adapter over that one canonical tree; neither is the "real" copy the other degrades from.
 
 ```text
 .
 ├── SKILL.md                 # orchestration entrypoint (Umberto)
-├── CLAUDE.md                # working doctrine and guardrails
-├── AGENTS.md                # agent registry
+├── CLAUDE.md                # working doctrine and guardrails (Claude Code adapter)
+├── AGENTS.md                # working doctrine and guardrails (Codex adapter) + agent registry
+├── skills/                  # CANONICAL — the only place skills are hand-edited
+│   ├── WORKFLOW.md          # 8-stage pipeline mapped to skills and gates
+│   ├── DOCTRINE.md          # calibrated disagreement — not a skill, referenced by several
+│   ├── pm-phase-*/          # the four phases
+│   ├── pm-archetype-*/      # ai / enterprise / growth / platform lenses
+│   ├── pm-transversal-*/, pm-prioritization-*/, pm-storytelling/, pm-product-sense/
+│   ├── anti-slop/, humanizer/, humanize-deliverables/, inference-discipline/
+│   ├── data-science-analyst/
+│   └── repo-doctor/         # most skills: references/ + evals/ + progressive-loading.md
+├── hooks/                   # CANONICAL — 4 blocking gates, 3 mark helpers, 2 context hooks
 ├── .claude/
-│   ├── settings.json        # hook wiring
-│   ├── hooks/               # 4 blocking gates, 3 mark helpers, 2 context hooks
-│   └── skills/
-│       ├── WORKFLOW.md      # 8-stage pipeline mapped to skills and gates
-│       ├── pm-phase-*/      # the four phases
-│       ├── pm-archetype-*/  # ai / enterprise / growth / platform lenses
-│       ├── pm-transversal-*/, pm-prioritization-*/, pm-storytelling/
-│       ├── anti-slop/, humanizer/, humanize-deliverables/, inference-discipline/
-│       ├── data-science-analyst/
-│       └── repo-doctor/     # most skills: references/ + evals/ + progressive-loading.md
+│   ├── settings.json        # Claude Code adapter: hook wiring
+│   └── skills/               # generated mirror of skills/ — never hand-edited
+├── .agents/
+│   └── skills/               # generated mirror of skills/ (Codex discovery) — never hand-edited
+├── .codex/
+│   ├── hooks.json           # Codex adapter: hook wiring
+│   └── adapters/             # apply_patch normalization (the one Codex-only script)
 ├── docs/                    # process, memory model, guardrails, comms modes, repo health
-├── scripts/                 # memory, workflow, eval, and validation tooling
-├── .ai/                     # project-brief templates + memory skeleton
-└── .github/agents/          # 6 core agents + 4 PM archetypes
+├── scripts/                 # memory, workflow, eval, sync, and validation tooling
+├── .ai/                     # project-brief templates, memory skeleton, gate sentinel state
+└── .github/agents/          # 6 core agents + 4 PM archetypes (read skills/ directly)
 ```
 
 ## Requirements
 
-- Claude Code with project-level `.claude/settings.json` enabled.
-- Python 3.10+ for memory, workflow, eval, and repo validation scripts.
+- Claude Code with project-level `.claude/settings.json` enabled, or Codex with `.codex/hooks.json` trusted (`/hooks`) — either harness alone is enough; both work together.
+- Python 3.10+ for memory, workflow, eval, sync, and repo validation scripts.
 - Bash for hooks.
 - `jq` for hook JSON parsing.
 - Either `sha256sum` (Linux) or `shasum -a 256` (macOS) for per-content sentinels.
@@ -231,9 +246,11 @@ python3 scripts/memory.py doctor
 - **`init_context.py` refuses to run:** another project is still active; park it first with `python3 scripts/memory.py park <slug>`.
 - **Hooks fail with `jq: command not found`:** install `jq`, then rerun `bash scripts/check_requirements.sh`.
 - **macOS hash command fails:** hooks fall back from `sha256sum` to `shasum -a 256`; if both are missing, install the standard command-line tools.
-- **A publish tool is blocked by `humanize-gate`:** run the `humanizer` pass, then mark the exact final bytes with `.claude/hooks/humanize-mark.sh`.
+- **A publish tool is blocked by `humanize-gate`:** run the `humanizer` pass, then mark the exact final bytes with `hooks/humanize-mark.sh`.
 - **A file edit is blocked by inference discipline:** resolve the unresolved inference markers (INFER, ASSUMING, UNVERIFIED, FROM MEMORY, RECALL), or explicitly approve and mark the exact exception.
-- **Workflow stage output is too thin:** check `.ai/memory/active-context.md` has `Current stage` set to one of the canonical slugs in `.claude/skills/WORKFLOW.md`.
+- **Workflow stage output is too thin:** check `.ai/memory/active-context.md` has `Current stage` set to one of the canonical slugs in `skills/WORKFLOW.md`.
+- **A mirror looks stale or edits to a skill aren't showing up in Codex (or vice versa):** run `python3 scripts/sync_skills.py` — edits go in `skills/` only; `.claude/skills/` and `.agents/skills/` are generated and never hand-edited.
+- **Hooks aren't firing in Codex after a change to `hooks/*.sh`:** Codex requires trusting hooks by content hash; re-run `/hooks` in the Codex CLI after any edit to a shared script.
 
 ## License
 

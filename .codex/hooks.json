@@ -1,0 +1,66 @@
+{
+  "_comment": "Codex adapter for the ai-pm-toolkit. Shared enforcement lives in hooks/ (harness-neutral); this file only wires Codex lifecycle events to those scripts, mirroring .claude/settings.json's wiring. Commands resolve the repo root via `git rev-parse --show-toplevel` so they work regardless of Codex's cwd at invocation time. The one Codex-specific execution adapter is .codex/adapters/pretooluse.py, which normalizes apply_patch's V4A patch format into the Write/Edit shape the shared write gates already consume; MCP publish tool calls need no adapter, since Codex reports tool_name/tool_input in the same shape Claude Code does. Trust the shared scripts once via `/hooks` in the Codex CLI, and again after any edit to hooks/*.sh or this file (Codex tracks trust by content hash). Known gap: check-project-isolation.sh has no Codex wiring here — Codex's PreToolUse matcher catalogue has no confirmed equivalent to Claude Code's Read tool, so the isolation warning is Claude Code-only for now.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/hooks/memory-context.sh\"",
+            "timeout": 5,
+            "statusMessage": "Loading memory hot layer..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/stage_context.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/adapters/pretooluse.py\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__(claude_ai_)?Atlassian_Rovo__(createConfluencePage|updateConfluencePage|createJiraIssue|editJiraIssue|addCommentToJiraIssue|createConfluenceFooterComment|createConfluenceInlineComment)|mcp__(claude_ai_)?Slack__(slack_send_message|slack_send_message_draft|slack_schedule_message|slack_create_canvas|slack_update_canvas)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/hooks/humanize-gate.sh\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/hooks/inference-discipline-gate.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/hooks/scope-bloat-gate.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

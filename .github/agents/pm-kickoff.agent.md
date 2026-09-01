@@ -51,7 +51,7 @@ Turn discovery into:
 - experiment plan
 - stop / continue criteria
 
-**Load skill** `pm-phase-define` for depth on KPI trees, strategy memos, opportunity sizing, business case / PRFAQ, prioritisation frameworks, roadmap narrative, and One Pagers (stage 4 of the team's 8-stage workflow — see `.claude/skills/WORKFLOW.md`).
+**Load skill** `pm-phase-define` for depth on KPI trees, strategy memos, opportunity sizing, business case / PRFAQ, prioritisation frameworks, roadmap narrative, and One Pagers (stage 4 of the team's 8-stage workflow — see `skills/WORKFLOW.md`).
 
 For stage 2 **Impact Brief (GTM)**, load `pm-phase-discover/references/impact-brief.md`.
 

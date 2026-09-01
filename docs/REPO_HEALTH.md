@@ -7,18 +7,23 @@ Use this checklist before publishing or packaging `ai-pm-toolkit`.
 ```bash
 bash scripts/check_requirements.sh
 python3 -m py_compile scripts/*.py
-bash -n .claude/hooks/*.sh
+bash -n hooks/*.sh
+python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
+python3 scripts/test_hooks.py
 ```
 
 `validate_repo.py` covers:
 
-- `SKILL.md` YAML frontmatter for the root skill and all project skills.
-- Local markdown links.
-- `.claude/skills/WORKFLOW.md` parsing into the canonical eight-stage contract.
-- `.claude/settings.json` hook shape, unsupported matchers, and timeout units.
-- Hook shell syntax.
+- `SKILL.md` YAML frontmatter for the root skill and every skill under the canonical `skills/` tree.
+- Local markdown links (canonical + repo docs; the `.claude/skills/` and `.agents/skills/` mirrors are byte copies, checked separately by drift).
+- `skills/WORKFLOW.md` parsing into the canonical eight-stage contract.
+- `.claude/settings.json` and `.codex/hooks.json` hook shape, unsupported matchers, timeout units, and that every referenced command target exists.
+- Hook shell syntax, and that shared `hooks/*.sh` scripts carry no `CLAUDE_PROJECT_DIR` dependency (enforcement logic must work under both harnesses).
+- Mirror drift: `.claude/skills/` and `.agents/skills/` match `skills/` exactly (`scripts/sync_skills.py --check`).
 - Memory bootstrap compatibility between `init_context.py`, `memory.py doctor`, and `stage_context.py`.
+
+`scripts/test_hooks.py` runs synthetic payloads against the shared gates and the Codex `apply_patch` adapter to confirm both harness paths block and unblock correctly.
 
 ## Bootstrap smoke test
 

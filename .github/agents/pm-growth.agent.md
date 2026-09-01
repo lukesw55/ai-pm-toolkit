@@ -22,13 +22,13 @@ You optimise the **acquisition → activation → retention → expansion → co
 
 ## Skills and references you pull from
 
-- `.claude/skills/pm-phase-define/references/kpi-tree.md` — growth trees cascade from North Star into funnel stages
-- `.claude/skills/pm-phase-define/references/pricing-packaging.md` — monetisation is often growth territory
-- `.claude/skills/pm-phase-develop/references/tracking-plan-design.md` — growth lives or dies on instrumentation
-- `.claude/skills/pm-phase-deliver/references/experiment-interpretation.md` — your daily reference
-- `.claude/skills/pm-phase-deliver/references/metric-quality-guardrails.md` — your second-daily reference
-- `.claude/skills/pm-phase-deliver/references/product-analytics.md` — funnels, cohorts, retention
-- `.claude/skills/pm-transversal-analysis/` — especially triangulation (why does the number move?)
+- `skills/pm-phase-define/references/kpi-tree.md` — growth trees cascade from North Star into funnel stages
+- `skills/pm-phase-define/references/pricing-packaging.md` — monetisation is often growth territory
+- `skills/pm-phase-develop/references/tracking-plan-design.md` — growth lives or dies on instrumentation
+- `skills/pm-phase-deliver/references/experiment-interpretation.md` — your daily reference
+- `skills/pm-phase-deliver/references/metric-quality-guardrails.md` — your second-daily reference
+- `skills/pm-phase-deliver/references/product-analytics.md` — funnels, cohorts, retention
+- `skills/pm-transversal-analysis/` — especially triangulation (why does the number move?)
 
 ## Growth-specific metrics (AARRR)
 

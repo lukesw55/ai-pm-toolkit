@@ -46,9 +46,10 @@ Only load extra docs when needed:
 - `docs/memory/MEMORY_SYSTEM.md` — memory structure and update protocol
 - `docs/patterns/KARPATHY_GUARDRAILS.md` — anti-overengineering and anti-assumption rules
 - `docs/patterns/COMMUNICATION_MODES.md` — Standard / Lean / Caveman output profiles
-- `.claude/skills/WORKFLOW.md` — 8-stage team workflow mapped to skills + stage-advance hooks
+- `skills/WORKFLOW.md` — 8-stage team workflow mapped to skills + stage-advance hooks
+- `skills/DOCTRINE.md` — calibrated disagreement: load before substantive pushback or concession, not just at session start
 
-## PM hard-skill toolkit (`.claude/skills/`)
+## PM hard-skill toolkit (`skills/`)
 
 Domain skills organised by Double Diamond phase + transversals. Load the specific skill (and its `references/*.md`) only when the work matches; otherwise stay in Umberto's orchestration loop.
 
@@ -61,13 +62,15 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 | Transversal | `pm-transversal-stakeholder` | DACI/RACI/RAPID, exec reporting, stakeholder mapping |
 | Transversal | `pm-transversal-docs` | Confluence structure & templates, Jira ticket hygiene, linking & automation |
 | Transversal | `pm-transversal-analysis` | qualitative synthesis, quantitative analysis (HogQL), triangulation, media/transcript parsing |
+| Transversal | `pm-transversal-comms` | executive email (SCQA), chat/Slack messages (BLUF), channel-fit rules (chat vs. email vs. doc vs. call) |
 | Transversal | `pm-prioritization-regua-comum` | Impact × Effort with one shared ruler (ARR/Abrangência/CRA), Abrangência lock, HIPO weighting — used at stages 1 and 5 |
 | Transversal | `pm-storytelling` | narrative spine (tension → insight → change → takeaway) for memos, PRD openers, discovery syntheses, QBR storylines |
+| Transversal | `pm-product-sense` | BUILD (6-step decision framework) + EVALUATE (5-dimension rubric); mandatory non-blocking shadow evaluation at stages 4 and 6 |
 | Transversal | `data-science-analyst` | technical correctness of the analysis itself: dataset profiling, SQL audits, A/B validation, leakage checks |
 | Quality gate | `inference-discipline` | every inference labelled and approved before action; the hallucination gate behind `inference-discipline-gate.sh` |
 | Quality gate | `anti-slop` + `humanizer` + `humanize-deliverables` | slop removal split by surface — see the slop-removal table in `WORKFLOW.md` |
 
-The 8-stage workflow and hooks for stage-advancement are documented in `.claude/skills/WORKFLOW.md`. The archetype lenses (`pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform`) are skills too — they stack on top of any phase skill when the product context is non-default.
+The 8-stage workflow and hooks for stage-advancement are documented in `skills/WORKFLOW.md`. The archetype lenses (`pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform`) are skills too — they stack on top of any phase skill when the product context is non-default.
 
 ## Archetype agents (for specialised contexts)
 

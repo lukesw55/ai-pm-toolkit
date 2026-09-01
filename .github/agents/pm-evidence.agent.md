@@ -35,8 +35,8 @@ Map what is still unverified and how dangerous that is if wrong.
 
 Product measurement first:
 
-- **metric quality + experiment integrity** — is the primary metric real? is there SRM? could a guardrail have broken? are segments hiding harm? is it novelty? Load `.claude/skills/pm-phase-deliver/references/metric-quality-guardrails.md` and `experiment-interpretation.md`.
-- **tracking plan QA** (event names, property types, segment coverage) — load `.claude/skills/pm-phase-develop/references/tracking-plan-design.md`
+- **metric quality + experiment integrity** — is the primary metric real? is there SRM? could a guardrail have broken? are segments hiding harm? is it novelty? Load `skills/pm-phase-deliver/references/metric-quality-guardrails.md` and `experiment-interpretation.md`.
+- **tracking plan QA** (event names, property types, segment coverage) — load `skills/pm-phase-develop/references/tracking-plan-design.md`
 - whether the chosen experiment actually measures the hypothesis
 - discovery conclusions: sample bias, leading questions, quotes stretched past their evidence
 - edge cases and state transitions in the flows being measured
