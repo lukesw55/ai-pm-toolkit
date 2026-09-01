@@ -10,13 +10,15 @@ Decisão de 2026-09-01 (ver `decisions.md` do projeto): o toolkit deve funcionar
 
 ## Ranking
 
-| # | Item | Categoria | Evidência | G | U | T | GUT |
-|---|---|---|---|---|---|---|---|
-| B1 | Corrigir prefixo MCP dos gates de publish | Enforcement | verificado | 5 | 4 | 4 | 80 |
-| B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 |
-| B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 |
-| B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 |
-| B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 |
+Coluna Status: **feito** (executado e verificado nesta branch), **em execução** (batch 1 em andamento), vazio = não iniciado.
+
+| # | Item | Categoria | Evidência | G | U | T | GUT | Status |
+|---|---|---|---|---|---|---|---|---|
+| B1 | Corrigir prefixo MCP dos gates de publish | Enforcement | verificado | 5 | 4 | 4 | 80 | em execução (batch 1) |
+| B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 | em execução (batch 1) |
+| B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
+| B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
+| B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
 | B5 | Resolver contradições de doutrina entre AGENTS.md, SKILL.md e docs de memória | Docs | agente | 3 | 3 | 3 | 27 |
 | B6 | Produção de decks: assertion-evidence + storyline QBR → .pptx | Conteúdo PM | pesquisa | 3 | 3 | 3 | 27 |
 | B7 | Consolidação de memória executável (distill episódico → semântico) | Memória | pesquisa | 3 | 2 | 4 | 24 |
@@ -107,6 +109,8 @@ O protocolo de memória do SKILL.md ("after work: update memory, log decision...
 Único módulo que escapou da limpeza vendor-neutral: âncoras de scoring hard-coded (CRA/SBOM/VEX/fTPM, tiers Developer→Professional), mistura PT/EN entre SKILL.md e references, e a mesma regra chamada "Trava de Abrangência" num arquivo e "TRAVA DE ALAVANCAGEM" noutro.
 
 ### B19 — Arquitetura híbrida Claude Code + Codex (GUT 80)
+
+**Feito** (commits A–E na branch `claude/repo-evaluation-setup-5l9z71`). Canônico movido para `skills/` (19 skills + `WORKFLOW.md`) e `hooks/` (9 scripts, harness-neutral, sem dependência de `CLAUDE_PROJECT_DIR`); `.claude/skills/` e `.agents/skills/` são espelhos gerados e commitados por `scripts/sync_skills.py` (`--check` de drift integrado ao `validate_repo.py` e ao CI novo em `.github/workflows/validate.yml`); estado de sentinela movido para `.ai/gates/`; `.codex/hooks.json` + `.codex/adapters/pretooluse.py` normalizam o contrato documentado do `apply_patch` para os gates compartilhados; `AGENTS.md` reescrito como doutrina-espelho do `CLAUDE.md` com seção própria de arquitetura híbrida. Verificado por clone fresco real (`git clone` local): mirrors presentes, `validate_repo.py` e `test_hooks.py` (15 casos) verdes, sem passo de bootstrap. Detalhe completo da execução e das decisões do dono (hooks em `hooks/` neutro, taxonomia de eval, shadow gate) no plano de execução da sessão e em `decisions.md` do projeto.
 
 Hoje tudo vive no lado Claude: skills em `.claude/skills/`, gates em `.claude/settings.json` + `.claude/hooks/`, doutrina em `CLAUDE.md`; não existe `.agents/` nem `.codex/`, e o `AGENTS.md` atual é um registro de agents estilo Copilot, não a doutrina operacional que o Codex lê. Resultado: no Codex, o conteúdo só funciona se apontado manualmente e o enforcement inteiro (a metade "hooks enforce" da proposta do repo) não existe.
 
