@@ -24,7 +24,7 @@
 # Skipped paths (the gate would block itself otherwise):
 #   - skills/inference-discipline/** (canonical and both mirrors carry the tags)
 #   - hooks/*.sh                       (the shell gates reference them)
-#   - CLAUDE.md                                 (documents the tags)
+#   - CLAUDE.md, AGENTS.md                      (both harnesses' doctrine documents the tags)
 #   - vendored / generated / external paths
 #
 # Fail-open on parse / read errors. This script is a discipline gate, not a
@@ -51,7 +51,7 @@ FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.n
 
 # Skip paths where the tags are documented or vendored.
 case "$FILE_PATH" in
-  */skills/inference-discipline/*|skills/inference-discipline/*|*/hooks/*.sh|hooks/*.sh|*/CLAUDE.md|CLAUDE.md|*/node_modules/*|*/dist/*|*/build/*|*/.venv/*|*/venv/*|*/__pycache__/*|*/.git/*|*/coverage/*|*/.next/*|*/.nuxt/*|*/target/*)
+  */skills/inference-discipline/*|skills/inference-discipline/*|*/hooks/*.sh|hooks/*.sh|*/CLAUDE.md|CLAUDE.md|*/AGENTS.md|AGENTS.md|*/node_modules/*|*/dist/*|*/build/*|*/.venv/*|*/venv/*|*/__pycache__/*|*/.git/*|*/coverage/*|*/.next/*|*/.nuxt/*|*/target/*)
     exit 0
     ;;
 esac
