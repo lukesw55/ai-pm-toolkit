@@ -65,6 +65,7 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 | Transversal | `pm-transversal-comms` | executive email (SCQA), chat/Slack messages (BLUF), channel-fit rules (chat vs. email vs. doc vs. call) |
 | Transversal | `pm-prioritization-regua-comum` | Impact × Effort with one shared ruler (ARR/Abrangência/CRA), Abrangência lock, HIPO weighting — used at stages 1 and 5 |
 | Transversal | `pm-storytelling` | narrative spine (tension → insight → change → takeaway) for memos, PRD openers, discovery syntheses, QBR storylines |
+| Transversal | `pm-product-sense` | BUILD (6-step decision framework) + EVALUATE (5-dimension rubric); mandatory non-blocking shadow evaluation at stages 4 and 6 |
 | Transversal | `data-science-analyst` | technical correctness of the analysis itself: dataset profiling, SQL audits, A/B validation, leakage checks |
 | Quality gate | `inference-discipline` | every inference labelled and approved before action; the hallucination gate behind `inference-discipline-gate.sh` |
 | Quality gate | `anti-slop` + `humanizer` + `humanize-deliverables` | slop removal split by surface — see the slop-removal table in `WORKFLOW.md` |

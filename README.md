@@ -6,11 +6,11 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](scripts/check_requirements.sh)
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-D97757)](https://docs.anthropic.com/en/docs/claude-code)
 [![Built for Codex](https://img.shields.io/badge/built%20for-Codex-412991)](https://developers.openai.com/codex/cli)
-[![Skills](https://img.shields.io/badge/skills-19-8250DF)](skills/)
+[![Skills](https://img.shields.io/badge/skills-21-8250DF)](skills/)
 [![Blocking hooks](https://img.shields.io/badge/blocking%20hooks-4-critical)](hooks/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/lukesw55/ai-pm-toolkit/pulls)
 
-This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 19 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** AI slop, unverified claims, and unhumanized prose before they land anywhere. The skills are benchmarked against a no-skill baseline, so you can see what each one actually buys you.
+This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** AI slop, unverified claims, and unhumanized prose before they land anywhere. The skills are benchmarked against a no-skill baseline, so you can see what each one actually buys you.
 
 It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks, and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
 
@@ -41,7 +41,7 @@ This toolkit encodes the corrections as reusable skills and as hooks the harness
 | Capability | What it does | Where |
 |---|---|---|
 | 8-stage pipeline | Discovery Prioritization through Delivery, one gate per stage, current stage auto-injected into every turn | [`skills/WORKFLOW.md`](skills/WORKFLOW.md) |
-| 19 hard-skill PM skills | 4 Double Diamond phases, 4 archetype lenses, 6 transversals, 4 quality gates, a repo doctor | [`skills/`](skills/) |
+| 21 hard-skill PM skills | 4 Double Diamond phases, 4 archetype lenses, 8 transversals, 4 quality gates, a repo doctor | [`skills/`](skills/) |
 | 4 blocking runtime hooks | Reject slop prose, unverified claims, scope bloat, and unhumanized publishes at tool-call time | [`hooks/`](hooks/) |
 | Claude Code + Codex, both first-class | Same skills, same gates, same doctrine in both harnesses — `.claude/` and `.codex/` are thin adapters over one canonical tree | [`skills/`](skills/), [`hooks/`](hooks/), [`.codex/`](.codex/) |
 | Skill benchmarking | Grades skill output against a no-skill baseline, emits an HTML report | [`scripts/grade_evals.py`](scripts/grade_evals.py) |
@@ -85,13 +85,13 @@ The orchestrator is a skill codenamed **Umberto** ([`SKILL.md`](SKILL.md)). It d
 |---|---|---|
 | Phases (4) | `pm-phase-discover`, `pm-phase-define`, `pm-phase-develop`, `pm-phase-deliver` | problem framing and research; strategy, KPI trees, prioritisation, business cases; PRDs, scope slicing, instrumentation; launch readiness, release comms, experiment interpretation |
 | Archetype lenses (4) | `pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform` | evals and guardrails for probabilistic products; SSO/RBAC/compliance/procurement; funnels and experimentation discipline; APIs, DX, deprecation, SLOs |
-| Transversals (6) | `pm-transversal-stakeholder`, `pm-transversal-docs`, `pm-transversal-analysis`, `pm-prioritization-regua-comum`, `pm-storytelling`, `data-science-analyst` | DACI and exec reporting; Confluence/Jira hygiene; quali+quant triangulation; Impact × Effort with one shared ruler; narrative spines; technical correctness of the analysis itself |
+| Transversals (8) | `pm-transversal-stakeholder`, `pm-transversal-docs`, `pm-transversal-analysis`, `pm-transversal-comms`, `pm-prioritization-regua-comum`, `pm-storytelling`, `pm-product-sense`, `data-science-analyst` | DACI and exec reporting; Confluence/Jira hygiene; quali+quant triangulation; exec email (SCQA) and chat (BLUF); Impact × Effort with one shared ruler; narrative spines; product-sense BUILD/EVALUATE (shadow-gates stages 4 and 6); technical correctness of the analysis itself |
 | Quality gates (4) | `anti-slop`, `humanizer`, `humanize-deliverables`, `inference-discipline` | slop removal for code and structure; prose that passes AI detectors; a publish gate for outbound artefacts; the hallucination gate |
 | Tooling (1) | `repo-doctor` | read-only health check of this workspace |
 
 The archetype lenses are full skills, and each also ships as an agent in [`.github/agents/`](.github/agents/) for harnesses that speak that dialect. They stack on top of any phase skill when the product context is non-default.
 
-Every skill ships a `SKILL.md` as its control plane; 13 of 19 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so Claude loads the narrowest reference the task needs instead of a whole catalogue. 15 of 19 carry an `evals/` set so the skill can be graded rather than trusted.
+Every skill ships a `SKILL.md` as its control plane; 15 of 21 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so Claude loads the narrowest reference the task needs instead of a whole catalogue. 17 of 21 carry an `evals/` set so the skill can be graded rather than trusted.
 
 Skills support three output profiles (see [`docs/patterns/COMMUNICATION_MODES.md`](docs/patterns/COMMUNICATION_MODES.md)): Standard for stakeholder-grade analysis, Lean for routine work (the default), Caveman for token-constrained sessions.
 
@@ -125,7 +125,7 @@ Each gate has an explicit, per-content override for legitimate exceptions, so th
 
 ## The toolkit grades itself
 
-15 of the 19 skills ship an `evals/evals.json` with realistic task prompts. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
+17 of the 21 skills ship an `evals/evals.json` with realistic task prompts. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
 
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 
@@ -210,9 +210,10 @@ Shared product logic — skills, enforcement, doctrine — lives once, at the to
 ├── AGENTS.md                # working doctrine and guardrails (Codex adapter) + agent registry
 ├── skills/                  # CANONICAL — the only place skills are hand-edited
 │   ├── WORKFLOW.md          # 8-stage pipeline mapped to skills and gates
+│   ├── DOCTRINE.md          # calibrated disagreement — not a skill, referenced by several
 │   ├── pm-phase-*/          # the four phases
 │   ├── pm-archetype-*/      # ai / enterprise / growth / platform lenses
-│   ├── pm-transversal-*/, pm-prioritization-*/, pm-storytelling/
+│   ├── pm-transversal-*/, pm-prioritization-*/, pm-storytelling/, pm-product-sense/
 │   ├── anti-slop/, humanizer/, humanize-deliverables/, inference-discipline/
 │   ├── data-science-analyst/
 │   └── repo-doctor/         # most skills: references/ + evals/ + progressive-loading.md

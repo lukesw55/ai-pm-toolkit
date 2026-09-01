@@ -18,7 +18,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
 | B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
 | B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 | feito |
-| B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
+| B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 | feito |
 | B5 | Resolver contradições de doutrina entre AGENTS.md, SKILL.md e docs de memória | Docs | agente | 3 | 3 | 3 | 27 |
 | B6 | Produção de decks: assertion-evidence + storyline QBR → .pptx | Conteúdo PM | pesquisa | 3 | 3 | 3 | 27 |
 | B7 | Consolidação de memória executável (distill episódico → semântico) | Memória | pesquisa | 3 | 2 | 4 | 24 |
@@ -54,7 +54,13 @@ Taxonomia de eval formalizada em 4 categorias (`standard`, `doctrine-adversarial
 
 ### B4 — Product sense como skill (GUT 36)
 
-O framework do guia da Exponent estrutura decisão sob ambiguidade em 6 passos (clarifying questions → strategy → user types → pain points → solutions → MVP), define product sense como empatia de usuário + domínio + criatividade, e avalia em 5 dimensões (empatia, pensamento estruturado, taste, consciência estratégica, comunicação). Aportar como skill transversal com dois modos: **construção** (guiar uma decisão de produto pelos 6 passos, cada passo restringindo o seguinte) e **avaliação** (agir como entrevistador crítico e dar nota nas 5 dimensões a um one-pager/PRD/pitch do PM). O modo avaliação conecta direto com B2: dá ao toolkit um papel institucional de desafiador, não só de executor.
+**Feito.** `skills/pm-product-sense/` criada com os dois modos: **BUILD** (`references/six-step-framework.md`, os 6 passos clarifying questions → strategy/goal → user types → pain points → solutions → MVP, cada um com contrato + checklist, mapeado para as Five Unlocks do One Pager) e **EVALUATE** (`references/evaluation-rubric.md`, âncoras 1-5 para as 5 dimensões, regra de reportar a nota mais baixa primeiro, regra ≤2-limita-veredito — nunca média —, veredito proceed/sharpen/back-to-discovery). Ambas as references trazem seção de calibração parafraseada dos 5 transcripts de Product Sense com links, complementando (sem duplicar) a de `skills/DOCTRINE.md`. `evaluation-rubric.md` documenta os critérios de graduação do shadow gate por D6 (dimensões discriminam, rubrica estável, ≤2 indica problema material, taxa de falso-positivo aceitável — promoção futura por dimensão, nunca por média agregada).
+
+3 evals com `category`: `build-onboarding-improvement` (standard), `evaluate-pet-feature` (skill-functional-adversarial — pitch de feature de vaidade do CEO sem evidência de usuário; a skill deve pontuar baixo e não fazer rubber-stamp), `evaluate-solid-control` (negative-control — one-pager bem evidenciado deve pontuar alto e receber veredito proceed sem objeção fabricada). 3 blocos de `ASSERTIONS` em `grade_evals.py`, verificados: resposta sycophantic sintética pontua 0/5 contra a versão calibrada, que pontua 5/5.
+
+**Shadow gate (D6)** wired em `skills/WORKFLOW.md`: colunas "Gate to advance" dos estágios 4 (One Pager) e 6 (PRD) ganharam "+ mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged)", mais um parágrafo curto definindo o shadow gate e apontando para os critérios de graduação na rubric. Confirmado via `stage_context.load_stage_contract()` que o texto novo é injetado corretamente na stage-context de cada turno. `advance_stage.py` não foi tocado — nenhuma lógica de bloqueio por nota, como determinado pelo dono.
+
+**Reconta geral** (gap 6): contagem real via filesystem — 21 skills (`ls skills/*/SKILL.md`), 15 com `references/`, 17 com `evals/` (as 4 lentes de arquétipo continuam sem evals, pré-existente). Badge, prose e tabela de famílias do README atualizados (Transversals 6→8, incluindo `pm-transversal-comms` e `pm-product-sense`); árvore do layout ganhou `skills/DOCTRINE.md` (gap 1, fora da lista de skills) e `pm-product-sense/`. Nenhuma contagem hard-coded restante (grep limpo). Sync + espelhos, bateria completa verde.
 
 ### B5 — Contradições de doutrina (GUT 27)
 

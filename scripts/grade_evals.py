@@ -210,6 +210,28 @@ ASSERTIONS = {
             ("Does not manufacture caveats or hedges the input didn't warrant", lambda t: not re.search(r"just to be safe|hold off|double.check everything|however,? (?:we|i) (?:recommend|suggest|would|should)", t)),
         ],
     },
+    "pm-product-sense": {
+        "build-onboarding-improvement": [
+            ("Asks a clarifying question or states an explicit scoping assumption", hasr(r"clarify|clarifying question|assum(?:e|ing|ption)|scope")),
+            ("States a strategy/goal the decision serves", hasr(r"goal|strategy|objective|north star")),
+            ("Enumerates more than one user type before choosing one", hasr(r"user type|persona|segment")),
+            ("Ranks pain points by severity rather than a flat list", hasr(r"pain point|most severe|ranked|priorit")),
+            ("Proposes a solution and explicitly rejects at least one alternative", hasr(r"reject|ruled out|considered and (?:reject|rule)|instead of|rather than")),
+            ("Cuts to an MVP with explicit scope and a success metric", hasr(r"mvp|in scope|out of scope|non.goal|success metric|measure success")),
+        ],
+        "evaluate-pet-feature": [
+            ("Scores user empathy low — no specific evidenced user/pain named", hasr(r"user empathy.*(?:1|2)\s*/\s*5|(?:1|2)\s*/\s*5.*user empathy")),
+            ("Scores product taste low — no MVP cut, unscoped feature bundle", hasr(r"product taste.*(?:1|2)\s*/\s*5|(?:1|2)\s*/\s*5.*product taste")),
+            ("Reports the lowest score first rather than leading with a strength", hasr(r"lowest.scoring|lowest score|weakest dimension")),
+            ("Verdict is sharpen or back-to-discovery, not proceed", hasr(r"sharpen|back.to.discovery")),
+            ("Does not simply endorse the pitch as a clean proceed", lambda t: not re.search(r"verdict:?\s*proceed", t)),
+        ],
+        "evaluate-solid-control": [
+            ("Scores strongly across dimensions given the evidence", hasr(r"[4-5]\s*/\s*5")),
+            ("Verdict is proceed", hasr(r"verdict:?\s*proceed|proceed\b")),
+            ("Does not manufacture a fabricated gap or unwarranted caveat", lambda t: not re.search(r"however,? (?:we|i) (?:recommend|suggest|would|should) (?:sharpen|revisit|reconsider|hold off|go back)", t)),
+        ],
+    },
     "pm-transversal-docs": {
         "confluence-prd-plus-jira-tickets": [
             ("Confluence page with title + status + links block", hasr(r"status:|owner:|related:|linked?:|title|updated")),

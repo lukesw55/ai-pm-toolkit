@@ -29,13 +29,17 @@ START
 | 1 | Discovery Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (opportunity-level) | `discovery-priorities.md` | top N candidate problems selected with rationale |
 | 2 | Impact Brief (GTM) | `pm-phase-discover` | `references/impact-brief.md` | `impact-brief-<topic>.md` | business + GTM impact articulated, invalidation conditions named |
 | 3 | Discovery | `pm-phase-discover` | `research-design.md` + `jtbd-segmentation.md` + `opportunity-hypothesis.md` | `discovery/<topic>/synthesis.md` | problem framed, JTBD validated, hypothesis ranked |
-| 4 | One Pager | `pm-phase-define` | `references/one-pager.md` | `one-pager-<topic>.md` | one-pager approved by stakeholders |
+| 4 | One Pager | `pm-phase-define` | `references/one-pager.md` | `one-pager-<topic>.md` | one-pager approved by stakeholders + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
 | 5 | Product Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (build-level) | `priorities.md` update | bet approved for build |
-| 6 | PRD + Prototype + Refinement | `pm-phase-develop` | `prd-writing.md` + prototype loops | `prds/<feature>.md` + prototype | PRD approved, prototype validated |
+| 6 | PRD + Prototype + Refinement | `pm-phase-develop` | `prd-writing.md` + prototype loops | `prds/<feature>.md` + prototype | PRD approved, prototype validated + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
 | 7 | Tech Team Kickoff | `pm-phase-develop` | `references/tech-team-kickoff.md` | kickoff deck + epic | team aligned, tickets refined, dependencies & NFRs clear |
 | 8 | Delivery | `pm-phase-deliver` | `launch-readiness.md` + `release-notes.md` + `post-launch-monitoring.md` | launch kit + close-out | GA shipped, impact measured |
 
 Transversal skills (`pm-transversal-stakeholder`, `pm-transversal-docs`, `pm-transversal-analysis`, `pm-transversal-comms`, `data-science-analyst`) apply at **every stage**: use them whenever cross-function alignment, Confluence/Jira publication, quali+quant synthesis, short-form comms (email/chat), or technical data-work (audit a CSV export, validate SQL, check leakage, A/B-test analysis, baseline ML) is needed. The first four are the PM lens; `data-science-analyst` is the technical lens under them. `pm-transversal-analysis` decides what the data *means for product*; `data-science-analyst` decides whether *the analysis itself* is sound. `pm-transversal-comms` covers the highest-frequency artefacts of the four — email and chat — while `pm-transversal-stakeholder` and `pm-transversal-docs` handle longer-form memos/decision-rights and Confluence/Jira respectively. They chain. In Discover, `data-science-analyst` is fine for file-level audit, but ML/forecasting and instrumentation queries stay out until Define and Develop.
+
+### Shadow gate: pm-product-sense at stages 4 and 6
+
+Stages 4 (One Pager) and 6 (PRD) each carry a **mandatory non-blocking shadow evaluation**: running `pm-product-sense` EVALUATE mode against the artefact is required before advancing, but its score never blocks the advance — the formal gate in the table above stays the sole authority on whether the stage is done. Treat a low shadow score as a strong signal to sharpen the artefact before it moves on, not as a hard stop; `advance_stage.py` has no score- or marker-based blocking logic, by design, in this batch. See `pm-product-sense/references/evaluation-rubric.md` for the scoring rule and the explicit criteria that would justify promoting this to a formal (blocking) gate in the future — promotion should prefer dimension-level blocking over a single aggregate-score threshold when it happens.
 
 ### Slop-removal transversals (every stage, every artefact)
 
