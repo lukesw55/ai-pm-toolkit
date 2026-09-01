@@ -143,6 +143,7 @@ Non-negotiable rules:
 - **humanizer** owns prose-shape patterns. Run on prose-heavy artefacts; this skill still applies to the underlying claims.
 - **humanize-deliverables** is the outbound hard gate (Confluence/Slack/Jira). When you trigger it, the approval block here must already be resolved — outbound artefacts cannot contain `[INFER]` or `[UNVERIFIED]` markers.
 - **systematic-debugging** complements: that skill forces evidence-driven diagnosis; this skill forces evidence-driven *claims*.
+- **calibrated disagreement** (`../DOCTRINE.md`) governs the human side of this skill: user pressure, confidence, or "I'll take responsibility" is not evidence. Hold the marker until the claim is actually checked.
 
 ## Output contracts
 

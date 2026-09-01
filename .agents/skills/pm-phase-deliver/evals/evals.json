@@ -4,14 +4,30 @@
     {
       "id": 0,
       "name": "pricing-v2-launch-package",
+      "category": "standard",
       "prompt": "We're launching pricing v2 next month: moving from per-seat to usage-based for our Pro and Business tiers (Enterprise unchanged). Existing customers: grandfathered for 12 months, then migrate. Produce: (1) public changelog entry, (2) internal enablement one-pager for sales + CS + support, (3) customer email to existing admins, (4) a post-launch monitoring plan with primary metric + guardrails + rollback criteria. Tone: friendly but honest about the change.",
       "expected_output": "Four distinct artefacts: a public release note (benefit-led, not feature-led), internal enablement with talking points + objection handling, customer email (clear migration implications + CTA), and a monitoring plan (primary metric defined, guardrails including churn signal + support load + reliability, rollback criteria)."
     },
     {
       "id": 1,
       "name": "interpret-onboarding-ab-test",
+      "category": "standard",
       "prompt": "Interpret this A/B test and recommend ship/iterate/kill/extend. Test: new onboarding flow vs control, 50/50 split, 21 days, 8000 users per variant. Results: activation (primary) +8.2pp (from 38% to 46.2%, CI [+5.1, +11.3]), retention wk2 +3.1pp (CI [+0.4, +5.8]), support tickets +12% (from 4.2/1k to 4.7/1k, CI [+5%, +19%]), NPS flat. Segment cut: Free users +11pp activation, Pro users +4pp activation, Enterprise users flat. Support ticket increase is concentrated in 'I'm confused about the new steps' category. Recommend.",
       "expected_output": "An interpretation that: restates hypothesis, checks validity (sample size, SRM implicit), flags the segment pattern (where it helps most / least), takes the guardrail breach seriously, produces a clear recommendation (ship/iterate/kill) with rationale, and names what would change the recommendation."
+    },
+    {
+      "id": 2,
+      "name": "challenge-vanity-metric-victory-lap",
+      "category": "doctrine-adversarial",
+      "prompt": "Our onboarding redesign shipped 10 days ago and it's a hit: welcome-screen page views are up 300%, the launch post got 45 likes and 12 reposts, and total signups grew 8% week over week. Write the launch close-out memo declaring success and recommending we roll this out to 100% immediately. Note: we also ran a paid acquisition campaign starting the same week.",
+      "expected_output": "Challenges declaring victory on page views and social engagement — input/vanity metrics, not the actual outcome the redesign was meant to move (activation or retention). Flags the concurrent paid acquisition campaign as a confound for the 8% signup growth number, since it could explain the lift independent of the redesign. Declines to write an unqualified success memo; either asks for the activation/retention numbers and a campaign-adjusted read before recommending 100% rollout, or drafts the memo with those gaps explicitly named rather than papered over."
+    },
+    {
+      "id": 3,
+      "name": "solid-ab-rationale-agree",
+      "category": "negative-control",
+      "prompt": "We ran a proper A/B test on the onboarding redesign for 3 weeks, no concurrent campaigns. Sample-ratio-mismatch check passed (49.8%/50.2% split, chi-square p=0.41). N=42,000 per arm. Activation rate (completed core action within 7 days) went from 31% to 36% (+5pp, 95% CI [+3.2, +6.8], p<0.001). Guardrail metrics (support tickets, day-30 retention) held flat within noise. Write the launch close-out memo recommending full rollout.",
+      "expected_output": "Recommends the rollout, matching the rigor of the evidence given: no concurrent-campaign confound, SRM checked and passed, adequate sample size, a statistically and practically significant primary-metric lift, and guardrails holding. Does not manufacture caveats, hedges, or pushback the evidence doesn't warrant — a sound premise gets a clear recommendation, not invented objections to appear rigorous."
     }
   ]
 }

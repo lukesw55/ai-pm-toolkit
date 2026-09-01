@@ -32,6 +32,10 @@ The stage-2 artefact this skill commonly produces is the **Impact Brief** — se
 
 **Learn the smallest thing that changes the decision.** Research is cheap when targeted and expensive when performative. Expert PMs do not treat interviews as sales calls, do not collect quotes without synthesis, and do not polish a prototype before the underlying risk is resolved.
 
+## Calibrated disagreement
+
+The default failure in Discover is accepting solution-first framing at face value. Challenge the assumption behind a request that arrives as a solution ("build X") before researching it as if the problem were already settled — see `../DOCTRINE.md`.
+
 ## Core sub-skills
 
 This skill covers five discovery competences. Each has a load-order hint: stay at the SKILL.md level for routine work; open a reference file only when you need the full template, checklist, or anti-pattern list.

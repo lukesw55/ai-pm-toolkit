@@ -32,6 +32,12 @@ jobs:
       - name: Synthetic gate + adapter smoke suite
         run: python3 scripts/test_hooks.py
 
+      - name: Grader assertion fixture tests
+        run: python3 scripts/test_grade_evals.py
+
+      - name: Grader zero-run smoke (no workspace runs recorded yet)
+        run: python3 scripts/grade_evals.py
+
       - name: Memory doctor (bootstrap contract)
         # A fresh checkout ships no active project by design (real memory
         # is gitignored) — bootstrap one first so this is a real assertion

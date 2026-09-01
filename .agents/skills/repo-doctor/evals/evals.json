@@ -4,6 +4,7 @@
     {
       "id": 1,
       "name": "validate-skill-repo-health",
+      "category": "standard",
       "prompt": "Run a repo health review for a Claude Code skill repo with hooks, skills, and memory scripts.",
       "expected_output": "Checks frontmatter, links, settings, hooks, workflow contract, memory bootstrap, and returns actionable failures."
     }

@@ -15,7 +15,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | # | Item | Categoria | Evidência | G | U | T | GUT | Status |
 |---|---|---|---|---|---|---|---|---|
 | B1 | Corrigir prefixo MCP dos gates de publish | Enforcement | verificado | 5 | 4 | 4 | 80 | feito |
-| B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 | em execução (batch 1) |
+| B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
 | B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
 | B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
 | B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
@@ -42,7 +42,11 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 
 ### B2 — Anti-sycophancy testável (GUT 80)
 
-A doutrina epistêmica existe (CLAUDE.md "epistemic partnership", `inference-discipline`), mas nenhum dos 28 casos de eval planta uma premissa falsa do usuário para medir se a skill discorda; hoje o "não concordar por conveniência" é aspiração sem teste. A literatura mostra que a mitigação por prompt tem eficácia mista e que chain-of-thought pode até intensificar sycophancy, então a doutrina sozinha não basta: precisa de eval de pushback por skill de fase (ex.: PM afirma "usuários querem dashboard" com evidência que aponta o contrário; passa quem desafia) e de padrões concretos de discordância ("ask, don't tell": devolver a premissa como pergunta com evidência contrária). Empatado no topo porque é o requisito declarado do dono do repo para confiar no sistema.
+**Feito.** Doutrina de discordância calibrada centralizada em `skills/DOCTRINE.md` (canônico, não é skill): os 7 comportamentos (desafiar premissa, separar problema de solução, contra-argumento real, o que mudaria a recomendação, sustentar sob pressão sem argumento novo, atualizar com evidência genuinamente melhor, concordar quando o racional é sólido), método "ask, don't tell", tabela de pontos de pressão por fase, e uma seção de calibração destilada (parafraseada, com links) dos 5 transcripts de Product Sense da Exponent — brutos ficam locais em `.ai/memory/projects/toolkit-improvement/raw-evidence/` (gitignored, conteúdo de terceiros). Ponteiros curtos e não-divergentes a partir de `CLAUDE.md` (§ Epistemic partnership), `AGENTS.md` (nova seção), `SKILL.md` raiz (load-order), os 4 `pm-phase-*/SKILL.md`, e `inference-discipline/SKILL.md`.
+
+Taxonomia de eval formalizada em 4 categorias (`standard`, `doctrine-adversarial`, `skill-functional-adversarial`, `negative-control`) via campo `category`: todos os 28 evals pré-existentes receberam backfill `standard`; 6 casos novos foram adicionados — 5 `doctrine-adversarial` (um por `pm-phase-discover/define/develop/deliver` + `inference-discipline`, cada um plantando uma premissa fraca ou uma pressão que a skill deve resistir) e 1 `negative-control` dedicado (`pm-phase-deliver`: racional de A/B sólido deve gerar recomendação limpa, sem objeção fabricada). `validate_repo.py` ganhou `check_eval_categories`: todo eval precisa de `category` válida e ids são únicos por skill, descobrindo os arquivos `evals/evals.json` em tempo de execução (nunca assume contagem fixa).
+
+`grade_evals.py` ganhou o helper `hedged()` — janela de proximidade que evita falso-fail quando a saída cita a linguagem proibida para rejeitá-la (em vez de afirmá-la), em vez de um `not_has()` ingênuo — e os 6 blocos de `ASSERTIONS` correspondentes. Testes duráveis e determinísticos em `scripts/test_grade_evals.py` (6 fixtures: discordância calibrada boa, falha sycophantic, citação que não pode falso-falhar, controle negativo que deve concordar, e o par "sustenta sob pressão" vs. "revisa com evidência genuinamente melhor" — prova que o grader distingue os dois). Absorveu o **B8** (ver abaixo). CI (`validate.yml`) roda `test_grade_evals.py` e o smoke zero-runs de `grade_evals.py`. Verificado: bateria completa (`py_compile`, `bash -n`, `sync_skills.py --check`, `validate_repo.py`, `test_hooks.py`, `test_grade_evals.py`, `memory.py doctor`) verde; espelhos sincronizados; grep residual de ponteiros órfãos e de literais de marcador vazio.
 
 ### B3 — Comunicação PM de canal curto (GUT 36)
 
@@ -66,7 +70,7 @@ O framework do guia da Exponent estrutura decisão sob ambiguidade em 6 passos (
 
 ### B8 — Crash do grade_evals.py (GUT 18)
 
-Em clone fresco (sem `workspace/iteration-1/` gravado), `main()` imprime `ov['with_skill_pass_rate']*100` com valor `None` e quebra com TypeError. Reproduzido nesta sessão. Corrigir o caso zero-runs com mensagem de bootstrap; aproveitar para tirar o "7 skills × 2 test prompts × 2 configs = 28 runs" hard-coded do HTML.
+**Absorvido pelo B2.** Em clone fresco (sem `workspace/iteration-1/` gravado), `main()` imprimia `ov['with_skill_pass_rate']*100` com valor `None` e quebrava com TypeError. `main()` agora detecta `n_evals == 0` e retorna com uma mensagem de bootstrap em vez de tentar formatar `None`; a linha "7 skills × 2 test prompts × 2 configs = 28 runs" hard-coded no HTML foi trocada por uma contagem calculada a partir do `benchmark` real. Verificado ao vivo: `python3 scripts/grade_evals.py` em repo sem runs sai 0 sem traceback; smoke correspondente entrou no CI.
 
 ### B9 — settings.local.json fantasma (GUT 18)
 

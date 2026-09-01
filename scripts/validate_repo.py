@@ -45,6 +45,7 @@ STAGES = {
     "tech-kickoff",
     "delivery",
 }
+EVAL_CATEGORIES = {"standard", "doctrine-adversarial", "skill-functional-adversarial", "negative-control"}
 CLAUDE_EVENTS_WITHOUT_MATCHER = {"SessionStart", "UserPromptSubmit", "Stop"}
 # Codex's SessionStart accepts a `source` matcher (startup|resume|clear|compact),
 # unlike Claude Code's — only these two are confirmed matcher-less in Codex.
@@ -268,6 +269,30 @@ def check_hook_syntax(errors: list[str], warnings: list[str]) -> None:
             err(errors, f"{rel(path)}: bash -n failed: {res.stderr.strip()}")
 
 
+def check_eval_categories(errors: list[str]) -> None:
+    """B2: every eval in every canonical skills/*/evals/evals.json must carry
+    a category from the 4-value taxonomy (standard, doctrine-adversarial,
+    skill-functional-adversarial, negative-control), and eval ids must be
+    unique within a skill. Discovers eval files at execution time — never
+    assume a fixed skill or eval count."""
+    for path in sorted(SKILLS.glob("*/evals/evals.json")):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            err(errors, f"{rel(path)}: invalid JSON: {exc}")
+            continue
+        seen_ids: set = set()
+        for ev in data.get("evals", []):
+            eid = ev.get("id")
+            name = ev.get("name", "?")
+            if eid in seen_ids:
+                err(errors, f"{rel(path)}: duplicate eval id {eid} ({name})")
+            seen_ids.add(eid)
+            category = ev.get("category")
+            if category not in EVAL_CATEGORIES:
+                err(errors, f"{rel(path)}: eval '{name}' (id {eid}) has invalid or missing category {category!r}; must be one of {sorted(EVAL_CATEGORIES)}")
+
+
 def check_memory_bootstrap(errors: list[str]) -> None:
     # Local session state (an active project under .ai/memory/, sentinel
     # flags under .ai/gates/) must not leak into the fresh-clone bootstrap
@@ -319,6 +344,7 @@ def main() -> int:
     check_hooks_neutral(errors)
     check_publish_scope(errors)
     check_mirror_drift(errors)
+    check_eval_categories(errors)
     check_memory_bootstrap(errors)
 
     for item in warnings:

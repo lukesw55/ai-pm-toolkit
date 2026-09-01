@@ -4,8 +4,9 @@
     {
       "id": 1,
       "name": "score-backlog-with-regua-comum",
-      "prompt": "Score these 3 backlog items with the Régua Comum and recommend what to do first: (a) SSO integration requested by one large account (~$300k ARR), (b) onboarding checklist shown to all new users, (c) internal billing-module refactor the tech lead wants.",
-      "expected_output": "Scores ARR, Abrangência, and CRA/Strategic per item with confidence weighting, flags (a) against the Abrangência lock as possible one-account customization, rates effort, plots Impact × Effort, and recommends an execution order with rationale."
+      "category": "standard",
+      "prompt": "Score these 3 backlog items with the R\u00e9gua Comum and recommend what to do first: (a) SSO integration requested by one large account (~$300k ARR), (b) onboarding checklist shown to all new users, (c) internal billing-module refactor the tech lead wants.",
+      "expected_output": "Scores ARR, Abrang\u00eancia, and CRA/Strategic per item with confidence weighting, flags (a) against the Abrang\u00eancia lock as possible one-account customization, rates effort, plots Impact \u00d7 Effort, and recommends an execution order with rationale."
     }
   ]
 }

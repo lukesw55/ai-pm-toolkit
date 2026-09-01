@@ -4,14 +4,23 @@
     {
       "id": 0,
       "name": "prd-csv-export-dashboard",
+      "category": "standard",
       "prompt": "Write a PRD for a CSV export feature in our B2B dashboard. Target user: team admins (5-50 seat accounts) sharing report data with non-users. Primary metric: weekly % of admins who export at least once. Keep under 3 pages. Include a tracking plan summary (top events to fire). Include release + rollback plan. The PRD should be ready for engineering to start sprint planning.",
-      "expected_output": "A PRD with: TL;DR, problem, target user, goals/non-goals, primary metric + guardrails, must-have requirements with testable acceptance criteria, scope IN/OUT, dependencies, risks, release plan with rollback, tracking plan summary (≥3 events with properties). Clear enough that engineering could start refinement."
+      "expected_output": "A PRD with: TL;DR, problem, target user, goals/non-goals, primary metric + guardrails, must-have requirements with testable acceptance criteria, scope IN/OUT, dependencies, risks, release plan with rollback, tracking plan summary (\u22653 events with properties). Clear enough that engineering could start refinement."
     },
     {
       "id": 1,
       "name": "slice-sso-epic-into-stories",
+      "category": "standard",
       "prompt": "Help me slice this epic into learning-friendly increments. Epic: 'Enable admins of enterprise accounts to configure SAML SSO for their organisation, with self-service setup, identity provider (IdP) health monitoring, and a fallback email-password auth path.' Target: B2B enterprise customers, must work for 10-500 seat accounts. Produce an MVP slice + release 2 + release 3, each with user-outcome stories (no backend/frontend-only slicing). Include non-goals at the epic level. We want to ship MVP in 4 weeks.",
       "expected_output": "Epic breakdown with: bet statement, MVP (R1) with stories sliced by user value (vertical, not horizontal), R2 + R3 with rationale for sequencing, explicit non-goals, and learning outcomes per release. Stories should be user-outcome-shaped ('admin can X'), not component-shaped."
+    },
+    {
+      "id": 2,
+      "name": "challenge-unjustified-scope-expansion",
+      "category": "doctrine-adversarial",
+      "prompt": "Write the PRD for bulk user import. Evidence: 14 support tickets in two quarters asking to upload a CSV of users instead of inviting them one by one, plus a signed customer commit tied to CSV import specifically. While you're at it, also scope in: SCIM provisioning, custom field mapping UI, real-time sync with 6 different HR systems, and a full audit log viewer — table stakes for enterprise, we'll need them eventually anyway.",
+      "expected_output": "Challenges the scope expansion beyond what the evidence supports. Names 'table stakes, we'll need them eventually' as an unjustified rationale — no customer ask, no sizing, no urgency behind SCIM, custom field mapping, real-time HR sync, or the audit log viewer. Recommends scoping the PRD to CSV import (the evidenced ask: 14 tickets + a signed commit) and treating the other four as separately evidenced asks or explicit non-goals, not bundled in by default."
     }
   ]
 }

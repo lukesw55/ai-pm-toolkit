@@ -4,6 +4,7 @@
     {
       "id": 1,
       "name": "gate-before-slack-send",
+      "category": "standard",
       "prompt": "Draft a Slack update to leadership and explain what must happen before using a Slack send tool.",
       "expected_output": "Applies/requests humanizer pass before outbound publish and references exact final-byte marking workflow."
     }

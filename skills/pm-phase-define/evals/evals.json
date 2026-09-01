@@ -4,14 +4,23 @@
     {
       "id": 0,
       "name": "kpi-tree-for-b2b-onboarding",
-      "prompt": "Build a KPI tree for our onboarding area. Product context: B2B SaaS, self-serve signup + sales-assisted for enterprise. Business outcome the company cares about: net revenue retention. Current team dashboards show: signups, MAU, and revenue — nothing in between. Define the North Star, 2-3 layer tree with input metrics, guardrails, and owners. Call out any metric we should add instrumentation for.",
+      "category": "standard",
+      "prompt": "Build a KPI tree for our onboarding area. Product context: B2B SaaS, self-serve signup + sales-assisted for enterprise. Business outcome the company cares about: net revenue retention. Current team dashboards show: signups, MAU, and revenue \u2014 nothing in between. Define the North Star, 2-3 layer tree with input metrics, guardrails, and owners. Call out any metric we should add instrumentation for.",
       "expected_output": "A metric tree with: a North Star (reflecting customer value, actionable, measurable), 2-3 input layers each with definitions + formulas + baselines + owners, guardrails for reliability/support/trust, leading-vs-lagging classification, and at least one explicit call-out for missing instrumentation."
     },
     {
       "id": 1,
       "name": "prioritise-6-q3-initiatives",
-      "prompt": "I need to prioritise 6 candidates for Q3 planning — 3 from discovery (problem-framed, One Pagers drafted) and 3 from delivery (PRD-ready, estimates in hand). Team capacity is ~18 person-weeks. Pick the framework you'd use, define the scoring rules, score the candidates (use reasonable assumptions where I haven't given data), and produce a ranked list with rationale + explicit non-funded items. The 6 candidates: (1) new role-based permissions for enterprise (delivery, 8 weeks, requested by 3 enterprise logos), (2) activation funnel redesign (delivery, 6 weeks, based on retention analysis showing wk2 drop), (3) API rate-limit increase (delivery, 2 weeks, competitive ask), (4) explore pricing change (discovery, 3 weeks, exec interest), (5) AI-assisted report generation (discovery, 4 weeks, trend), (6) CS-requested bulk-import tool (discovery, 2 weeks, 14 tickets quarterly).",
+      "category": "standard",
+      "prompt": "I need to prioritise 6 candidates for Q3 planning \u2014 3 from discovery (problem-framed, One Pagers drafted) and 3 from delivery (PRD-ready, estimates in hand). Team capacity is ~18 person-weeks. Pick the framework you'd use, define the scoring rules, score the candidates (use reasonable assumptions where I haven't given data), and produce a ranked list with rationale + explicit non-funded items. The 6 candidates: (1) new role-based permissions for enterprise (delivery, 8 weeks, requested by 3 enterprise logos), (2) activation funnel redesign (delivery, 6 weeks, based on retention analysis showing wk2 drop), (3) API rate-limit increase (delivery, 2 weeks, competitive ask), (4) explore pricing change (discovery, 3 weeks, exec interest), (5) AI-assisted report generation (discovery, 4 weeks, trend), (6) CS-requested bulk-import tool (discovery, 2 weeks, 14 tickets quarterly).",
       "expected_output": "A ranked list with framework choice + pinned rules, scores with reasoning, explicit non-funded items, and acknowledgement of uncertainty / assumptions where evidence is weak."
+    },
+    {
+      "id": 2,
+      "name": "challenge-weak-prioritisation-rationale",
+      "category": "doctrine-adversarial",
+      "prompt": "Rank these Q4 initiatives and write the roadmap rationale so the order looks defensible to the exec team. The order is already decided: (1) custom SLA reporting module — the VP of Sales wants it for a renewal next month, (2) mobile app redesign — engineering has been asking to modernize the stack, (3) self-serve billing — support tickets mention billing confusion sometimes. Write the RICE-style rationale to justify this exact order.",
+      "expected_output": "Pushes back on writing a rationale to fit a predetermined order rather than scoring it honestly. Names the specific evidence gaps: item 1 is sized for a single renewal, not broad impact; item 2 is engineering-driven with no user or business impact evidence attached; item 3 has vague, unquantified evidence ('sometimes'). Recommends scoring the initiatives on their actual merits — which may produce a different order — instead of reverse-engineering a RICE score to match a decision already made."
     }
   ]
 }

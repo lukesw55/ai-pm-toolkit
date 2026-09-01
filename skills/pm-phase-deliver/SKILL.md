@@ -43,6 +43,10 @@ Don't use for discovery/strategy (→ earlier phase skills) or for post-mortem o
 
 **A release is a hypothesis meeting reality.** Expert PMs plan the learning interval as carefully as the launch itself — with a scorecard, a rollback criterion, and a close-out memo that captures what was actually learned, not what was hoped.
 
+## Calibrated disagreement
+
+The default failure in Deliver is declaring victory on vanity metrics or conclusions the data doesn't support. Challenge premature success claims and name confounds before endorsing a launch narrative — see `../DOCTRINE.md`.
+
 ## Core sub-skills
 
 ### 1. Launch readiness and GTM coordination

@@ -37,6 +37,10 @@ Do NOT use for post-launch analysis or A/B result interpretation (→ `pm-phase-
 
 **Executable work, not requirement novels.** Good requirement writing gives engineering and design **context and room to solve** — it does not over-prescribe, does not omit success criteria, does not let scope drift silently. Instrumentation is designed upfront because shipped code without the right events is shipped blindly.
 
+## Calibrated disagreement
+
+The default failure in Develop is speccing requirements, scope, or implementation premises nobody justified. Challenge scope that outruns evidence or capacity before it becomes acceptance criteria — see `../DOCTRINE.md`.
+
 ## Core sub-skills
 
 ### 1. PRD and specification writing

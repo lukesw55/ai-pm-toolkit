@@ -47,6 +47,7 @@ Only load extra docs when needed:
 - `docs/patterns/KARPATHY_GUARDRAILS.md` — anti-overengineering and anti-assumption rules
 - `docs/patterns/COMMUNICATION_MODES.md` — Standard / Lean / Caveman output profiles
 - `skills/WORKFLOW.md` — 8-stage team workflow mapped to skills + stage-advance hooks
+- `skills/DOCTRINE.md` — calibrated disagreement: load before substantive pushback or concession, not just at session start
 
 ## PM hard-skill toolkit (`skills/`)
 

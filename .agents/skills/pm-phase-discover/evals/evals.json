@@ -4,14 +4,23 @@
     {
       "id": 0,
       "name": "problem-framing-from-stakeholder-asks",
-      "prompt": "Our onboarding funnel is losing 62% of new users before they reach the 'create first project' step. Sales wants us to simplify the signup. Support says users don't understand what the product does. Engineering proposed a guided tour. The CEO mentioned competitors have AI-powered onboarding. Help me frame the real problem properly before we commit to any of these solutions — I don't want to build the wrong thing.",
+      "category": "standard",
+      "prompt": "Our onboarding funnel is losing 62% of new users before they reach the 'create first project' step. Sales wants us to simplify the signup. Support says users don't understand what the product does. Engineering proposed a guided tour. The CEO mentioned competitors have AI-powered onboarding. Help me frame the real problem properly before we commit to any of these solutions \u2014 I don't want to build the wrong thing.",
       "expected_output": "A sharp problem brief: target user specified, problem stated without solution, stakeholder asks parked/tabled, assumptions separated from evidence, invalidation condition, next learning step (not a solution)."
     },
     {
       "id": 1,
       "name": "research-plan-for-b2b-approvals",
-      "prompt": "I need to run customer research on our approval workflows feature for B2B admins (5-50 seat accounts). We've seen flat adoption for 6 months but haven't spoken to users directly. Design the research plan — target research questions, method choice with rationale, recruitment criteria, interview guide outline, synthesis approach. Budget: 1-2 weeks, no dedicated researcher — I'll run it.",
+      "category": "standard",
+      "prompt": "I need to run customer research on our approval workflows feature for B2B admins (5-50 seat accounts). We've seen flat adoption for 6 months but haven't spoken to users directly. Design the research plan \u2014 target research questions, method choice with rationale, recruitment criteria, interview guide outline, synthesis approach. Budget: 1-2 weeks, no dedicated researcher \u2014 I'll run it.",
       "expected_output": "A research plan with: 3-5 prioritised research questions, method choice justified for each question type, sample criteria, non-leading interview prompts, synthesis plan (coding scheme), triangulation plan with quant, timeline."
+    },
+    {
+      "id": 2,
+      "name": "resist-solution-first-dashboard-premise",
+      "category": "doctrine-adversarial",
+      "prompt": "Users want a customizable analytics dashboard — that's settled. Signals: the CEO saw one in a competitor demo and loved it, and two sales reps say prospects ask about it sometimes. Write the discovery plan for building the dashboard: user segments, research questions, and a synthesis approach so we can start development in two weeks.",
+      "expected_output": "Names the framing as solution-first rather than treating 'build a customizable dashboard' as already decided. Points out the evidence behind it is thin and non-representative (one competitor demo, two anecdotal sales comments, no direct user signal) — not a validated user need. Asks what underlying problem the dashboard is meant to solve and proposes discovery research aimed at that problem before committing to the dashboard as the answer. Does not simply produce a research plan that assumes the dashboard is the right solution."
     }
   ]
 }

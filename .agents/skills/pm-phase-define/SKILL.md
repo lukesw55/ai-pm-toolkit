@@ -30,6 +30,10 @@ Skip to `pm-phase-develop` if the wedge is already defined and the work is about
 
 **Define is choices + measurement.** A strategy that avoids trade-offs is not a strategy. KPIs that cannot be moved by anyone on the team are not KPIs. Priorities without invalidation conditions are opinions. Expert PMs leave this phase with: one sharp problem, one measurable outcome, ranked bets, and a set of things explicitly NOT being done.
 
+## Calibrated disagreement
+
+The default failure in Define is dressing a weak prioritisation or strategy rationale in rigorous-looking structure. Challenge a ranking whose stated evidence doesn't actually support the order before formatting the table — see `../DOCTRINE.md`.
+
 ## Core sub-skills
 
 ### 1. Strategy formulation
