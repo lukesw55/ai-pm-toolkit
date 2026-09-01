@@ -2,7 +2,8 @@
 """
 grade_evals.py — Grade eval runs across PM and data-analysis skills.
 
-Walks .claude/skills/<skill>/workspace/iteration-1/ and produces:
+Walks skills/<skill>/workspace/iteration-1/ (canonical only — mirrors never
+carry workspace/) and produces:
 - grading.json per run (with_skill + without_skill)
 - benchmark.json per skill
 - aggregated benchmark_all.json
@@ -17,7 +18,7 @@ from html import escape
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-SKILLS_DIR = REPO / ".claude" / "skills"
+SKILLS_DIR = REPO / "skills"
 
 # Assertions per (skill, eval_name) — each is (label, callable taking normalised text → bool)
 def has(p: str):
@@ -537,10 +538,10 @@ def main():
     results = grade_all()
     benchmark = aggregate_benchmark(results)
     # Master benchmark file
-    master_path = SKILLS_DIR.parent / "benchmark_all.json"
+    master_path = REPO / "benchmark_all.json"
     master_path.write_text(json.dumps(benchmark, indent=2))
     # Viewer
-    viewer_path = SKILLS_DIR.parent / "eval-report.html"
+    viewer_path = REPO / "eval-report.html"
     render_html(benchmark, results, viewer_path)
 
     ov = benchmark["overall"]

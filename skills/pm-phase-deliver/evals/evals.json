@@ -1,0 +1,17 @@
+{
+  "skill_name": "pm-phase-deliver",
+  "evals": [
+    {
+      "id": 0,
+      "name": "pricing-v2-launch-package",
+      "prompt": "We're launching pricing v2 next month: moving from per-seat to usage-based for our Pro and Business tiers (Enterprise unchanged). Existing customers: grandfathered for 12 months, then migrate. Produce: (1) public changelog entry, (2) internal enablement one-pager for sales + CS + support, (3) customer email to existing admins, (4) a post-launch monitoring plan with primary metric + guardrails + rollback criteria. Tone: friendly but honest about the change.",
+      "expected_output": "Four distinct artefacts: a public release note (benefit-led, not feature-led), internal enablement with talking points + objection handling, customer email (clear migration implications + CTA), and a monitoring plan (primary metric defined, guardrails including churn signal + support load + reliability, rollback criteria)."
+    },
+    {
+      "id": 1,
+      "name": "interpret-onboarding-ab-test",
+      "prompt": "Interpret this A/B test and recommend ship/iterate/kill/extend. Test: new onboarding flow vs control, 50/50 split, 21 days, 8000 users per variant. Results: activation (primary) +8.2pp (from 38% to 46.2%, CI [+5.1, +11.3]), retention wk2 +3.1pp (CI [+0.4, +5.8]), support tickets +12% (from 4.2/1k to 4.7/1k, CI [+5%, +19%]), NPS flat. Segment cut: Free users +11pp activation, Pro users +4pp activation, Enterprise users flat. Support ticket increase is concentrated in 'I'm confused about the new steps' category. Recommend.",
+      "expected_output": "An interpretation that: restates hypothesis, checks validity (sample size, SRM implicit), flags the segment pattern (where it helps most / least), takes the guardrail breach seriously, produces a clear recommendation (ship/iterate/kill) with rationale, and names what would change the recommendation."
+    }
+  ]
+}

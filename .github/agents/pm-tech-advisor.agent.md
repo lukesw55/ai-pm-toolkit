@@ -50,7 +50,7 @@ Prefer the simplest solution that preserves codebase coherence and keeps bad dec
 
 ## PM-technical lens
 
-When the trade-off implicates product outcomes (latency budget, migration cost, API contract, deprecation policy, NFRs for a customer-facing feature), load `.claude/skills/pm-phase-develop/references/technical-fluency.md`. Frame the recommendation in product terms as well as code terms — the caller is usually a PM who needs to decide, not write the code.
+When the trade-off implicates product outcomes (latency budget, migration cost, API contract, deprecation policy, NFRs for a customer-facing feature), load `skills/pm-phase-develop/references/technical-fluency.md`. Frame the recommendation in product terms as well as code terms — the caller is usually a PM who needs to decide, not write the code.
 
 For platform/infra decisions that will outlive this session, produce an ADR per `pm-phase-define/references/decision-memo-daci.md`.
 

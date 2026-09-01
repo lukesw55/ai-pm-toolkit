@@ -1,0 +1,17 @@
+{
+  "skill_name": "pm-phase-develop",
+  "evals": [
+    {
+      "id": 0,
+      "name": "prd-csv-export-dashboard",
+      "prompt": "Write a PRD for a CSV export feature in our B2B dashboard. Target user: team admins (5-50 seat accounts) sharing report data with non-users. Primary metric: weekly % of admins who export at least once. Keep under 3 pages. Include a tracking plan summary (top events to fire). Include release + rollback plan. The PRD should be ready for engineering to start sprint planning.",
+      "expected_output": "A PRD with: TL;DR, problem, target user, goals/non-goals, primary metric + guardrails, must-have requirements with testable acceptance criteria, scope IN/OUT, dependencies, risks, release plan with rollback, tracking plan summary (≥3 events with properties). Clear enough that engineering could start refinement."
+    },
+    {
+      "id": 1,
+      "name": "slice-sso-epic-into-stories",
+      "prompt": "Help me slice this epic into learning-friendly increments. Epic: 'Enable admins of enterprise accounts to configure SAML SSO for their organisation, with self-service setup, identity provider (IdP) health monitoring, and a fallback email-password auth path.' Target: B2B enterprise customers, must work for 10-500 seat accounts. Produce an MVP slice + release 2 + release 3, each with user-outcome stories (no backend/frontend-only slicing). Include non-goals at the epic level. We want to ship MVP in 4 weeks.",
+      "expected_output": "Epic breakdown with: bet statement, MVP (R1) with stories sliced by user value (vertical, not horizontal), R2 + R3 with rationale for sequencing, explicit non-goals, and learning outcomes per release. Stories should be user-outcome-shaped ('admin can X'), not component-shaped."
+    }
+  ]
+}

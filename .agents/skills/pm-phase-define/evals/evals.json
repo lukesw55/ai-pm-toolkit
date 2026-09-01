@@ -1,0 +1,17 @@
+{
+  "skill_name": "pm-phase-define",
+  "evals": [
+    {
+      "id": 0,
+      "name": "kpi-tree-for-b2b-onboarding",
+      "prompt": "Build a KPI tree for our onboarding area. Product context: B2B SaaS, self-serve signup + sales-assisted for enterprise. Business outcome the company cares about: net revenue retention. Current team dashboards show: signups, MAU, and revenue — nothing in between. Define the North Star, 2-3 layer tree with input metrics, guardrails, and owners. Call out any metric we should add instrumentation for.",
+      "expected_output": "A metric tree with: a North Star (reflecting customer value, actionable, measurable), 2-3 input layers each with definitions + formulas + baselines + owners, guardrails for reliability/support/trust, leading-vs-lagging classification, and at least one explicit call-out for missing instrumentation."
+    },
+    {
+      "id": 1,
+      "name": "prioritise-6-q3-initiatives",
+      "prompt": "I need to prioritise 6 candidates for Q3 planning — 3 from discovery (problem-framed, One Pagers drafted) and 3 from delivery (PRD-ready, estimates in hand). Team capacity is ~18 person-weeks. Pick the framework you'd use, define the scoring rules, score the candidates (use reasonable assumptions where I haven't given data), and produce a ranked list with rationale + explicit non-funded items. The 6 candidates: (1) new role-based permissions for enterprise (delivery, 8 weeks, requested by 3 enterprise logos), (2) activation funnel redesign (delivery, 6 weeks, based on retention analysis showing wk2 drop), (3) API rate-limit increase (delivery, 2 weeks, competitive ask), (4) explore pricing change (discovery, 3 weeks, exec interest), (5) AI-assisted report generation (discovery, 4 weeks, trend), (6) CS-requested bulk-import tool (discovery, 2 weeks, 14 tickets quarterly).",
+      "expected_output": "A ranked list with framework choice + pinned rules, scores with reasoning, explicit non-funded items, and acknowledgement of uncertainty / assumptions where evidence is weak."
+    }
+  ]
+}

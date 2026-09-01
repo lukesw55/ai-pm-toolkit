@@ -46,9 +46,9 @@ Only load extra docs when needed:
 - `docs/memory/MEMORY_SYSTEM.md` — memory structure and update protocol
 - `docs/patterns/KARPATHY_GUARDRAILS.md` — anti-overengineering and anti-assumption rules
 - `docs/patterns/COMMUNICATION_MODES.md` — Standard / Lean / Caveman output profiles
-- `.claude/skills/WORKFLOW.md` — 8-stage team workflow mapped to skills + stage-advance hooks
+- `skills/WORKFLOW.md` — 8-stage team workflow mapped to skills + stage-advance hooks
 
-## PM hard-skill toolkit (`.claude/skills/`)
+## PM hard-skill toolkit (`skills/`)
 
 Domain skills organised by Double Diamond phase + transversals. Load the specific skill (and its `references/*.md`) only when the work matches; otherwise stay in Umberto's orchestration loop.
 
@@ -67,7 +67,7 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 | Quality gate | `inference-discipline` | every inference labelled and approved before action; the hallucination gate behind `inference-discipline-gate.sh` |
 | Quality gate | `anti-slop` + `humanizer` + `humanize-deliverables` | slop removal split by surface — see the slop-removal table in `WORKFLOW.md` |
 
-The 8-stage workflow and hooks for stage-advancement are documented in `.claude/skills/WORKFLOW.md`. The archetype lenses (`pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform`) are skills too — they stack on top of any phase skill when the product context is non-default.
+The 8-stage workflow and hooks for stage-advancement are documented in `skills/WORKFLOW.md`. The archetype lenses (`pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform`) are skills too — they stack on top of any phase skill when the product context is non-default.
 
 ## Archetype agents (for specialised contexts)
 

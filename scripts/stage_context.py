@@ -2,7 +2,8 @@
 """
 stage_context.py — Surface the current workflow stage to Claude Code.
 
-Called by the UserPromptSubmit hook in .claude/settings.json. Reads
+Called by the UserPromptSubmit hook wired in .claude/settings.json (Claude
+Code) and .codex/hooks.json (Codex). Reads
 `.ai/memory/active-context.md` for the "Current stage" field and writes a short
 context block to stdout. Claude Code injects stdout from this hook into the
 conversation before the user prompt is processed, so every turn starts
@@ -109,7 +110,7 @@ def build_stage_block(stage: str, contract: dict[str, dict[str, str]]) -> list[s
 
     row = contract.get(stage)
     if not row:
-        hint = STAGE_TO_SKILL.get(stage, "see .claude/skills/WORKFLOW.md for mapping")
+        hint = STAGE_TO_SKILL.get(stage, "see skills/WORKFLOW.md for mapping")
         return [
             f"Current workflow stage: {stage}{pos}",
             f"Recommended skill/reference: {hint}",
@@ -171,7 +172,7 @@ def main() -> int:
     if project:
         lines.append(f"Active project: {project}")
     if stage:
-        contract = load_stage_contract(repo_root / ".claude" / "skills" / "WORKFLOW.md")
+        contract = load_stage_contract(repo_root / "skills" / "WORKFLOW.md")
         lines.extend(build_stage_block(stage, contract))
     elif not ctx_path.exists():
         # Fresh clone: advance_stage.py exits 2 without a pointer, so point

@@ -1,0 +1,17 @@
+{
+  "skill_name": "pm-transversal-stakeholder",
+  "evals": [
+    {
+      "id": 0,
+      "name": "daci-api-v1-deprecation",
+      "prompt": "Design the DACI for deprecating our public API v1. Context: v2 has been available for 14 months; ~8000 customers still on v1; v1 maintenance is costing 1 FTE; recently caused 2 incidents. Internal pressure to deprecate is strong but the customer support team fears churn. Product leadership needs to sign off, but the VP Engineering, Head of CS, Head of Sales, and Chief Legal Officer all have inputs. Produce the DACI: roles, recommendation, options, trade-offs, ask. Include proposed timeline.",
+      "expected_output": "A DACI with: decision at stake stated, one-way/two-way door classified, roles named (one driver, one approver, contributors, informed), recommendation with rationale, 2-3 options considered, trade-offs explicit, risks, specific ask + decision date. No role ambiguity."
+    },
+    {
+      "id": 1,
+      "name": "exec-memo-slip-risk",
+      "prompt": "Write a 1-page exec memo to our VP Product. Situation: our top Q3 bet (new enterprise admin console) is at risk of slipping 6 weeks due to a late-discovered dependency on the platform team's identity migration. We've attempted to decouple (option A: ship without SSO-SCIM sync, degraded UX for 80% of enterprise accounts) and accelerate (option B: hire contractor to help platform team, +$80k, 3 weeks saved). Option C: full 6-week slip. My recommendation: option B + a narrower MVP scope that defers 3 'nice-to-have' admin workflows. Need decision by Friday so we can brief sales + customers.",
+      "expected_output": "A 1-page exec memo: TL;DR first, situation in 3 sentences, stake in 2 sentences, 3 options with trade-offs + cost + reversibility, clear recommendation + rationale, risks of recommended option, specific ask with date."
+    }
+  ]
+}

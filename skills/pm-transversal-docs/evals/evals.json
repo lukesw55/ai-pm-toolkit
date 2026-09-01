@@ -1,0 +1,17 @@
+{
+  "skill_name": "pm-transversal-docs",
+  "evals": [
+    {
+      "id": 0,
+      "name": "confluence-prd-plus-jira-tickets",
+      "prompt": "Structure a Confluence page for a PRD (CSV export feature, 5-50 seat B2B admins, 3-page PRD ready), and open the corresponding Jira tickets: one epic + the MVP-slice stories. Produce the Confluence page (title, metadata block, TL;DR, sections) AND the Jira ticket templates (epic + 4 stories with acceptance criteria + links + labels). Don't re-invent the PRD content — just structure and link.",
+      "expected_output": "A Confluence page skeleton with title convention, status block, owner, TL;DR placement, section headings matching the PRD template; AND 5 Jira tickets (1 epic + 4 stories) each with title, user value, acceptance criteria, scope IN/OUT, links bidirectional (PRD ↔ epic ↔ stories), labels, DoD. Structure > content."
+    },
+    {
+      "id": 1,
+      "name": "ticket-hygiene-pass",
+      "prompt": "Hygiene pass on these 4 badly-written tickets. Refactor each to our standard. Tickets:\n\n1. 'add csv' — description: 'user wants csv'. Status: in backlog 3 months.\n2. 'Fix the thing with the export' — description: 'broken since last week, user reported on slack'. No steps to reproduce.\n3. 'Build backend API for export' — description: 'POST /export, returns CSV, uses job queue'. No user story, no acceptance criteria.\n4. 'Epic: improve onboarding' — 23 child stories, no primary metric, no bet statement, no MVP/R2 slicing.\n\nProduce a refactored version of each with title, body, acceptance criteria, links, labels, and note any questions you'd ask the PM before promoting to Ready.",
+      "expected_output": "4 refactored tickets each with: proper title (imperative, user-outcome for stories; symptom for bugs; specific for chores), description following the right template (story vs bug vs epic vs task), acceptance criteria, scope, links, labels, DoD. Plus open questions needed before Ready."
+    }
+  ]
+}

@@ -22,12 +22,12 @@ Your product is what other products are built on. Your users are usually develop
 
 ## Skills and references you pull from
 
-- `.claude/skills/pm-phase-discover/` — especially `jtbd-segmentation.md` adapted to developer personas
-- `.claude/skills/pm-phase-define/references/kpi-tree.md` — platform-specific metrics (adoption rate, migration velocity, API error rate, p95 latency, DevEx NPS)
-- `.claude/skills/pm-phase-develop/references/technical-fluency.md` — essential for you
-- `.claude/skills/pm-phase-develop/references/prd-writing.md` — platform PRDs emphasise contracts + NFRs
-- `.claude/skills/pm-phase-deliver/references/metric-quality-guardrails.md` — reliability + migration guardrails
-- `.claude/skills/pm-transversal-stakeholder/` — consumer teams are critical stakeholders
+- `skills/pm-phase-discover/` — especially `jtbd-segmentation.md` adapted to developer personas
+- `skills/pm-phase-define/references/kpi-tree.md` — platform-specific metrics (adoption rate, migration velocity, API error rate, p95 latency, DevEx NPS)
+- `skills/pm-phase-develop/references/technical-fluency.md` — essential for you
+- `skills/pm-phase-develop/references/prd-writing.md` — platform PRDs emphasise contracts + NFRs
+- `skills/pm-phase-deliver/references/metric-quality-guardrails.md` — reliability + migration guardrails
+- `skills/pm-transversal-stakeholder/` — consumer teams are critical stakeholders
 
 ## Platform-specific metrics to care about
 
