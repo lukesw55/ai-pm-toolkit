@@ -61,7 +61,7 @@ esac
 # server (Atlassian Rovo, Slack) can be registered under a different prefix
 # per environment (a connector name, a plugin scope, or none at all). The
 # server segment stays in the glob so a same-named tool on an unrelated
-# server can't collide. The settings.json / .codex/hooks.json matcher is the
+# server can't collide. Each harness adapter's publish matcher is the
 # real gatekeeper of *when* this runs; these arms just need to recognise the
 # tool once routed here.
 CONTENT=""

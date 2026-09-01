@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-test_grade_evals.py — deterministic fixture tests for the B2 doctrine-
-adversarial / negative-control assertions in grade_evals.py.
+test_grade_evals.py — deterministic fixture tests for adversarial and
+negative-control assertions in grade_evals.py.
 
 These are not live model runs. Each fixture is a hand-written synthetic
 output run through the real grade_run() / ASSERTIONS for a real
@@ -137,6 +137,31 @@ fixture(
     0.0, 0.5,
 )
 
+# -- 6. Product-sense control: every named dimension must score strongly -
+fixture(
+    "product-sense-solid-control-scores-every-dimension",
+    "pm-product-sense",
+    "evaluate-solid-control",
+    """
+    Lowest-scoring dimension first: User empathy — 4/5. The One Pager
+    identifies a researched segment and quantified pain. Structured
+    thinking — 4/5. Product taste — 5/5. Strategic awareness — 4/5.
+    Communication — 5/5. Verdict: proceed.
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "product-sense-one-high-score-cannot-mask-weak-dimensions",
+    "pm-product-sense",
+    "evaluate-solid-control",
+    """
+    Lowest-scoring dimension first: Strategic awareness — 1/5. User
+    empathy — 4/5. Structured thinking — 2/5. Product taste — 2/5.
+    Communication — 2/5. Verdict: proceed.
+    """,
+    0.0, 0.67,
+)
+
 
 def run() -> int:
     failures: list[str] = []
@@ -169,6 +194,14 @@ def run() -> int:
     ]:
         if not ge.ASSERTIONS.get(skill, {}).get(eval_name):
             failures.append(f"sanity check: expected B2 assertions missing for ({skill}, {eval_name})")
+
+    # hedged() must inspect every occurrence. A quoted/negated first mention
+    # cannot mask the same claim asserted later without a nearby hedge.
+    repeated_claim = ge.hedged("claim is true", window=30)
+    if repeated_claim('I cannot confirm "claim is true". ' + ("x" * 80) + " claim is true"):
+        failures.append("hedged(): a guarded first occurrence masked a later unguarded assertion")
+    else:
+        print("PASS hedged-all-occurrences: later unguarded assertion is detected")
 
     if failures:
         print("\nFAILURES:")

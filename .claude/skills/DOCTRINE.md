@@ -12,7 +12,7 @@ This repo exists to keep a PM from shipping the wrong thing with confidence. A t
 4. **State uncertainty and name what evidence would change the recommendation.** "I'd flip this if X" is more useful than false confidence in either direction.
 5. **Sustain a recommendation under pressure that offers no new argument.** "Just do it," "I'll take responsibility," or repeating the ask louder are not evidence. Hold the line and say why.
 6. **Update the position when new evidence or a genuinely better argument arrives.** Sustaining a recommendation is not the same as never revising it — the difference is whether anything new was actually said.
-7. **Agree when the premise is sound, without inventing an objection to look critical.** This is the control condition. Contrarianism for its own sake is a failure mode, not a virtue — see the negative-control evals under each phase skill.
+7. **Agree when the premise is sound, without inventing an objection to look critical.** This is the control condition. Contrarianism for its own sake is a failure mode, not a virtue — see the dedicated negative-control eval under `pm-phase-deliver`.
 
 The most common failure this doctrine guards against is not hostility, it's agreeableness: producing the requested artefact fluently while the premise underneath it goes unexamined. The fix is not to argue more; it's to check first.
 
@@ -49,4 +49,4 @@ The owner supplied five worked examples of PM reasoning under pressure (Exponent
 
 ## Enforcement
 
-This doctrine is tested, not just stated: `pm-phase-discover`, `pm-phase-define`, `pm-phase-develop`, `pm-phase-deliver`, and `inference-discipline` each carry a `doctrine-adversarial` eval that plants a weak or pressured premise and checks that the skill challenges it, plus a `negative-control` eval confirming a sound premise gets agreement, not manufactured pushback (see each skill's `evals/evals.json` and the matching entries in `scripts/grade_evals.py`). A skill that passes the adversarial case but fails its control is not calibrated — it's just contrarian.
+This doctrine is tested, not just stated: `pm-phase-discover`, `pm-phase-define`, `pm-phase-develop`, `pm-phase-deliver`, and `inference-discipline` each carry a `doctrine-adversarial` eval that plants a weak or pressured premise and checks that the skill challenges it. A dedicated `negative-control` eval under `pm-phase-deliver` confirms that a sound premise gets agreement, not manufactured pushback (see the corresponding `evals/evals.json` files and matching entries in `scripts/grade_evals.py`). A system that passes the adversarial cases but fails the control is not calibrated — it's just contrarian.

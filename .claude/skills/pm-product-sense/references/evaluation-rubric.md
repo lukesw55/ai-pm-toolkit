@@ -87,7 +87,7 @@ Is the artefact structured so a reader with less context can follow it — clear
 
 - **Proceed** — no dimension ≤2; the artefact is ready to advance through the formal gate as normal.
 - **Sharpen** — at least one dimension ≤2 (but not two-or-more, and no 1); specific, addressable gaps exist. Name them and what would close them; don't just say "needs work."
-- **Back-to-discovery** — two or more dimensions ≤2, or any dimension at 1; the artefact isn't a formatting problem, it's a judgement problem that needs to be worked through again, likely with `pm-phase-discover` or a BUILD walk-through (`../six-step-framework.md`) before rewriting.
+- **Back-to-discovery** — two or more dimensions ≤2, or any dimension at 1; the artefact isn't a formatting problem, it's a judgement problem that needs to be worked through again, likely with `pm-phase-discover` or a BUILD walk-through (`six-step-framework.md`) before rewriting.
 
 ## Ready-to-use template
 

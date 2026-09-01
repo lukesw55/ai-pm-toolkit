@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -34,6 +35,14 @@ def run(cmd: list[str], stdin_text: str, cwd: Path = ROOT) -> tuple[int, str, st
 
 def payload(**kwargs) -> str:
     return json.dumps(kwargs)
+
+
+def pretool_block(adapter: Path, command_fragment: str) -> dict:
+    data = json.loads(adapter.read_text(encoding="utf-8"))
+    return next(
+        block for block in data["hooks"]["PreToolUse"]
+        if any(command_fragment in hook.get("command", "") for hook in block.get("hooks", []))
+    )
 
 
 CASES: list[tuple[str, list[str], str, int]] = []
@@ -95,6 +104,12 @@ case(
     "humanize-gate: unmarked publish blocks",
     ["bash", str(HOOKS / "humanize-gate.sh")],
     payload(tool_name="mcp__claude_ai_Slack__slack_send_message", tool_input={"channel": "C1", "text": _humanize_body}),
+    2,
+)
+case(
+    "humanize-gate: bare-prefix unmarked publish blocks",
+    ["bash", str(HOOKS / "humanize-gate.sh")],
+    payload(tool_name="mcp__Slack__slack_send_message", tool_input={"channel": "C1", "text": _humanize_body}),
     2,
 )
 
@@ -194,21 +209,49 @@ def run_cases() -> int:
     if flag_path.exists():
         flag_path.unlink()
 
-    # Amendment 4: Codex hook commands resolve via `git rev-parse
-    # --show-toplevel`, so they must work from a cwd nested inside the
-    # repo, not just from the root.
-    nested = ROOT / "skills" / "anti-slop"
-    if nested.is_dir():
-        code, out, err = run(
-            ["bash", "-c", 'cd "$1" && bash "$(git rev-parse --show-toplevel)/hooks/anti-slop-gate.sh"', "_", str(nested)],
-            payload(tool_name="Write", tool_input={"file_path": "/tmp/x/clean-nested-cwd.md", "content": "fine from a nested cwd"}),
-            cwd=ROOT,
+    # B1: both adapters must use the exact same publish matcher. Prove that
+    # it accepts both supported prefixes and excludes an unrelated tool.
+    try:
+        claude_publish = pretool_block(ROOT / ".claude" / "settings.json", "humanize-gate.sh")["matcher"]
+        codex_publish = pretool_block(ROOT / ".codex" / "hooks.json", "humanize-gate.sh")["matcher"]
+        representative_tools = [
+            "mcp__Atlassian_Rovo__createConfluencePage",
+            "mcp__claude_ai_Atlassian_Rovo__createConfluencePage",
+            "mcp__Slack__slack_send_message",
+            "mcp__claude_ai_Slack__slack_send_message",
+        ]
+        ok = (
+            claude_publish == codex_publish
+            and all(re.fullmatch(claude_publish, tool) for tool in representative_tools)
+            and re.fullmatch(claude_publish, "mcp__GitHub__create_pull_request") is None
         )
-        ok = code == 0
-        print(f"{'PASS' if ok else 'FAIL'}  git-rev-parse root resolution works from a nested cwd (amendment 4)")
+        print(f"{'PASS' if ok else 'FAIL'}  publish matchers are identical, dual-prefix, and scoped")
         if not ok:
             failures += 1
-            print("  stderr:", err.strip())
+    except (KeyError, StopIteration, json.JSONDecodeError, re.error) as exc:
+        failures += 1
+        print(f"FAIL  publish matcher wiring could not be inspected: {exc}")
+
+    # Amendment 4: execute the actual Codex adapter command from hooks.json
+    # from a nested cwd, not a lookalike command assembled inside this test.
+    nested = ROOT / "skills" / "anti-slop"
+    if nested.is_dir():
+        try:
+            codex_write = pretool_block(ROOT / ".codex" / "hooks.json", "pretooluse.py")
+            command = codex_write["hooks"][0]["command"]
+            code, _out, err = run(
+                ["bash", "-c", command],
+                payload(tool_name="apply_patch", tool_input={"command": _ADD_CLEAN}),
+                cwd=nested,
+            )
+            ok = code == 0
+            print(f"{'PASS' if ok else 'FAIL'}  actual Codex adapter command resolves from a nested cwd (amendment 4)")
+            if not ok:
+                failures += 1
+                print("  stderr:", err.strip())
+        except (KeyError, IndexError, StopIteration, json.JSONDecodeError) as exc:
+            failures += 1
+            print(f"FAIL  nested-cwd Codex command could not be inspected: {exc}")
     else:
         print("SKIP  nested-cwd test: skills/anti-slop/ not found")
 
@@ -217,7 +260,7 @@ def run_cases() -> int:
 
 def main() -> int:
     failures = run_cases()
-    total = len(CASES) + 2  # + sentinel round-trip + nested-cwd
+    total = len(CASES) + 3  # + sentinel round-trip + matcher parity + nested-cwd
     if failures:
         print(f"\ntest_hooks: {failures}/{total} case(s) failed")
         return 1
