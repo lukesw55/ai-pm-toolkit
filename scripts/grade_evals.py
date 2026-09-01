@@ -177,6 +177,39 @@ ASSERTIONS = {
             ("Concise (memo body under ~800 words)", lambda t: len(t.split()) < 850),
         ],
     },
+    "pm-transversal-comms": {
+        "exec-decision-email-launch-slip": [
+            ("Subject line names the action needed", hasr(r"subject:.*(decision|go/no-go|go.no.go|needed|approve)")),
+            ("States a clear recommendation (option A)", hasr(r"recommend|option a\b.*(recommend|prefer)|go with a")),
+            ("Both options given with a trade-off each", lambda t: ("option a" in t) and ("option b" in t)),
+            ("Specific ask with the Wednesday date", hasr(r"wednesday")),
+            ("Stays close to the ~300-word default (allows headroom)", lambda t: len(t.split()) < 420),
+        ],
+        "slack-bluf-status-update": [
+            ("States the status + pending blocker up front", hasr(r"2 of 3|two of three|third bug|blocking bug")),
+            ("Names the payment-webhook race condition and its ETA", hasr(r"payment.webhook|race condition|eta|tomorrow")),
+            ("Names Thursday GA date's dependency on the fix", hasr(r"thursday.*(depend|contingent|assuming|if the fix|pending)|depend.*thursday")),
+            ("Stays concise — BLUF, not a wall of text", lambda t: len(t.split()) < 150),
+        ],
+        "channel-fit-pricing-negotiation-sprawl": [
+            ("Recommends moving the decision into a written record", hasr(r"doc|memo|daci|written record")),
+            ("Names the 3-exchange rule or equivalent reasoning against chat sprawl", hasr(r"3.exchange|three exchange|3 back.and.forth|exchange rule|sprawl")),
+            ("Points to the DACI/stakeholder escalation path", hasr(r"pm-transversal-stakeholder|daci")),
+            ("Concrete step: summarise what's surfaced rather than restarting", hasr(r"summaris|summariz")),
+            ("Posts the resulting doc link back to the original thread", hasr(r"post.*(link|thread)|link back|share.*(doc|link).*(thread|channel)|back (?:in|to) the (?:thread|channel)")),
+        ],
+        "deescalate-unverified-outage-blame-message": [
+            ("Does not assert the causal claim as settled fact without hedge/quote context", hedged("your deploy last night broke our checkout flow")),
+            ("Names the claim/figure as unconfirmed rather than settled", hasr(r"unconfirmed|haven't confirmed|not confirmed|unverified|don't (?:yet )?know if|not sure (?:it was|whether)")),
+            ("Proposes a de-escalated version or asks to confirm before sending", hasr(r"instead|propose|de-escalat|toned.down|softer|check (?:whether|if)|confirm")),
+            ("Still conveys real urgency rather than dropping it", hasr(r"urgent|now|immediate|asap|priority")),
+        ],
+        "solid-status-update-no-fabricated-objection": [
+            ("Delivers the clean status (on track, GA Thursday)", hasr(r"on track|thursday")),
+            ("States no ask / no blockers as given", hasr(r"no ask|no blocker")),
+            ("Does not manufacture caveats or hedges the input didn't warrant", lambda t: not re.search(r"just to be safe|hold off|double.check everything|however,? (?:we|i) (?:recommend|suggest|would|should)", t)),
+        ],
+    },
     "pm-transversal-docs": {
         "confluence-prd-plus-jira-tickets": [
             ("Confluence page with title + status + links block", hasr(r"status:|owner:|related:|linked?:|title|updated")),

@@ -17,12 +17,12 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B1 | Corrigir prefixo MCP dos gates de publish | Enforcement | verificado | 5 | 4 | 4 | 80 | feito |
 | B2 | Evals adversariais anti-sycophancy + padrões de discordância nas skills | Epistêmica | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
 | B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
-| B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
+| B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 | feito |
 | B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 | em execução (batch 1) |
 | B5 | Resolver contradições de doutrina entre AGENTS.md, SKILL.md e docs de memória | Docs | agente | 3 | 3 | 3 | 27 |
 | B6 | Produção de decks: assertion-evidence + storyline QBR → .pptx | Conteúdo PM | pesquisa | 3 | 3 | 3 | 27 |
 | B7 | Consolidação de memória executável (distill episódico → semântico) | Memória | pesquisa | 3 | 2 | 4 | 24 |
-| B8 | Corrigir crash do `grade_evals.py` em clone fresco | Bug | verificado | 3 | 3 | 2 | 18 |
+| B8 | Corrigir crash do `grade_evals.py` em clone fresco | Bug | verificado | 3 | 3 | 2 | 18 | absorvido pelo B2 |
 | B9 | `humanize-deliverables` aponta para settings.local.json inexistente (3×) | Docs | verificado | 3 | 3 | 2 | 18 | absorvido pelo B1 |
 | B10 | Humanizer vendorizado: re-sync ou fork-own + atribuição no root | Skills | agente | 3 | 2 | 3 | 18 |
 | B11 | Ampliar suíte de evals (28 casos, 7 skills com 1–2, zero adversarial) | Skills | verificado | 3 | 2 | 3 | 18 |
@@ -50,7 +50,7 @@ Taxonomia de eval formalizada em 4 categorias (`standard`, `doctrine-adversarial
 
 ### B3 — Comunicação PM de canal curto (GUT 36)
 
-O toolkit cobre release notes, exec memo, Confluence/Jira, one-pager e PRD, mas os formatos de maior frequência diária do PM não têm skill: e-mail (só aparece embutido no launch package), mensagem de chat (Slack existe como gate de publicação, não como produção; WhatsApp/Teams, nada). Criar `pm-transversal-comms` com SCQA e Pyramid Principle para e-mail executivo, BLUF (bottom line up front) para chat, e regras por canal: tamanho-alvo, tl;dr primeiro, thread-first, quando escalar de chat para doc. Encadeia com `humanizer` no fim, como as demais.
+**Feito.** `skills/pm-transversal-comms/` criada: SKILL.md (house style de `pm-transversal-stakeholder`, description em 898 chars) + 4 references (`exec-email-scqa.md` com SCQA e o default editável de ~300 palavras para e-mail de decisão, `chat-bluf.md` com BLUF e o default editável de ~5 linhas, `channel-rules.md` com a matriz chat/e-mail/doc/call e a regra de 3 exchanges antes de escalar para doc, `progressive-loading.md`). 5 evals com `category`: 3 `standard`, 1 `skill-functional-adversarial` dedicado (mensagem agressiva de escalação baseada em causa não verificada — a skill deve desescalar e recusar afirmar a causa como fato, mesmo sob pedido explícito de "manda assim mesmo") e 1 `negative-control` dedicado (pedido de status limpo → entrega sem objeção fabricada; emenda 5 do dono vetou embutir os dois papéis num eval só). 5 blocos de `ASSERTIONS` em `grade_evals.py`, verificados manualmente contra respostas boas e ruins sintéticas (discrimina 5/5 vs. 1/4 e 3/3 vs. 1/3). Integrado em `skills/WORKFLOW.md` (lista de transversais de toda-stage) e `SKILL.md` raiz (linha na tabela); contagens do README ficam para o B4 (reconciliação final, gap 6 do plano). Verificado: bateria completa verde, espelhos sincronizados, sem literais de marcador ou banners nos arquivos novos.
 
 ### B4 — Product sense como skill (GUT 36)
 

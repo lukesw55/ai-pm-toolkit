@@ -62,6 +62,7 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 | Transversal | `pm-transversal-stakeholder` | DACI/RACI/RAPID, exec reporting, stakeholder mapping |
 | Transversal | `pm-transversal-docs` | Confluence structure & templates, Jira ticket hygiene, linking & automation |
 | Transversal | `pm-transversal-analysis` | qualitative synthesis, quantitative analysis (HogQL), triangulation, media/transcript parsing |
+| Transversal | `pm-transversal-comms` | executive email (SCQA), chat/Slack messages (BLUF), channel-fit rules (chat vs. email vs. doc vs. call) |
 | Transversal | `pm-prioritization-regua-comum` | Impact × Effort with one shared ruler (ARR/Abrangência/CRA), Abrangência lock, HIPO weighting — used at stages 1 and 5 |
 | Transversal | `pm-storytelling` | narrative spine (tension → insight → change → takeaway) for memos, PRD openers, discovery syntheses, QBR storylines |
 | Transversal | `data-science-analyst` | technical correctness of the analysis itself: dataset profiling, SQL audits, A/B validation, leakage checks |
