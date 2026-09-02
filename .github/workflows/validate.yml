@@ -35,6 +35,9 @@ jobs:
       - name: Grader assertion fixture tests
         run: python3 scripts/test_grade_evals.py
 
+      - name: Memory distill + PII denylist fixture tests
+        run: python3 scripts/test_memory.py
+
       - name: Grader zero-run smoke (no workspace runs recorded yet)
         run: python3 scripts/grade_evals.py
 
