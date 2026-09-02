@@ -17,7 +17,7 @@ Prioritisation forces trade-offs under scarcity. A PM who cannot defend "why thi
 | **Cost of Delay / WSJF** | Known release windows, multiple teams sharing capacity | Requires honest CoD estimation (users tend to over-claim) |
 | **Kano** | Understanding user-satisfaction thresholds (basic vs performance vs delighter) | Needs customer survey data; not for ranking initiatives directly |
 | **MoSCoW** | Fixed-scope releases (contract / regulatory deadlines) | Too binary for steady-state prioritisation; M becomes "everyone thinks theirs is M" |
-| **Opportunity scoring** | Where the bet is the segment/problem, not the feature | Needs discovery evidence; use with `pm-phase-discover/opportunity-hypothesis.md` |
+| **Opportunity scoring** | Where the bet is the segment/problem, not the feature | Needs discovery evidence; use with `pm-phase-discover/references/opportunity-hypothesis.md` |
 | **Weighted scorecard** | Regulated / cross-functional / executive-visible bets | Slow; scores can hide judgement; needs governance |
 
 ## RICE — template

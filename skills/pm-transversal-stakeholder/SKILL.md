@@ -23,7 +23,7 @@ Invoke when:
 - status reporting is absorbing too much time for too little decision-value
 - a DACI, RACI, or RAPID needs to be designed or updated
 
-Skip for decisions that are genuinely within PM authority and can be made in a PRD or decision log (→ `pm-phase-define/decision-memo-daci.md` for the artefact template itself).
+Skip for decisions that are genuinely within PM authority and can be made in a PRD or decision log (→ `pm-phase-define/references/decision-memo-daci.md` for the artefact template itself).
 
 ## Prime directive
 
@@ -93,7 +93,7 @@ Anti-patterns: treating stakeholders as a single undifferentiated group, engagin
 ## Integration
 
 - Every phase: `pm-phase-discover`, `pm-phase-define`, `pm-phase-develop`, `pm-phase-deliver` all need decision-rights clarity at key moments.
-- Paired: `pm-transversal-docs` (DACI published in Confluence), `pm-phase-define/decision-memo-daci.md` (template).
+- Paired: `pm-transversal-docs` (DACI published in Confluence), `pm-phase-define/references/decision-memo-daci.md` (template).
 - Agents: invoked implicitly by every agent when cross-function decisions arise; explicitly by `@pm-orchestrator` and archetype agents for launch decisions, pricing changes, deprecation decisions, etc.
 
 Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is a 1-page DACI + recommendation; Standard is the full memo with options and trade-offs; Caveman is a 4-line driver / approver / ask / date.

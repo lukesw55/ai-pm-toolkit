@@ -1,6 +1,6 @@
-# Documentation slop catalogue (B1–B6)
+# Documentation slop catalogue (B1–B12)
 
-Load when writing or reviewing markdown docs, READMEs, PR descriptions, ADRs, tickets, changelogs, or migration notes. The 6 patterns below are the most common shapes of "doc that looks complete because it has the expected sections, but adds no real signal."
+Load when writing or reviewing markdown docs, READMEs, PR descriptions, ADRs, tickets, changelogs, or migration notes. The 12 patterns below are the most common shapes of "doc that looks complete because it has the expected sections, but adds no real signal."
 
 The `humanizer` skill covers parallel patterns for prose-heavy text. When a doc mixes structure (headings, bullets) with prose, run this catalogue for the structure and `humanizer` for the prose; the rules complement each other rather than overlap.
 

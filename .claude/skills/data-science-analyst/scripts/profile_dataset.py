@@ -3,7 +3,7 @@
 Quick dataset profiler for CSV/TSV files.
 
 Usage:
-    python scripts/profile_dataset.py data/raw/customers.csv --out reports/dataset_profile.md
+    python3 scripts/profile_dataset.py data/raw/customers.csv --out reports/dataset_profile.md
 """
 
 from __future__ import annotations

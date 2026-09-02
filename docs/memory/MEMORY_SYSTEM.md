@@ -20,7 +20,7 @@ This system is inspired by navigable memory structures: information is easier to
 ├── index.md                 # one line per known project
 ├── inbox.md                 # manual scratch — no script reads or writes it
 ├── context-events.jsonl     # context-switch log (memory.py + context_watch.py)
-├── people/
+├── people/                  # optional, manual-only PII notes; no script creates or touches it
 ├── projects/
 │   └── <slug>/
 │       ├── state.md             # read FIRST on resume; park/close blocks
@@ -41,7 +41,7 @@ This system is inspired by navigable memory structures: information is easier to
 The single source for what project is currently in focus.
 
 ### `index.md`
-A simple map of known projects, people, domains, and where to look next.
+One line per known project, appended by `init_context.py`.
 
 ### `inbox.md`
 Temporary raw notes, copied facts, rough observations, meeting snippets, or loose findings that are not yet organized. Manual only: no script creates, reads, or rotates it.
@@ -96,14 +96,12 @@ Before a task:
 1. read `active-context.md`
 2. read the active project's `state.md`, then `session-kickoff.md`
 3. scan `profile.md`, `decisions.md`, `experiments.md`, and the newest `changelog.md` entries
-4. check `inbox.md` for fresh raw notes
 
 After a task:
 
-1. move durable findings out of `inbox.md`
-2. append decision or experiment entries when relevant
-3. refresh `active-context.md` if focus changed
-4. update `index.md` if a new project or person was added
+1. append decision or experiment entries when relevant
+2. refresh `active-context.md` if focus changed
+3. update `index.md` if a new project was added
 
 ## What belongs in memory
 

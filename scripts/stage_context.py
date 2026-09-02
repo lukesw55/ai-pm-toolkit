@@ -177,9 +177,9 @@ def main() -> int:
     elif not ctx_path.exists():
         # Fresh clone: advance_stage.py exits 2 without a pointer, so point
         # at the bootstrap that creates it.
-        lines.append('No project context yet. Run: python scripts/init_context.py "<project-name>"')
+        lines.append('No project context yet. Run: python3 scripts/init_context.py "<project-name>"')
     else:
-        lines.append("No active stage set. Run: python scripts/advance_stage.py <stage-slug>")
+        lines.append("No active stage set. Run: python3 scripts/advance_stage.py <stage-slug>")
         lines.append(f"Valid stages: {', '.join(STAGES)}")
     lines.append("(From .ai/memory/active-context.md — source of truth for workflow position.)")
     lines.append("</umberto-stage-context>")

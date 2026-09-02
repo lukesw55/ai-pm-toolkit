@@ -3,7 +3,7 @@
 Create a reproducible data analysis project skeleton.
 
 Usage:
-    python scripts/scaffold_analysis_project.py my-analysis-project
+    python3 scripts/scaffold_analysis_project.py my-analysis-project
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ Describe the decision or question this project supports.
 ## Reproduce
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```

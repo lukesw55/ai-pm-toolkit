@@ -197,7 +197,7 @@ python3 scripts/validate_repo.py
 python3 scripts/memory.py doctor
 ```
 
-`validate_repo.py` checks skill frontmatter, local markdown links, workflow-stage parsing, hook settings for both harnesses, hook syntax, mirror drift, and the memory bootstrap contract. It is zero-dependency except for optional PyYAML; without PyYAML it falls back to minimal frontmatter checks. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
+`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax, mirror drift, and the memory bootstrap contract. It is zero-dependency except for optional PyYAML; without PyYAML it falls back to minimal frontmatter checks. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
 
 ## Repository layout
 

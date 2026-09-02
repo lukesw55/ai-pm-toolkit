@@ -2,7 +2,7 @@
 
 ## Bootstrap the active context
 
-- [ ] Create or refresh the active project context with `python scripts/init_context.py <project-name>`
+- [ ] Create or refresh the active project context with `python3 scripts/init_context.py <project-name>`
 - [ ] Fill in `.ai/app.md` for the current project
 - [ ] Fill in project-specific design rules in `.ai/design.md`
 - [ ] Capture discovery notes in project memory

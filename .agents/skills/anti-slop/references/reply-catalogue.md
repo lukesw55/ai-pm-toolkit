@@ -1,6 +1,6 @@
-# Claude Code reply slop catalogue (C1–C6)
+# Claude Code reply slop catalogue (C1–C10)
 
-Load when reviewing or producing chat replies longer than two sentences. The 6 patterns below are what makes a reply feel "assembled by a model trying to look helpful" rather than "written by a competent collaborator answering the question."
+Load when reviewing or producing chat replies longer than two sentences. The 10 patterns below are what makes a reply feel "assembled by a model trying to look helpful" rather than "written by a competent collaborator answering the question."
 
 `hooks/scope-bloat-gate.sh` (Stop hook) already auto-blocks the loudest reply tells once per turn — em-dash density above ~4 per 1000 chars, label-colon runs of 4+, headings on short prompts, dual-question closes ("...? Or...?"), and scope bloat (response >5× prompt length without a doc keyword). The patterns below are the ones the hook does not catch — apply by hand.
 

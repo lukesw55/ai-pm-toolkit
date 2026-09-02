@@ -34,7 +34,7 @@ Invoke when:
 - a video/audio recording or its transcript is the main input (user test, sales call, exec interview)
 - an "analysis" is needed but nobody has said whether it's quali, quant, or both
 
-Skip for pure dashboard consumption (no synthesis needed) — that stays in `pm-phase-deliver/product-analytics.md`.
+Skip for pure dashboard consumption (no synthesis needed) — that stays in `pm-phase-deliver/references/product-analytics.md`.
 
 Trigger phrases: "sintetize essas entrevistas", "analyse these transcripts", "assista esse vídeo", "extraia insights", "coding temático", "triangule quali e quant", "cohort analysis", "funnel interpretation", "qualitative themes", "review session replays".
 

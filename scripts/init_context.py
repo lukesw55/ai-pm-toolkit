@@ -39,7 +39,7 @@ def append_if_missing(path: Path, line: str) -> None:
 
 def main() -> int:
     if len(sys.argv) < 2:
-        print("Usage: python scripts/init_context.py <project-name>")
+        print("Usage: python3 scripts/init_context.py <project-name>")
         return 1
 
     title = " ".join(sys.argv[1:]).strip()
@@ -55,7 +55,7 @@ def main() -> int:
         if match and match.group(1) != slug:
             print(
                 f"Refusing to overwrite active-context.md: '{match.group(1)}' is still active.\n"
-                f"Run: python scripts/memory.py park {match.group(1)}  # then retry init",
+                f"Run: python3 scripts/memory.py park {match.group(1)}  # then retry init",
                 file=sys.stderr,
             )
             return 2

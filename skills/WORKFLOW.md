@@ -27,13 +27,13 @@ START
 | # | Stage | PM skill | Key reference | Artefact | Gate to advance |
 |---|---|---|---|---|---|
 | 1 | Discovery Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (opportunity-level) | `discovery-priorities.md` | top N candidate problems selected with rationale |
-| 2 | Impact Brief (GTM) | `pm-phase-discover` | `references/impact-brief.md` | `impact-brief-<topic>.md` | business + GTM impact articulated, invalidation conditions named |
-| 3 | Discovery | `pm-phase-discover` | `research-design.md` + `jtbd-segmentation.md` + `opportunity-hypothesis.md` | `discovery/<topic>/synthesis.md` | problem framed, JTBD validated, hypothesis ranked |
-| 4 | One Pager | `pm-phase-define` | `references/one-pager.md` | `one-pager-<topic>.md` | one-pager approved by stakeholders + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
+| 2 | Impact Brief (GTM) | `pm-phase-discover` | `pm-phase-discover/references/impact-brief.md` | `impact-brief-<topic>.md` | business + GTM impact articulated, invalidation conditions named |
+| 3 | Discovery | `pm-phase-discover` | `pm-phase-discover/references/research-design.md` + `pm-phase-discover/references/jtbd-segmentation.md` + `pm-phase-discover/references/opportunity-hypothesis.md` | `discovery/<topic>/synthesis.md` | problem framed, JTBD validated, hypothesis ranked |
+| 4 | One Pager | `pm-phase-define` | `pm-phase-define/references/one-pager.md` | `one-pager-<topic>.md` | one-pager approved by stakeholders + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
 | 5 | Product Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (build-level) | `priorities.md` update | bet approved for build |
-| 6 | PRD + Prototype + Refinement | `pm-phase-develop` | `prd-writing.md` + prototype loops | `prds/<feature>.md` + prototype | PRD approved, prototype validated + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
-| 7 | Tech Team Kickoff | `pm-phase-develop` | `references/tech-team-kickoff.md` | kickoff deck + epic | team aligned, tickets refined, dependencies & NFRs clear |
-| 8 | Delivery | `pm-phase-deliver` | `launch-readiness.md` + `release-notes.md` + `post-launch-monitoring.md` | launch kit + close-out | GA shipped, impact measured |
+| 6 | PRD + Prototype + Refinement | `pm-phase-develop` | `pm-phase-develop/references/prd-writing.md` + prototype loops | `prds/<feature>.md` + prototype | PRD approved, prototype validated + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
+| 7 | Tech Team Kickoff | `pm-phase-develop` | `pm-phase-develop/references/tech-team-kickoff.md` | kickoff deck + epic | team aligned, tickets refined, dependencies & NFRs clear |
+| 8 | Delivery | `pm-phase-deliver` | `pm-phase-deliver/references/launch-readiness.md` + `pm-phase-deliver/references/release-notes.md` + `pm-phase-deliver/references/post-launch-monitoring.md` | launch kit + close-out | GA shipped, impact measured |
 
 Transversal skills (`pm-transversal-stakeholder`, `pm-transversal-docs`, `pm-transversal-analysis`, `pm-transversal-comms`, `data-science-analyst`) apply at **every stage**: use them whenever cross-function alignment, Confluence/Jira publication, quali+quant synthesis, short-form comms (email/chat), or technical data-work (audit a CSV export, validate SQL, check leakage, A/B-test analysis, baseline ML) is needed. The first four are the PM lens; `data-science-analyst` is the technical lens under them. `pm-transversal-analysis` decides what the data *means for product*; `data-science-analyst` decides whether *the analysis itself* is sound. `pm-transversal-comms` covers the highest-frequency artefacts of the four — email and chat — while `pm-transversal-stakeholder` and `pm-transversal-docs` handle longer-form memos/decision-rights and Confluence/Jira respectively. They chain. In Discover, `data-science-analyst` is fine for file-level audit, but ML/forecasting and instrumentation queries stay out until Define and Develop.
 
@@ -70,9 +70,9 @@ A single prioritisation collapses these and under-funds either discovery or deli
 The current stage lives in `.ai/memory/active-context.md` under "Current stage". Update it manually or via:
 
 ```bash
-python scripts/advance_stage.py <stage-slug>
+python3 scripts/advance_stage.py <stage-slug>
 # e.g.
-python scripts/advance_stage.py product-prioritization
+python3 scripts/advance_stage.py product-prioritization
 ```
 
 Valid slugs: `discovery-prioritization`, `impact-brief`, `discovery`, `one-pager`, `product-prioritization`, `prd`, `tech-kickoff`, `delivery`.

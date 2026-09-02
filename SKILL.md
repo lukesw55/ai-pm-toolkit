@@ -48,6 +48,7 @@ Only load extra docs when needed:
 - `docs/patterns/COMMUNICATION_MODES.md` — Standard / Lean / Caveman output profiles
 - `skills/WORKFLOW.md` — 8-stage team workflow mapped to skills + stage-advance hooks
 - `skills/DOCTRINE.md` — calibrated disagreement: load before substantive pushback or concession, not just at session start
+- `docs/REPO_HEALTH.md` — the toolkit's own validation suite; run it before committing changes under `skills/`, `hooks/`, or `scripts/`
 
 ## PM hard-skill toolkit (`skills/`)
 
@@ -194,7 +195,7 @@ Before work:
 
 During work:
 
-- keep raw notes in `.ai/memory/inbox.md` if needed
+- keep raw notes in `.ai/memory/inbox.md` if needed (manual scratch; no script reads or writes it)
 - link new findings to project memory
 - mark when assumptions become evidence
 

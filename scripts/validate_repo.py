@@ -6,6 +6,8 @@ Checks:
 - SKILL.md YAML frontmatter (canonical skills/ only — mirrors are generated).
 - Local markdown links (canonical + repo docs; mirrors excluded — they are
   byte copies, so a broken link there is the same broken link in canonical).
+- Backtick-quoted file paths (`a/b.md`), resolved from the citing file's own
+  directory, `skills/`, the citing skill's root, or the repo root.
 - WORKFLOW.md stage table parses into the canonical stage contract.
 - .claude/settings.json and .codex/hooks.json hook shape and command targets.
 - Hook shell syntax, and that shared hooks/*.sh carry no harness-specific paths
@@ -115,6 +117,69 @@ def check_markdown_links(errors: list[str]) -> None:
                 continue
             if not target.exists():
                 err(errors, f"{rel(path)}: broken local link -> {link}")
+
+
+# Repo files cited in backticks (`a/b.md`) are far more common in this tree
+# than [text](link) and are invisible to check_markdown_links (B14).
+PATH_EXTS = ("md", "py", "sh", "json", "yml", "yaml", "jsonl", "txt")
+BACKTICK_PATH = re.compile(r"`([^`\s]*/[^`\s]*?\.(?:" + "|".join(PATH_EXTS) + r"))(?:#[^`\s]*)?`")
+PLACEHOLDER_CHARS = set("<>*~|\\{}")  # <slug>, globs, home dirs: shapes, not files
+# Logs cite paths as they were when the entry was written; not a live contract.
+HISTORICAL_DOCS = {".ai/backlog.md", ".ai/changelog.md"}
+# Runtime memory and gate state are gitignored by design: absent on a fresh
+# clone, present locally. A token pointing there must not change the verdict —
+# except the tracked skeleton, which does exist on a fresh clone.
+RUNTIME_PREFIXES = (".ai/memory/", ".ai/gates/")
+TRACKED_MEMORY = (".ai/memory/_templates/", ".ai/memory/README.md", ".ai/memory/active-context.example.md")
+# Per-skill conventional files cited generically ("every skill ships an
+# evals/evals.json"), not as a path into one specific skill.
+GENERIC_PATHS = {"evals/evals.json"}
+
+
+def _path_bases(path: Path, token: str) -> list[Path]:
+    """Explicitly relative tokens (./ ../) resolve only from the citing file's
+    own directory, exactly like a markdown link. A bare token may instead be
+    skills/-relative (`pm-phase-define/references/x.md`, the convention for
+    cross-skill citations), skill-root-relative (`references/x.md` cited from
+    within that same skill's references/ file), or repo-root-relative
+    (`scripts/memory.py`) — the conventions the tree actually uses."""
+    if token.startswith(("./", "../")):
+        return [path.parent]
+    bases = [path.parent, SKILLS, ROOT]
+    try:
+        parts = path.relative_to(SKILLS).parts
+    except ValueError:
+        return bases
+    if len(parts) > 1:
+        bases.insert(2, SKILLS / parts[0])
+    return bases
+
+
+def check_backtick_paths(errors: list[str]) -> None:
+    """B14: a renamed or relocated reference goes stale silently when cited
+    in backticks instead of a markdown link — check_markdown_links never
+    sees it. Same file set as check_markdown_links, minus runtime memory
+    (gitignored, absent on a fresh clone) and historical logs."""
+    mirror_prefixes = tuple(str(m) for m in MIRRORS)
+    for path in ROOT.rglob("*.md"):
+        if any(part in {".git", "workspace"} for part in path.parts) or str(path).startswith(mirror_prefixes):
+            continue
+        rel_path = path.relative_to(ROOT).as_posix()
+        if rel_path in HISTORICAL_DOCS:
+            continue
+        if rel_path.startswith(".ai/memory/") and not rel_path.startswith(TRACKED_MEMORY):
+            continue  # local memory content itself, not tracked
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for m in BACKTICK_PATH.finditer(text):
+            token = m.group(1)
+            if (PLACEHOLDER_CHARS & set(token) or "..." in token or token.startswith("/")
+                    or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", token) or token in GENERIC_PATHS):
+                continue
+            if token.startswith(RUNTIME_PREFIXES) and not token.startswith(TRACKED_MEMORY):
+                continue
+            if not any((base / token).exists() for base in _path_bases(path, token)):
+                line = text.count("\n", 0, m.start()) + 1
+                err(errors, f"{rel_path}:{line}: backtick path not found -> {token}")
 
 
 def check_workflow_contract(errors: list[str]) -> None:
@@ -307,7 +372,7 @@ def check_memory_bootstrap(errors: list[str]) -> None:
     # clone ships and init_context.py depends on, so this excludes local
     # state by exact relative path rather than by directory basename.
     local_state = {".ai/memory/active-context.md", ".ai/memory/index.md", ".ai/memory/inbox.md",
-                   ".ai/memory/context-events.jsonl", ".ai/memory/projects", ".ai/gates"}
+                   ".ai/memory/context-events.jsonl", ".ai/memory/projects", ".ai/memory/people", ".ai/gates"}
 
     def ignore(dirpath: str, names: list[str]) -> set[str]:
         rel_dir = os.path.relpath(dirpath, ROOT)
@@ -343,6 +408,7 @@ def main() -> int:
 
     check_skill_frontmatter(errors)
     check_markdown_links(errors)
+    check_backtick_paths(errors)
     check_workflow_contract(errors)
     check_settings(errors, warnings)
     check_codex_hooks(errors, warnings)
