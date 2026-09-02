@@ -19,6 +19,8 @@ description: >-
 
 > Product-type lens. Pairs with phase skills when the work is funnel / experimentation / monetisation. The phase skills cover *when* and *how to sequence*; this skill covers *the discipline of running many small bets where most will fail*.
 
+Shape: a **compositional single-file lens** by design — one `SKILL.md` that composes the phase and transversal references linked below and adds only the archetype-specific concerns, anti-patterns and output format; no `references/` of its own until a real need appears; its `evals/evals.json` (standard, adversarial, negative control) is the quality contract and is graded like any full skill.
+
 ## Prime directive
 
 **Learning rate > shipped count.** In growth, most tested ideas fail. The job is to set up the test apparatus so the 10% that work compound, and the 90% that don't are killed quickly without leaving technical or product debt.
@@ -75,7 +77,7 @@ Pair every growth metric with at least one guardrail:
 1. **State the AARRR layer** — which stage of the funnel is this about?
 2. **Read the current data** — baseline + segment patterns. Pull from PostHog directly when possible.
 3. **Form a hypothesis** — `if [change], [segment] will [behaviour], moving [metric] by [magnitude], because [mechanism]`.
-4. **Design the minimum test** — cheapest way to learn; A/B only when it fits (see `experiment-interpretation.md`).
+4. **Design the minimum test** — cheapest way to learn; A/B only when it fits (see `../pm-phase-deliver/references/experiment-interpretation.md`).
 5. **Pre-declare metrics + decision rule** — primary, guardrails, ship / iterate / kill thresholds.
 6. **Stress-test the metric setup** — loop in your QA lead for tracking-plan QA + experiment validity. For statistical correctness, chain to `data-science-analyst`.
 7. **Run + interpret** — triangulate with quali if something surprises.

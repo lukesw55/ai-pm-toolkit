@@ -17,6 +17,8 @@ description: >-
 
 > Product-type lens. Pairs with phase skills when the product's users are developers, partners, or downstream product teams — not end-users. The phase skills cover *when* and *how to sequence*; this skill covers *what's special about platforms* (long tails, leverage, deprecation as PM work).
 
+Shape: a **compositional single-file lens** by design — one `SKILL.md` that composes the phase and transversal references linked below and adds only the archetype-specific concerns, anti-patterns and output format; no `references/` of its own until a real need appears; its `evals/evals.json` (standard, adversarial, negative control) is the quality contract and is graded like any full skill.
+
 ## Prime directive
 
 **Abstractions that compound.** Build primitives downstream teams choose willingly because they're better than rolling their own. Avoid one-off bespoke requests that pollute the platform.
@@ -44,7 +46,7 @@ Any of these in a request points here: "platform", "API contract", "SDK", "CLI",
 
 ## References this skill chains to
 
-- `../pm-phase-discover/` — especially `jtbd-segmentation.md` adapted to developer personas
+- `../pm-phase-discover/references/jtbd-segmentation.md` — adapted to developer personas
 - `../pm-phase-define/references/kpi-tree.md` — platform-specific metrics (adoption rate, migration velocity, API error rate, p95 latency, DevEx NPS)
 - `../pm-phase-develop/references/technical-fluency.md` — essential for platform PMs
 - `../pm-phase-develop/references/prd-writing.md` — platform PRDs emphasise contracts + NFRs
@@ -66,7 +68,7 @@ Any of these in a request points here: "platform", "API contract", "SDK", "CLI",
 
 1. **Identify the consumer persona** — which downstream team / developer / customer archetype?
 2. **Describe the JTBD in platform terms** — "consumer wants to [accomplish X] without [building plumbing Y]"
-3. **Define the contract** — API shape, data model, CLI signature, SDK surface (see `prd-writing.md` and `technical-fluency.md`)
+3. **Define the contract** — API shape, data model, CLI signature, SDK surface (see `../pm-phase-develop/references/prd-writing.md` and `../pm-phase-develop/references/technical-fluency.md`)
 4. **Name NFRs explicitly** — latency, availability, backwards-compat commitment, deprecation policy
 5. **Design the adoption path** — how will consumers discover + adopt + stay up-to-date?
 6. **Plan migrations + deprecations** — platform work has long tails; deprecations are PM work

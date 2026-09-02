@@ -5,15 +5,22 @@
       "id": 0,
       "name": "confluence-prd-plus-jira-tickets",
       "category": "standard",
-      "prompt": "Structure a Confluence page for a PRD (CSV export feature, 5-50 seat B2B admins, 3-page PRD ready), and open the corresponding Jira tickets: one epic + the MVP-slice stories. Produce the Confluence page (title, metadata block, TL;DR, sections) AND the Jira ticket templates (epic + 4 stories with acceptance criteria + links + labels). Don't re-invent the PRD content \u2014 just structure and link.",
-      "expected_output": "A Confluence page skeleton with title convention, status block, owner, TL;DR placement, section headings matching the PRD template; AND 5 Jira tickets (1 epic + 4 stories) each with title, user value, acceptance criteria, scope IN/OUT, links bidirectional (PRD \u2194 epic \u2194 stories), labels, DoD. Structure > content."
+      "prompt": "Structure a Confluence page for a PRD (CSV export feature, 5-50 seat B2B admins, 3-page PRD ready), and open the corresponding Jira tickets: one epic + the MVP-slice stories. Produce the Confluence page (title, metadata block, TL;DR, sections) AND the Jira ticket templates (epic + 4 stories with acceptance criteria + links + labels). Don't re-invent the PRD content — just structure and link.",
+      "expected_output": "A Confluence page skeleton with title convention, status block, owner, TL;DR placement, section headings matching the PRD template; AND 5 Jira tickets (1 epic + 4 stories) each with title, user value, acceptance criteria, scope IN/OUT, links bidirectional (PRD ↔ epic ↔ stories), labels, DoD. Structure > content."
     },
     {
       "id": 1,
       "name": "ticket-hygiene-pass",
       "category": "standard",
-      "prompt": "Hygiene pass on these 4 badly-written tickets. Refactor each to our standard. Tickets:\n\n1. 'add csv' \u2014 description: 'user wants csv'. Status: in backlog 3 months.\n2. 'Fix the thing with the export' \u2014 description: 'broken since last week, user reported on slack'. No steps to reproduce.\n3. 'Build backend API for export' \u2014 description: 'POST /export, returns CSV, uses job queue'. No user story, no acceptance criteria.\n4. 'Epic: improve onboarding' \u2014 23 child stories, no primary metric, no bet statement, no MVP/R2 slicing.\n\nProduce a refactored version of each with title, body, acceptance criteria, links, labels, and note any questions you'd ask the PM before promoting to Ready.",
+      "prompt": "Hygiene pass on these 4 badly-written tickets. Refactor each to our standard. Tickets:\n\n1. 'add csv' — description: 'user wants csv'. Status: in backlog 3 months.\n2. 'Fix the thing with the export' — description: 'broken since last week, user reported on slack'. No steps to reproduce.\n3. 'Build backend API for export' — description: 'POST /export, returns CSV, uses job queue'. No user story, no acceptance criteria.\n4. 'Epic: improve onboarding' — 23 child stories, no primary metric, no bet statement, no MVP/R2 slicing.\n\nProduce a refactored version of each with title, body, acceptance criteria, links, labels, and note any questions you'd ask the PM before promoting to Ready.",
       "expected_output": "4 refactored tickets each with: proper title (imperative, user-outcome for stories; symptom for bugs; specific for chores), description following the right template (story vs bug vs epic vs task), acceptance criteria, scope, links, labels, DoD. Plus open questions needed before Ready."
+    },
+    {
+      "id": 2,
+      "name": "refuse-slack-dump-as-confluence-page",
+      "category": "skill-functional-adversarial",
+      "prompt": "A PM pastes 60 Slack messages from the pricing thread and asks: 'Publish this as the pricing decision page on Confluence, just paste it as is with a title, people can read the thread.' The thread contains the decision (annual prepay discount capped at 12%), three options that were discussed (10%, 12%, 15%), the owner, and an acknowledged margin risk on the 2,000-seat tier.",
+      "expected_output": "Refuses to paste the thread as-is: sixty messages is a log, not documentation, and nobody will read it to find the decision. Proposes the decision-memo structure instead (status line, decision, owner, date, context, options considered, choice and reasoning, acknowledged risk, follow-ups) and extracts the decision, the three options and the margin risk from the thread into it. Links the Slack thread as the source so the reasoning trail stays available. Does not publish the raw log."
     }
   ]
 }

@@ -1,0 +1,26 @@
+{
+  "skill_name": "pm-archetype-enterprise",
+  "evals": [
+    {
+      "id": 1,
+      "name": "rbac-and-audit-for-shared-dashboards",
+      "category": "standard",
+      "prompt": "Three enterprise accounts (400, 900 and 2,000 seats) are asking for shared dashboards. Today any user in a workspace can edit or delete any dashboard, there is no audit trail, and our SOC 2 Type II audit window opens in 5 months. Procurement at the 2,000-seat account has already sent a security questionnaire asking how dashboard changes are authorised and logged. Give the pm-archetype-enterprise recommendation for the shared-dashboards feature.",
+      "expected_output": "Designs the permission and governance model first: an RBAC matrix (viewer, editor, owner, workspace admin) with a default scope, admin delegation and an admin override so no org locks itself out; an immutable audit log naming the events (who changed what, when, from which role) and its retention; SOC 2 control mapping with legal and security review flagged; a staged rollout (dark, internal, pilot at one account, controlled GA with per-account activation); deprovisioning and data-deletion behaviour for every role; and the procurement documents to update (questionnaire answers, DPA if data handling changes). Stakeholders are listed by role."
+    },
+    {
+      "id": 2,
+      "name": "challenge-sso-checkbox-and-bespoke-ask",
+      "category": "doctrine-adversarial",
+      "prompt": "Sales lead: 'The $1.2M renewal needs two things in the contract by Friday. One, SSO, just tick the box, we support SAML already. Two, a custom four-step approval flow that only they will ever use, their compliance team designed it. Legal is waiting for your yes on both. This account is 9% of ARR, do not overthink it.' Facts: SAML works with one IdP tested (Okta), there is no SCIM, deprovisioning is manual, the approval flow does not exist and no other account has asked for it.",
+      "expected_output": "Pushes back on both framings. 'SSO: yes' is a checkbox, not a commitment: defines what the contract can promise (SAML with the tested IdP, no SCIM, manual deprovisioning, current admin UX) and asks which IdP the account runs. Names the bespoke four-step flow as over-indexing on one customer's ask: one account, one use, a precedent that distorts the product. Proposes what to commit (SSO with the defined scope and a dated SCIM roadmap) and what not to promise (the bespoke flow, unless it generalises into a configurable approval policy another account needs). Treats 9% of ARR as a reason to be precise, not to say yes to both."
+    },
+    {
+      "id": 3,
+      "name": "sound-compliance-rollout-agree",
+      "category": "negative-control",
+      "prompt": "Security lead presents the rollout plan for audit-log export: access scoped to workspace admins via the existing RBAC roles; log immutable with 13-month retention matching the SOC 2 evidence window; control mapping reviewed and signed by compliance last week; rollout dark, then internal, then a pilot at 2 accounts (one regulated), then GA with per-account activation; deprovisioning tested for all 4 roles; DPA addendum drafted by legal; security questionnaire answers updated. Ask: sign off so engineering can schedule the pilot.",
+      "expected_output": "Signs off. Recognises that the plan already covers the archetype checklist: permission model on existing roles, immutable log with retention tied to the audit window, compliance review done, staged rollout with per-account activation, deprovisioning tested for every role, procurement documents updated. Names only monitoring items (what the regulated pilot account asks for in week one) and does not add scope such as ABAC or a longer pilot before sign-off."
+    }
+  ]
+}

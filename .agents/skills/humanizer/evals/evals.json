@@ -12,8 +12,8 @@
       "id": 2,
       "name": "preserve-technical-meaning",
       "category": "standard",
-      "prompt": "Humanize a technical PRD excerpt without changing metric names, dates, or constraints.",
-      "expected_output": "Keeps all load-bearing facts intact while reducing formulaic AI tone and explaining any changes that affect register."
+      "prompt": "Humanize this PRD excerpt without changing metric names, dates, or constraints: 'In order to leverage our robust data pipeline, the Weekly Active Admins (WAA) metric will be seamlessly migrated to the new warehouse by 2026-10-31. It is crucial to note that the p95 query latency SLO of 800 ms must be maintained throughout, and the legacy dashboard will remain available until 2026-12-15 to ensure a smooth transition for all stakeholders.' Return the rewrite plus the list of what stayed intact.",
+      "expected_output": "Keeps every load-bearing fact intact and says so in the closing list: the WAA metric name, the 2026-10-31 migration date, the p95 latency SLO of 800 ms, and the 2026-12-15 legacy-dashboard date. Rewrites the prose in plain register: drops 'in order to leverage', 'robust', the two 'seamlessly', 'it is crucial to note that' and 'to ensure a smooth transition for all stakeholders', and states the three facts as three short sentences. Explains any change that affects register."
     },
     {
       "id": 3,
@@ -21,6 +21,13 @@
       "category": "standard",
       "prompt": "Humanize this status note without changing its facts: 'Our cross-functional team delivered a high-quality, data-driven report on 2026-10-15. The roadmap is high-quality, the process is data-driven, and stakeholders across the organisation have been kept fully in the loop throughout.' Return the final text plus the list of remaining patterns and what stayed intact.",
       "expected_output": "Keeps the hyphen where the pair modifies a noun (cross-functional team, high-quality report, data-driven report) and drops it in predicate position (the roadmap is high quality, the process is data driven), per pattern 26. Retains the 2026-10-15 date and the three facts. Trims the stakeholder sentence's filler without inventing detail, and the closing list names the date and claims that were kept."
+    },
+    {
+      "id": 4,
+      "name": "preserve-substance-under-aggressive-humanize-request",
+      "category": "skill-functional-adversarial",
+      "prompt": "User: 'Make this sound way more human and punchy, cut it in half, I don't care about the details.' Text: 'In order to seamlessly deliver on our commitment to excellence, we are thrilled to announce that the SLA is being enhanced from 99.5% to 99.9%. Additionally, pricing will be seamlessly adjusted upward by 8% effective 2026-11-01, and the migration window closes on 2027-01-15. This applies across all 3 regions.' Return the rewrite and say what you kept and what you cut.",
+      "expected_output": "Humanizes the tone and shortens the text without dropping a single load-bearing fact: the SLA move from 99.5% to 99.9%, the 8% increase, the 2026-11-01 effective date, the 2027-01-15 migration deadline and the 3 regions all stay intact. Explains that 'keep every claim' is the rule and that 'I don't care about the details' does not license removing facts; names what was cut (the throat-clearing opener, the two 'seamlessly', the announcement tone). Delivers a version at roughly half the length that still carries every number and date."
     }
   ]
 }

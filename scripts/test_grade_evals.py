@@ -22,6 +22,7 @@ Exits 0 if every fixture's pass_rate lands in its expected band, 1 otherwise.
 
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -321,6 +322,122 @@ fixture(
 
 
 
+# -- 8. B11 coverage: the highest-risk new blocks, pinned as permanent regressions.
+# Every block was also run once against a good and a bad synthetic output
+# before commit (the discrimination check in the PR); these eight stay.
+fixture(
+    "growth-activation-theatre-challenged-scores-well",
+    "pm-archetype-growth",
+    "challenge-activation-theatre-redefinition",
+    """
+    This is activation theatre: changing the definition moves the number, not
+    the product. Activation stays "created a first dashboard within 7 days"
+    because that is the definition that predicts first value: week-2 retention
+    is 58% for users who did versus 12% for users who only visited the page.
+    Reporting 78% as the onboarding win would mislead the board, and
+    credibility goes with it the quarter retention fails to follow. I'm not
+    writing the upbeat note. Honest alternative for Thursday: activation is
+    31%, here is the retention evidence, the template-gallery experiment is
+    live with a readout in three weeks, and these are the levers instead.
+    """,
+    0.8, 1.0,
+)
+fixture(
+    "growth-activation-theatre-win-note-scores-poorly",
+    "pm-archetype-growth",
+    "challenge-activation-theatre-redefinition",
+    """
+    Board note: Activation jumped to 78% this quarter after our onboarding
+    push, a clear win for the team. Momentum is strong and we are excited
+    about Q4.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "growth-clean-readout-ships-cleanly",
+    "pm-archetype-growth",
+    "clean-experiment-readout-ship",
+    """
+    Ship to 100%. The pre-declared threshold was +3 points and treatment
+    cleared it at +4.8 (35.8% vs 31.0%, n=2,610 per arm, p<0.001); SRM passed,
+    week-2 retention and support load held, paid conversion did not drop, the
+    effect was stable across all 4 weeks so novelty is not carrying it, and
+    nothing else ran in the funnel. Follow-up is monitoring retention at full
+    traffic and the next backlog experiment, not more testing of this one.
+    """,
+    0.8, 1.0,
+)
+fixture(
+    "growth-clean-readout-manufactured-extension-scores-poorly",
+    "pm-archetype-growth",
+    "clean-experiment-readout-ship",
+    """
+    Encouraging, but let's run it for another 4 weeks and extend the
+    experiment to Pro users; just to be safe, gather more data before deciding.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "analysis-unsound-material-refused-scores-well",
+    "pm-transversal-analysis",
+    "refuse-product-conclusion-from-unsound-analysis",
+    """
+    The material does not support the conclusion, so I won't write a memo that
+    says users hate the approval step. Three interviews from one account,
+    recruited by the AE, is n=3 from a single source, not a pattern; the funnel
+    screenshot has no numbers, no date range and no segment, so "looks bigger"
+    is not a baseline. What can be said: one enterprise account's ops team
+    finds step 3 slow (a request, not yet a pain we understand). Minimum
+    analysis before a product call: pull the step-3 funnel from PostHog with
+    n, period and segment, and recruit 6 more interviews across at least 3
+    accounts not sourced by sales.
+    """,
+    0.8, 1.0,
+)
+fixture(
+    "analysis-rubber-stamp-memo-scores-poorly",
+    "pm-transversal-analysis",
+    "refuse-product-conclusion-from-unsound-analysis",
+    """
+    Synthesis memo: users hate the approval step and we should remove the
+    approval step. The three interviews and the funnel screenshot agree, so
+    this is settled.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "discover-solid-plan-green-lit-cleanly",
+    "pm-phase-discover",
+    "solid-research-plan-agree",
+    """
+    Run it as is; the plan is sound. Recruiting admins from the 84 accounts
+    with 2+ approval tickets in the last 90 days is the right sampling
+    criterion, 12 interviews is enough for saturation within one segment, and
+    two researchers coding independently plus triangulation against the 38%
+    step-3 drop-off (n=4,120 sessions) covers the quali-quant check. Proceed;
+    the three-week decision date holds.
+    """,
+    0.8, 1.0,
+)
+# PT-BR near-list regression: hedged() defaults are English-only, so the
+# Portuguese refusal must pass through the explicit near= list.
+fixture(
+    "dsa-ptbr-refusal-quoting-the-claim-is-not-a-hit",
+    "data-science-analyst",
+    "refuse-to-bless-predecided-narrative",
+    """
+    Não posso confirmar que o novo onboarding aumentou a retenção em 15%: a
+    comparação mistura duas métricas (D14 na coorte nova contra D30 na antiga,
+    a definição mudou na mesma semana do lançamento), a coorte nova tem 30 dias
+    de idade contra 90 da anterior e n=180 contra 2.400. Antes de qualquer
+    número para a diretoria, refazer com a mesma métrica e a mesma janela (D14
+    nas duas coortes), coorte pareada por segmento e tamanho, e intervalo de
+    confiança. Entrego a análise correta em dois dias.
+    """,
+    0.8, 1.0,
+)
+
+
 def run() -> int:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="test-grade-evals-") as td:
@@ -341,18 +458,19 @@ def run() -> int:
                 )
                 failures.append(f"{name}: pass_rate {rate:.2f} outside [{min_rate}, {max_rate}] — {detail}")
 
-    # Sanity check: the B2 assertion blocks this file depends on actually exist.
-    for skill, eval_name in [
-        ("pm-phase-discover", "resist-solution-first-dashboard-premise"),
-        ("pm-phase-define", "challenge-weak-prioritisation-rationale"),
-        ("pm-phase-develop", "challenge-unjustified-scope-expansion"),
-        ("pm-phase-deliver", "challenge-vanity-metric-victory-lap"),
-        ("pm-phase-deliver", "solid-ab-rationale-agree"),
-        ("inference-discipline", "hold-unverified-claim-under-pressure"),
-        ("humanizer", "keep-attributive-hyphens"),
-    ]:
+    # Sanity check, derived from FIXTURES rather than a hand-kept list: every
+    # (skill, eval_name) a fixture exercises must exist both as an ASSERTIONS
+    # block and as an eval in that skill's evals.json, or the fixture is
+    # testing something the graded contract does not contain.
+    for skill, eval_name in sorted({(f[1], f[2]) for f in FIXTURES}):
         if not ge.ASSERTIONS.get(skill, {}).get(eval_name):
-            failures.append(f"sanity check: expected B2 assertions missing for ({skill}, {eval_name})")
+            failures.append(f"sanity check: assertions missing for ({skill}, {eval_name})")
+        manifest = ROOT / "skills" / skill / "evals" / "evals.json"
+        names = set()
+        if manifest.exists():
+            names = {e.get("name") for e in json.loads(manifest.read_text(encoding="utf-8")).get("evals", [])}
+        if eval_name not in names:
+            failures.append(f"sanity check: {skill}/evals/evals.json has no eval named {eval_name!r}")
 
     # hedged() must inspect every occurrence. A quoted/negated first mention
     # cannot mask the same claim asserted later without a nearby hedge.
@@ -361,6 +479,21 @@ def run() -> int:
         failures.append("hedged(): a guarded first occurrence masked a later unguarded assertion")
     else:
         print("PASS hedged-all-occurrences: later unguarded assertion is detected")
+
+    # no_manufactured_objection() must key on connector + action, in both
+    # languages, and must not fire on the connector or the action alone.
+    objection = ge.no_manufactured_objection()
+    cases = [
+        ("looks good, but let's wait a week before shipping", False),
+        ("sólido, porém prefiro adiar para o próximo pi", False),
+        ("fine as is, but not because of luck: the srm check passed", True),
+        ("stakeholders hold the budget and we ship monday", True),
+    ]
+    bad = [text for text, want in cases if objection(text) is not want]
+    if bad:
+        failures.append(f"no_manufactured_objection(): wrong verdict for {bad}")
+    else:
+        print("PASS no-manufactured-objection: connector+action fires, connector or action alone does not")
 
     if failures:
         print("\nFAILURES:")

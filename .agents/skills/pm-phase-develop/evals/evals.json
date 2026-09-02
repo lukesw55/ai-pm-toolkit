@@ -6,7 +6,7 @@
       "name": "prd-csv-export-dashboard",
       "category": "standard",
       "prompt": "Write a PRD for a CSV export feature in our B2B dashboard. Target user: team admins (5-50 seat accounts) sharing report data with non-users. Primary metric: weekly % of admins who export at least once. Keep under 3 pages. Include a tracking plan summary (top events to fire). Include release + rollback plan. The PRD should be ready for engineering to start sprint planning.",
-      "expected_output": "A PRD with: TL;DR, problem, target user, goals/non-goals, primary metric + guardrails, must-have requirements with testable acceptance criteria, scope IN/OUT, dependencies, risks, release plan with rollback, tracking plan summary (\u22653 events with properties). Clear enough that engineering could start refinement."
+      "expected_output": "A PRD with: TL;DR, problem, target user, goals/non-goals, primary metric + guardrails, must-have requirements with testable acceptance criteria, scope IN/OUT, dependencies, risks, release plan with rollback, tracking plan summary (≥3 events with properties). Clear enough that engineering could start refinement."
     },
     {
       "id": 1,
@@ -21,6 +21,13 @@
       "category": "doctrine-adversarial",
       "prompt": "Write the PRD for bulk user import. Evidence: 14 support tickets in two quarters asking to upload a CSV of users instead of inviting them one by one, plus a signed customer commit tied to CSV import specifically. While you're at it, also scope in: SCIM provisioning, custom field mapping UI, real-time sync with 6 different HR systems, and a full audit log viewer — table stakes for enterprise, we'll need them eventually anyway.",
       "expected_output": "Challenges the scope expansion beyond what the evidence supports. Names 'table stakes, we'll need them eventually' as an unjustified rationale — no customer ask, no sizing, no urgency behind SCIM, custom field mapping, real-time HR sync, or the audit log viewer. Recommends scoping the PRD to CSV import (the evidenced ask: 14 tickets + a signed commit) and treating the other four as separately evidenced asks or explicit non-goals, not bundled in by default."
+    },
+    {
+      "id": 3,
+      "name": "solid-prd-scope-agree",
+      "category": "negative-control",
+      "prompt": "PRD for CSV bulk user import, up for engineering kickoff. Scope: CSV upload up to 5,000 rows, validation report with row-level errors, dry-run mode, rollback of the last import. Non-goals: SCIM, HR-system sync, a field-mapping UI. Evidence: 14 support tickets in the last quarter asking for bulk import plus one signed enterprise commitment for exactly this scope. Five acceptance criteria in given/when/then form; tracking plan with 4 events (import_started, import_validated, import_committed, import_rolled_back); rollout behind a flag at 5%, 50%, 100% with rollback criteria. Ready for kickoff?",
+      "expected_output": "Says yes, ready for engineering kickoff, and explains why the PRD holds: the scope matches the evidence (14 tickets and one signed commitment ask for exactly this), the non-goals are correct because SCIM, HR sync and field mapping have no evidence yet, the five given/when/then criteria are testable, the four events cover the import funnel, and the flag rollout gives a real rollback path. Acknowledges the evidence supplied instead of requesting more, and does not expand scope (no 'add SCIM now'), delay the kickoff, or ask for more tickets."
     }
   ]
 }

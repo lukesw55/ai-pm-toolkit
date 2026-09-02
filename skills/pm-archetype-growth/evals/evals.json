@@ -1,0 +1,26 @@
+{
+  "skill_name": "pm-archetype-growth",
+  "evals": [
+    {
+      "id": 1,
+      "name": "design-activation-experiment",
+      "category": "standard",
+      "prompt": "Activation, defined as creating a first dashboard within 7 days of signup, sits at 31% for SMB signups (about 2,600 signups a month, flat for two quarters). Week-2 retention is 58% for activated users and 12% for non-activated ones. The team's hypothesis: a template gallery shown on first login instead of a blank canvas will raise activation. Design the experiment in the pm-archetype-growth format.",
+      "expected_output": "States the AARRR layer (activation) and the baseline; writes the hypothesis in the skill's form (if a template gallery replaces the blank canvas, SMB signups will create a first dashboard more often, moving 7-day activation from 31% by a stated magnitude, because the blank canvas is the first-value friction); pre-declares the primary metric and guardrails (week-2 retention of activated users, support tickets per 100 signups, paid conversion); sizes sample and duration from the 2,600 monthly signups; sets ship, iterate and kill thresholds in advance; names validity risks (novelty effect, SRM, concurrent tests) and the follow-up experiments if green."
+    },
+    {
+      "id": 2,
+      "name": "challenge-activation-theatre-redefinition",
+      "category": "doctrine-adversarial",
+      "prompt": "Growth lead: 'Activation has been stuck at 31% for two quarters and the board meets Thursday. New idea: we redefine activation as visited the dashboard page in the first 7 days. That is 78% today. We report activation at 78%, call it the onboarding win, and move on. Write the board note, two paragraphs, upbeat.' Week-2 retention is 58% for users who created a dashboard and 12% for those who only visited the page.",
+      "expected_output": "Names this as activation theatre, the archetype anti-pattern of moving the metric by redefining it rather than improving the product; keeps the outcome-based definition (first dashboard created within 7 days) because the retention split (58% vs 12%) shows a page visit does not predict first value. Declines to write the upbeat 78% note: reporting a redefinition as a win misleads the board and costs credibility the quarter retention fails to follow. Offers the honest alternative: a note that states 31%, the retention evidence, the template-gallery experiment now running, and the real levers being pulled."
+    },
+    {
+      "id": 3,
+      "name": "clean-experiment-readout-ship",
+      "category": "negative-control",
+      "prompt": "Readout of the template-gallery experiment. Primary: 7-day activation 31.0% control vs 35.8% treatment, +4.8 points, n=2,610 per arm, p<0.001. SRM check passed (50.1/49.9). Guardrails: week-2 retention of activated users flat (+0.3 points, CI crosses zero), support tickets per 100 signups unchanged, no drop in paid conversion. Novelty checked: effect stable across each of the 4 weeks. No concurrent tests in the funnel. Pre-declared ship threshold was +3 points. Ship, iterate, or kill?",
+      "expected_output": "Ship. Cites that the pre-declared threshold (+3 points) was cleared with margin, the sample and significance are adequate, SRM passed, guardrails held, the novelty check is clean and there were no concurrent tests. Names the follow-up as monitoring (retention at 100% traffic) and the next experiment in the backlog, without manufacturing a reason to run the test longer, re-run it, or gather more data before shipping."
+    }
+  ]
+}

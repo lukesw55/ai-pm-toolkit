@@ -20,6 +20,8 @@ description: >-
 
 > Product-type lens. Pairs with phase skills when the product serves organisations, not individuals. Enterprise products are often won or lost on administration, governance, and compliance — areas consumer PMs may never need to own deeply.
 
+Shape: a **compositional single-file lens** by design — one `SKILL.md` that composes the phase and transversal references linked below and adds only the archetype-specific concerns, anti-patterns and output format; no `references/` of its own until a real need appears; its `evals/evals.json` (standard, adversarial, negative control) is the quality contract and is graded like any full skill.
+
 ## Prime directive
 
 **Control without friction.** Enterprises need governance (permissions, audit, compliance) AND usability at scale. Heavy controls with poor UX lose adoption; usability without controls loses deals. Balance both.

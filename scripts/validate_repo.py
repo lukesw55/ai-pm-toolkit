@@ -340,28 +340,95 @@ def check_hook_syntax(errors: list[str], warnings: list[str]) -> None:
             err(errors, f"{rel(path)}: bash -n failed: {res.stderr.strip()}")
 
 
-def check_eval_categories(errors: list[str]) -> None:
-    """B2: every eval in every canonical skills/*/evals/evals.json must carry
-    a category from the 4-value taxonomy (standard, doctrine-adversarial,
-    skill-functional-adversarial, negative-control), and eval ids must be
-    unique within a skill. Discovers eval files at execution time — never
-    assume a fixed skill or eval count."""
-    for path in sorted(SKILLS.glob("*/evals/evals.json")):
+ADVERSARIAL_CATEGORIES = {"doctrine-adversarial", "skill-functional-adversarial"}
+DOCTRINE_SKILLS = {"pm-phase-discover", "pm-phase-define", "pm-phase-develop", "pm-phase-deliver", "inference-discipline"}
+MIN_EVALS_PER_SKILL = 3
+
+
+def check_eval_coverage(errors: list[str]) -> None:
+    """B2 + B11: every canonical skill (discovered as skills/*/SKILL.md, never
+    a fixed list, never the mirrors) ships an evals/evals.json that is graded
+    rather than trusted. Identity: valid JSON, skill_name equal to the
+    directory, evals a list, every eval with an int id, a non-empty name, a
+    category from the 4-value taxonomy, and non-empty prompt/expected_output;
+    ids and names unique within the skill (parity keys on (skill, name), so a
+    duplicated name would count for the floor while sharing one block).
+    Coverage: at least MIN_EVALS_PER_SKILL evals and one adversarial category
+    per skill; the doctrine skills also carry a negative control. Parity with
+    scripts/grade_evals.py ASSERTIONS in both directions: an eval without a
+    block would grade 0/0, a block without an eval is orphan code."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    try:
+        import grade_evals  # noqa: WPS433 (runtime import of a sibling script)
+    except Exception as exc:
+        err(errors, f"scripts/grade_evals.py: cannot import to check eval parity ({exc})")
+        return
+    assertion_pairs = {(skill, name) for skill, blocks in grade_evals.ASSERTIONS.items() for name in blocks}
+    manifest_pairs: set[tuple[str, str]] = set()
+
+    for skill_md in sorted(SKILLS.glob("*/SKILL.md")):
+        skill = skill_md.parent.name
+        path = skill_md.parent / "evals" / "evals.json"
+        if not path.exists():
+            err(errors, f"skills/{skill}: missing evals/evals.json (every skill is graded, not trusted)")
+            continue
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
         except Exception as exc:
             err(errors, f"{rel(path)}: invalid JSON: {exc}")
             continue
+        if not isinstance(data, dict):
+            err(errors, f"{rel(path)}: top-level JSON value must be an object")
+            continue
+        if data.get("skill_name") != skill:
+            err(errors, f"{rel(path)}: skill_name {data.get('skill_name')!r} does not match directory {skill!r}")
+        evals = data.get("evals")
+        if not isinstance(evals, list):
+            err(errors, f"{rel(path)}: 'evals' must be a list")
+            continue
+        if len(evals) < MIN_EVALS_PER_SKILL:
+            err(errors, f"{rel(path)}: {len(evals)} eval(s), floor is {MIN_EVALS_PER_SKILL}")
         seen_ids: set = set()
-        for ev in data.get("evals", []):
-            eid = ev.get("id")
-            name = ev.get("name", "?")
-            if eid in seen_ids:
-                err(errors, f"{rel(path)}: duplicate eval id {eid} ({name})")
-            seen_ids.add(eid)
-            category = ev.get("category")
+        seen_names: set = set()
+        categories: list = []
+        for ev in evals:
+            if not isinstance(ev, dict):
+                err(errors, f"{rel(path)}: each eval must be an object, got {type(ev).__name__}")
+                continue
+            eid, name, category = ev.get("id"), ev.get("name"), ev.get("category")
+            label = name if isinstance(name, str) and name else f"id {eid}"
+            if not isinstance(eid, int) or isinstance(eid, bool):
+                err(errors, f"{rel(path)}: eval '{label}' id must be an integer, got {eid!r}")
+            if not isinstance(name, str) or not name.strip():
+                err(errors, f"{rel(path)}: eval id {eid} has an empty or non-string name")
             if category not in EVAL_CATEGORIES:
-                err(errors, f"{rel(path)}: eval '{name}' (id {eid}) has invalid or missing category {category!r}; must be one of {sorted(EVAL_CATEGORIES)}")
+                err(errors, f"{rel(path)}: eval '{label}' has invalid or missing category {category!r}; must be one of {sorted(EVAL_CATEGORIES)}")
+            for field in ("prompt", "expected_output"):
+                if not isinstance(ev.get(field), str) or not ev.get(field).strip():
+                    err(errors, f"{rel(path)}: eval '{label}' has an empty or non-string {field}")
+            if isinstance(eid, int) and not isinstance(eid, bool):
+                if eid in seen_ids:
+                    err(errors, f"{rel(path)}: duplicate eval id {eid} ({label})")
+                seen_ids.add(eid)
+            if isinstance(name, str) and name.strip():
+                if name in seen_names:
+                    err(errors, f"{rel(path)}: duplicate eval name {name!r} (parity keys on the name)")
+                seen_names.add(name)
+            categories.append(category)
+            if isinstance(name, str) and name.strip():
+                manifest_pairs.add((skill, name))
+        if not any(c in ADVERSARIAL_CATEGORIES for c in categories):
+            err(errors, f"{rel(path)}: no adversarial eval (need one of {sorted(ADVERSARIAL_CATEGORIES)})")
+        if skill in DOCTRINE_SKILLS:
+            if "doctrine-adversarial" not in categories:
+                err(errors, f"{rel(path)}: doctrine skill without a doctrine-adversarial eval")
+            if "negative-control" not in categories:
+                err(errors, f"{rel(path)}: doctrine skill without a negative-control eval")
+
+    for skill, name in sorted(manifest_pairs - assertion_pairs):
+        err(errors, f"skills/{skill}/evals/evals.json: eval '{name}' has no ASSERTIONS block in scripts/grade_evals.py (would grade 0/0)")
+    for skill, name in sorted(assertion_pairs - manifest_pairs):
+        err(errors, f"scripts/grade_evals.py: ASSERTIONS[{skill!r}][{name!r}] has no matching eval in evals.json (orphan block)")
 
 
 def check_memory_bootstrap(errors: list[str]) -> None:
@@ -416,7 +483,7 @@ def main() -> int:
     check_hooks_neutral(errors)
     check_publish_scope(errors)
     check_mirror_drift(errors)
-    check_eval_categories(errors)
+    check_eval_coverage(errors)
     check_memory_bootstrap(errors)
 
     for item in warnings:

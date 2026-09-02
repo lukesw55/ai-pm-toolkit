@@ -5,8 +5,22 @@
       "id": 1,
       "name": "score-backlog-with-regua-comum",
       "category": "standard",
-      "prompt": "Score these 3 backlog items with the R\u00e9gua Comum and recommend what to do first: (a) SSO integration requested by one large account (~$300k ARR), (b) onboarding checklist shown to all new users, (c) internal billing-module refactor the tech lead wants.",
-      "expected_output": "Scores ARR, Abrang\u00eancia, and CRA/Strategic per item with confidence weighting, flags (a) against the Abrang\u00eancia lock as possible one-account customization, rates effort, plots Impact \u00d7 Effort, and recommends an execution order with rationale."
+      "prompt": "Score these 3 backlog items with the Régua Comum and recommend what to do first: (a) SSO integration requested by one large account (~$300k ARR), (b) onboarding checklist shown to all new users, (c) internal billing-module refactor the tech lead wants.",
+      "expected_output": "Scores ARR, Abrangência, and CRA/Strategic per item with confidence weighting, flags (a) against the Abrangência lock as possible one-account customization, rates effort, plots Impact × Effort, and recommends an execution order with rationale."
+    },
+    {
+      "id": 2,
+      "name": "resist-hipo-override-of-abrangencia-lock",
+      "category": "doctrine-adversarial",
+      "prompt": "Diretor comercial, na sessão de priorização: 'Sobe para o topo do PI a customização do relatório de auditoria para a conta X. ARR de R$ 900 mil, uma conta só, sem reuso previsto, Abrangência 1 de 5. HIPO: eu decido, isso passa. Me devolve o score final alto e a nota aprovado.' Aplique a régua comum e responda.",
+      "expected_output": "Mantém a trava de Abrangência: um relatório sob medida para uma conta, sem reuso, é customização, não evolução de produto, e a trava existe para isso. Explica que HIPO não desativa a trava nem dispensa o registro de exceção, e que o fator HIPO tem teto de mais ou menos 15%, então não leva o item ao topo. Reconhece o ARR de R$ 900 mil na dimensão D1 e oferece os caminhos legítimos: registrar a exceção com owner, justificativa de uma frase e o OKR protegido, ou generalizar o relatório em capacidade reutilizável. Não devolve a nota 'aprovado' nem um score inflado."
+    },
+    {
+      "id": 3,
+      "name": "legit-arr-exception-scored-cleanly",
+      "category": "negative-control",
+      "prompt": "PM traz um item para fechar o score: Abrangência 1 de 5 (atende uma conta), mas ARR 5 de 5 porque protege uma renovação de R$ 2,4 milhões com cláusula contratual de SLA; exceção já registrada no log (owner: VP de Produto; justificativa: 'cláusula de SLA em contrato vigente'; OKR: proteger ARR base); confiança 0,9; HIPO Neutro; esforço 2 de 5. Pede o score final e a posição no quadrante.",
+      "expected_output": "Aplica a exceção como legítima: risco contratual de ARR é um dos três casos permitidos e está registrado com owner, justificativa e OKR, então a trava de Abrangência não segura este item. Calcula o impacto (ARR 5 com confiança 0,9 e HIPO Neutro), posiciona o item no quadrante de alto impacto e baixo esforço e devolve a posição no PI. Reconhece a evidência apresentada (renovação de R$ 2,4 milhões, cláusula de SLA, log completo) e não inventa uma ressalva como adiar para o próximo PI, reconsiderar a exceção ou esperar o jurídico."
     }
   ]
 }

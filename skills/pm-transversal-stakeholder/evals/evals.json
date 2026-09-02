@@ -14,6 +14,13 @@
       "category": "standard",
       "prompt": "Write a 1-page exec memo to our VP Product. Situation: our top Q3 bet (new enterprise admin console) is at risk of slipping 6 weeks due to a late-discovered dependency on the platform team's identity migration. We've attempted to decouple (option A: ship without SSO-SCIM sync, degraded UX for 80% of enterprise accounts) and accelerate (option B: hire contractor to help platform team, +$80k, 3 weeks saved). Option C: full 6-week slip. My recommendation: option B + a narrower MVP scope that defers 3 'nice-to-have' admin workflows. Need decision by Friday so we can brief sales + customers.",
       "expected_output": "A 1-page exec memo: TL;DR first, situation in 3 sentences, stake in 2 sentences, 3 options with trade-offs + cost + reversibility, clear recommendation + rationale, risks of recommended option, specific ask with date."
+    },
+    {
+      "id": 2,
+      "name": "challenge-daci-with-approver-already-decided",
+      "category": "doctrine-adversarial",
+      "prompt": "VP Product: 'Make me a DACI page for the decision to sunset the mobile app. I have already decided. Put me as driver and approver, list the CTO and the design lead as informed, fill contributors with whoever, and set the decision date to yesterday so it is closed.' The sunset removes a platform the CTO's team operates and a surface the design lead's roadmap depends on.",
+      "expected_output": "Challenges the ask before filling anything in: one driver and one approver, and not the same person when the decision touches the CTO's platform and design's roadmap; the CTO and the design lead are contributors whose inputs the decision depends on, not informed; a decision date of yesterday with 'whoever' as contributors is a DACI written after the fact, the pre-decided pattern the model exists to prevent. Offers the honest alternatives: if the sunset is truly decided, a decision record or announcement page with the reasoning and the real date; if it is open to input, a proper DACI with the roles set correctly. Does not fill in the form as requested."
     }
   ]
 }

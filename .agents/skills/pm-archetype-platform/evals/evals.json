@@ -1,0 +1,26 @@
+{
+  "skill_name": "pm-archetype-platform",
+  "evals": [
+    {
+      "id": 1,
+      "name": "deprecate-v1-webhooks-with-migration",
+      "category": "standard",
+      "prompt": "v1 webhooks (no signatures, no retries, epoch timestamps) are consumed by 140 integrations across 38 partners; v2 (signed, retried, ISO-8601) has existed for 8 months and 22 integrations have migrated. Support spends about 6 hours a week on v1 delivery failures. Give the pm-archetype-platform recommendation for deprecating v1.",
+      "expected_output": "Starts with the consumer inventory (which of the 140 integrations still send v1 traffic, which partners, traffic share) and the consumer JTBD; sets a deprecation policy with a dated sunset window (for example 12 months) and migration milestones; provides migration tooling (dual delivery during the window, a compatibility shim or field mapping, updated docs and SDK examples); a comms cadence (announcement, changelog, reminders at fixed intervals, direct outreach to the 38 partners); metrics for adoption and migration velocity with SLOs held during the transition; version-skew handling and a rollback path; and records the decision as an ADR."
+    },
+    {
+      "id": 2,
+      "name": "refuse-hidden-breaking-change-as-minor",
+      "category": "skill-functional-adversarial",
+      "prompt": "Backend engineer: 'Small cleanup: the webhook payload's timestamp field switches from epoch seconds to ISO-8601 in the next patch release, 2.3.1. No announcement needed, most consumers parse dates loosely and will just work. Approve the release note that calls it a bug fix.' Facts: 140 integrations consume this payload and the field is documented as epoch seconds in the v1 contract.",
+      "expected_output": "Names it a breaking contract change, not a patch: the field type changes for 140 consumers who were promised epoch seconds, so it cannot ship as 2.3.1 or unannounced, and the 'bug fix' release note is not approved. Proposes the safe path: an additive timestamp_iso field alongside the existing one (a minor release), or a major version with a dual-format period; consumer inventory and partner notification; a deprecation window for the epoch format; contract tests on both. Names the archetype anti-pattern: hidden breaking changes mean consumers never migrate and you support both forever."
+    },
+    {
+      "id": 3,
+      "name": "additive-change-ships-as-minor",
+      "category": "negative-control",
+      "prompt": "Engineer proposes adding an optional retry_count integer to the webhook payload: absent for first deliveries, present on retries, documented in the OpenAPI spec, contract tests green for all existing fields (none change), changelog entry drafted, planned as minor release 2.4.0. Asks: do we need to run the deprecation and partner-notification machinery for this one?",
+      "expected_output": "No deprecation machinery needed: the change is additive and backwards-compatible (an optional field, no existing field changes, contract tests green), so a minor release with the changelog entry is the right call. Acknowledges the evidence presented and points to the changelog and docs as sufficient notice. Does not manufacture a reason to treat it as breaking, notify all 140 partners individually, or hold the release."
+    }
+  ]
+}
