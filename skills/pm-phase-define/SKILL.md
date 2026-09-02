@@ -66,7 +66,7 @@ Anti-patterns: TAM theatre, false precision, one heroic adoption curve, ignoring
 
 → Deep-dive: `references/opportunity-sizing.md`
 
-The stage-4 artefact this skill commonly produces is the **One Pager** — see `references/one-pager.md` for the template (stage 4 of 8 in `../WORKFLOW.md`).
+The stage-4 artefact this skill commonly produces is the **One Pager** — see `references/one-pager.md` for the template (stage 4 of 8 in `../WORKFLOW.md`); it cites the opportunity-tree node it comes from and lists the open assumptions (`../pm-phase-discover/references/opportunity-solution-tree.md`).
 
 ### 4. Business case and PRFAQ reasoning
 

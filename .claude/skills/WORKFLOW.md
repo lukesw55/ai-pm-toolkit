@@ -28,7 +28,7 @@ START
 |---|---|---|---|---|---|
 | 1 | Discovery Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (opportunity-level) | `discovery-priorities.md` | top N candidate problems selected with rationale |
 | 2 | Impact Brief (GTM) | `pm-phase-discover` | `pm-phase-discover/references/impact-brief.md` | `impact-brief-<topic>.md` | business + GTM impact articulated, invalidation conditions named |
-| 3 | Discovery | `pm-phase-discover` | `pm-phase-discover/references/research-design.md` + `pm-phase-discover/references/jtbd-segmentation.md` + `pm-phase-discover/references/opportunity-hypothesis.md` | `discovery/<topic>/synthesis.md` | problem framed, JTBD validated, hypothesis ranked |
+| 3 | Discovery | `pm-phase-discover` | `pm-phase-discover/references/research-design.md` + `pm-phase-discover/references/jtbd-segmentation.md` + `pm-phase-discover/references/opportunity-hypothesis.md` + `pm-phase-discover/references/opportunity-solution-tree.md` | `discovery/<topic>/synthesis.md` + `discovery/<topic>/opportunity-tree.md` | problem framed, JTBD validated, hypothesis ranked on the opportunity tree, and every unverified assumption has either a test or an explicit accepted-risk decision with named owner, rationale, and reconsideration trigger |
 | 4 | One Pager | `pm-phase-define` | `pm-phase-define/references/one-pager.md` | `one-pager-<topic>.md` | one-pager approved by stakeholders + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
 | 5 | Product Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (build-level) | `priorities.md` update | bet approved for build |
 | 6 | PRD + Prototype + Refinement | `pm-phase-develop` | `pm-phase-develop/references/prd-writing.md` + prototype loops | `prds/<feature>.md` + prototype | PRD approved, prototype validated + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
@@ -40,6 +40,10 @@ Transversal skills (`pm-transversal-stakeholder`, `pm-transversal-docs`, `pm-tra
 ### Shadow gate: pm-product-sense at stages 4 and 6
 
 Stages 4 (One Pager) and 6 (PRD) each carry a **mandatory non-blocking shadow evaluation**: running `pm-product-sense` EVALUATE mode against the artefact is required before advancing, but its score never blocks the advance — the formal gate in the table above stays the sole authority on whether the stage is done. Treat a low shadow score as a strong signal to sharpen the artefact before it moves on, not as a hard stop; `advance_stage.py` has no score- or marker-based blocking logic, by design, in this batch. See `pm-product-sense/references/evaluation-rubric.md` for the scoring rule and the explicit criteria that would justify promoting this to a formal (blocking) gate in the future — promotion should prefer dimension-level blocking over a single aggregate-score threshold when it happens.
+
+### Stage 3 → 4 bridge: the opportunity tree
+
+Stage 3 hands over two artefacts, not one: the synthesis and the **Opportunity Solution Tree** (`pm-phase-discover/references/opportunity-solution-tree.md`), which hangs opportunities, solutions and experiments off the outcome and maps the assumptions behind the chosen solution. The One Pager cites the node it comes from (`O<n>-S<k>`) and lists the open assumption rows; a solution with no parent opportunity does not become a One Pager. Every `unverified` assumption has a test or an explicit accepted-risk decision (named owner, rationale, reconsideration trigger); `verified` and `inferred` assumptions never block.
 
 ### Slop-removal transversals (every stage, every artefact)
 

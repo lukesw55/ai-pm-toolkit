@@ -17,7 +17,7 @@ Without the One Pager, Discovery insight goes into a deck nobody reads, or gets 
 
 **Status:** Draft | In review | **Approved for build** | Parked | Rejected
 **PM:** @name
-**Links:** impact-brief.md / discovery synthesis / strategy memo / sizing (if done)
+**Links:** impact-brief.md / discovery synthesis / opportunity tree (node O<n>-S<k>) / strategy memo / sizing (if done)
 **Stage:** One Pager (stage 4 of 8)
 
 ## TL;DR
@@ -40,6 +40,7 @@ Link to full JTBD in discovery synthesis if needed.
 ## Proposed direction
 High-level approach. NOT a detailed solution. 2-3 sentences.
 Mention 1 alternative you considered and rejected.
+Traceability: opportunity O<n> and solution S<k> from the opportunity tree; the rejected alternative is a sibling solution.
 
 ## Expected impact
 | Dimension | Current | Expected | Confidence |
@@ -63,6 +64,9 @@ What we explicitly do NOT include in this bet.
 
 ## Risks (top 3)
 - risk → mitigation
+
+## Assumptions (mapped)
+Open rows of the assumption map for the chosen solution: ID (O<n>-S<k>-A<m>), status (verified / inferred / unverified), and either the test (O<n>-S<k>-E<j>) or the accepted-risk decision: owner, rationale, reconsideration trigger (condition or date). An unverified assumption with neither blocks this handoff.
 
 ## Dependencies
 - [team] for [what] by [when]
@@ -104,6 +108,7 @@ Missing any of the five → not yet a One Pager.
 
 - **Mini-PRD.** Too much implementation detail. One Pager is about the bet, not the build.
 - **Unvalidated problem.** If discovery didn't close the loop, don't write a One Pager — go back to stage 3.
+- **Orphan solution.** A solution with no parent opportunity in the tree is an idea, not a bet. Attach it to an opportunity, map its assumptions, or park it.
 - **Vague impact.** "Users will love it" is not impact. Metric + direction + magnitude + confidence.
 - **No alternatives considered.** A One Pager without a rejected alternative looks like the only option existed — usually means the thinking wasn't deep enough.
 - **Spreading across 3 pages.** The discipline of one page is the skill. Multi-page = skip this stage.
