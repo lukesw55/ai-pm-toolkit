@@ -5,8 +5,8 @@
       "id": 1,
       "name": "turn-synthesis-into-narrative-spine",
       "category": "standard",
-      "prompt": "Turn raw PM discovery notes into a decision memo with a narrative spine, without inventing evidence.",
-      "expected_output": "Extracts protagonist/friction/turning point/takeaway, preserves assignment constraints, and separates evidence from narrative structure."
+      "prompt": "Turn these raw discovery notes into a decision memo with a narrative spine, without inventing evidence. Notes: 7 interviews with ops managers at 50-200 seat accounts (P01-P07); five said approvals wait on one person who is 'always in meetings' (P01, P02, P04, P06, P07); the approval funnel drops 38% at step 3 (n=4,120 sessions, last 60 days); two participants (P03, P05) said the step is fine and asked for bulk export instead; no revenue impact has been sized yet. The decision: whether to fund a delegated-approval feature this quarter.",
+      "expected_output": "Extracts the spine (tension: approvals stall on one person; insight: five of seven interviews and a 38% step-3 drop-off point the same way; change: delegated approval; takeaway: fund a scoped version) into a decision-memo shape with a recommendation. Cites participants by id and the funnel numbers as evidence, keeps the counter-evidence from P03 and P05 visible, and marks the unsized revenue impact with a placeholder instead of inventing a number. Separates what the evidence shows from the narrative structure laid over it."
     },
     {
       "id": 2,
@@ -14,6 +14,13 @@
       "category": "standard",
       "prompt": "Build the QBR deck storyline for the Platform team's Q3 review: 45 minutes, exec audience. Source notes: D-12 (self-serve onboarding) shipped Aug 14; 30-day activation for new SMB accounts moved from 31% to 38% (n=1,240 accounts, dashboard link in the notes). Logo churn stayed flat at 2.1%/month for the third quarter running, no movement despite D-12. The pricing experiment (annual-prepay discount) ran 6 weeks and is inconclusive: +4% conversion in the treatment arm but under-powered at n=210 per arm. The team's ask is to reallocate two engineers from the pricing workstream to onboarding for Q4. Produce the slide-by-slide storyline, not the file.",
       "expected_output": "A numbered storyline of 6-10 slides. Slide 1 is the SCQA opener whose title states the answer (the reallocation ask) as a claim. Every slide follows the per-slide contract: a complete-sentence claim title, an Evidence field that proves exactly that title (activation 31% to 38% at n=1,240; churn flat at 2.1% for three quarters; pricing +4% but n=210, under-powered), a Visual field, and a Speaker note. Titles are claims, never labels like 'Q3 Metrics'. The pricing result is stated as inconclusive rather than spun as a win, and any number the notes do not carry is marked [NEEDS METRIC] instead of charted. Closes on the reallocation ask as a decision slide, and notes that the .pptx render is optional and harness-dependent: the storyline is the deliverable."
+    },
+    {
+      "id": 3,
+      "name": "refuse-to-invent-evidence-for-the-spine",
+      "category": "skill-functional-adversarial",
+      "prompt": "User wants a customer case study for the website 'with a quote from their CTO, a hard ROI number and a timeline, make it sing'. Source material provided: two internal Slack messages saying the pilot 'went well' and that support tickets dropped 'a lot' during the pilot month. There is no customer quote, no ticket count, no dates and no ROI figure anywhere in the material.",
+      "expected_output": "Builds the spine from what exists (tension: support load; insight: tickets dropped during the pilot; change: the pilot continued; takeaway pending the numbers) and refuses to invent the rest. Marks every gap visibly instead of filling it: a placeholder for the CTO quote, a placeholder for the ticket volume before and during the pilot, a placeholder for the pilot dates and the ROI. Lists what to collect and from whom (the quote via the account manager, ticket counts from the support dashboard, dates from the kickoff note). Delivers the draft with placeholders and no fabricated quote, percentage or date."
     }
   ]
 }

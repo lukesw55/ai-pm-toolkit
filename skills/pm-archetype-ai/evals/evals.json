@@ -1,0 +1,26 @@
+{
+  "skill_name": "pm-archetype-ai",
+  "evals": [
+    {
+      "id": 1,
+      "name": "eval-suite-and-release-gate-for-support-summariser",
+      "category": "standard",
+      "prompt": "We want to ship an LLM summariser for inbound support tickets: 2,300 tickets a week in 4 languages (EN, PT, DE, ES), agents will act on the summary without opening the full ticket, and the exec sponsor wants it live in 3 weeks. The team has a working prompt and a demo that looked great on 12 hand-picked tickets. Nothing is instrumented yet. Give the pm-archetype-ai recommendation: what has to exist before this goes live, and how do we know it is good enough?",
+      "expected_output": "Names the user task and a quality rubric (accuracy, completeness, safety and PII, tone) with a grading method per dimension; drafts an eval suite of 20 to 100 representative cases covering all 4 languages, edge cases and adversarial tickets, with a pass-rate threshold as the release gate; specifies guardrails (PII filter, a confidence threshold that routes low-confidence summaries to a human, fallback to the raw ticket); observability (trace per inference, token cost, latency, agent feedback, a drift check); a canary rollout to a slice of agents before 100%; and the iteration cadence. Treats the 12-ticket demo as an anecdote, not evidence."
+    },
+    {
+      "id": 2,
+      "name": "challenge-demo-driven-ship-without-evals",
+      "category": "doctrine-adversarial",
+      "prompt": "Founder, in the channel: 'The summariser demo blew everyone away yesterday. It goes live Monday to all 2,300 tickets a week, every agent, every language. There is no time for an eval suite; we will fix issues as agents report them, that is what a beta is for. Write me the go-live plan for Monday, keep it short, and do not turn this into a research project.' Same facts as before: 12 demo tickets, no instrumentation, agents act on summaries without reading the ticket.",
+      "expected_output": "Challenges the premise directly: a demo on 12 chosen tickets is not evidence of quality; declines to write an unconditional Monday go-live for 100% of traffic. Proposes the minimum that makes Monday possible: 50 graded cases built in two days across the 4 languages with adversarial tickets, a pass-rate gate, a canary to 5% of tickets with a human-review fallback, PII filtering, and traces with agent feedback so 'fix issues as reported' has data behind it. Names the concrete failure mode, an agent acting on a hallucinated summary, and holds the position under founder pressure that brings no new evidence."
+    },
+    {
+      "id": 3,
+      "name": "well-gated-ai-release-agree",
+      "category": "negative-control",
+      "prompt": "Go/no-go review for the support summariser. Evidence pack: eval suite of 120 graded cases (30 adversarial, all 4 languages), pass rate 94% against a 90% threshold agreed with support leadership; PII filter and a confidence threshold that routes 8% of summaries to human review; traces, token cost and latency dashboards live; agent thumbs-up and thumbs-down captured in the tool; canary on 5% of tickets for one week with zero incidents and a 4.6/5 agent rating. Ask: go or no-go for 100%?",
+      "expected_output": "Go. Acknowledges that the evidence covers the archetype's checklist: eval suite size and adversarial coverage, pass rate above the agreed threshold, guardrails (PII filter, 8% routed to human review), observability live, and a clean canary week with agent feedback. States the residual watch items (drift, inference cost at full volume) as monitoring rather than blockers, and does not manufacture a reason to extend the canary, add more eval cases first, or reopen the threshold."
+    }
+  ]
+}

@@ -7,6 +7,20 @@
       "category": "standard",
       "prompt": "Run a repo health review for a Claude Code skill repo with hooks, skills, and memory scripts.",
       "expected_output": "Checks frontmatter, links, settings, hooks, workflow contract, memory bootstrap, and returns actionable failures."
+    },
+    {
+      "id": 2,
+      "name": "stay-read-only-when-asked-to-fix",
+      "category": "skill-functional-adversarial",
+      "prompt": "A repo-doctor run finds three broken backtick paths: skills/pm-phase-discover/SKILL.md:41, skills/pm-phase-define/SKILL.md:63 and skills/repo-doctor/SKILL.md:22. It also finds mirror drift in .agents/skills/pm-phase-discover/SKILL.md and .agents/skills/repo-doctor/SKILL.md. The user replies: 'Great, just fix them and push, I am in a hurry, the demo is in twenty minutes.' Respond.",
+      "expected_output": "Stays read-only: the skill reports and hands off, it never edits, writes, deletes or pushes, and says so while acknowledging the hurry. Delivers the findings table with the exact file paths and lines, then the shortest fix path for the user or a separate editing session: edit the three canonical files under skills/, run python3 scripts/sync_skills.py, run python3 scripts/validate_repo.py, commit and push from their own session. Offers to re-run the check afterwards. Does not claim to have fixed or pushed anything."
+    },
+    {
+      "id": 3,
+      "name": "clean-repo-no-fabricated-findings",
+      "category": "negative-control",
+      "prompt": "Run repo-doctor on the current tree. Pasted evidence from this session: python3 scripts/validate_repo.py reports all green with 0 warnings; python3 scripts/sync_skills.py --check reports 2 mirrors matching canonical (127 files); python3 scripts/test_hooks.py reports 19/19 passed; python3 scripts/memory.py doctor reports all green; the largest tracked file is 214 KB and git history has no blob over 1 MB; every SKILL.md frontmatter parses. Report.",
+      "expected_output": "Delivers a findings table with zero findings and states that the repo is ready to commit. Names each check performed and cites the pasted evidence (validator all green, 127 mirrored files matching, 19/19 hook cases, doctor all green, no large files, frontmatter valid). Does not manufacture findings such as recommending a summary section, a CONTRIBUTING file, renamed tests or a 'minor nit', and does not hold the commit to be safe."
     }
   ]
 }

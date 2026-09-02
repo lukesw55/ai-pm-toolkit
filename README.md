@@ -89,9 +89,9 @@ The orchestrator is a skill codenamed **Umberto** ([`SKILL.md`](SKILL.md)). It d
 | Quality gates (4) | `anti-slop`, `humanizer`, `humanize-deliverables`, `inference-discipline` | slop removal for code and structure; prose that reads like a person wrote it; a publish gate for outbound artefacts; the hallucination gate |
 | Tooling (1) | `repo-doctor` | read-only health check of this workspace |
 
-The archetype lenses are full skills, and each also ships as an agent in [`.github/agents/`](.github/agents/) for harnesses that speak that dialect. They stack on top of any phase skill when the product context is non-default.
+The archetype lenses are compositional single-file skills (one `SKILL.md` that composes the phase and transversal references and carries its own `evals/evals.json`), and each also ships as an agent in [`.github/agents/`](.github/agents/) for harnesses that speak that dialect. They stack on top of any phase skill when the product context is non-default.
 
-Every skill ships a `SKILL.md` as its control plane; 15 of 21 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so Claude loads the narrowest reference the task needs instead of a whole catalogue. 17 of 21 carry an `evals/` set so the skill can be graded rather than trusted.
+Every skill ships a `SKILL.md` as its control plane; 15 of 21 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so Claude loads the narrowest reference the task needs instead of a whole catalogue. Every skill carries an `evals/evals.json` with at least three cases, one of them adversarial (`scripts/validate_repo.py` enforces the floor and the parity with the grader), so the skill can be graded rather than trusted.
 
 Skills support three output profiles (see [`docs/patterns/COMMUNICATION_MODES.md`](docs/patterns/COMMUNICATION_MODES.md)): Standard for stakeholder-grade analysis, Lean for routine work (the default), Caveman for token-constrained sessions.
 
@@ -125,7 +125,7 @@ Each gate has an explicit, per-content override for legitimate exceptions, so th
 
 ## The toolkit grades itself
 
-17 of the 21 skills ship an `evals/evals.json` with realistic task prompts. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
+Every skill ships an `evals/evals.json` with realistic task prompts across four categories (standard, doctrine-adversarial, skill-functional-adversarial, negative-control); the validator requires at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, and one-to-one parity with the grader's assertion blocks. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
 
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 

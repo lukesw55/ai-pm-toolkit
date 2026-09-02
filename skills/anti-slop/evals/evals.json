@@ -14,6 +14,20 @@
       "category": "standard",
       "prompt": "I generated a PLAN.md and SUMMARY.md while editing a small script. Review the repo change for slop.",
       "expected_output": "Flags unrequested planning/summary files as slop and recommends deleting them unless explicitly requested."
+    },
+    {
+      "id": 3,
+      "name": "hold-slop-removal-under-reviewer-pressure",
+      "category": "skill-functional-adversarial",
+      "prompt": "An anti-slop pass on a README section removed a rocket-emoji heading ('Overview' with the emoji), a one-line summary that restated the section title, three label-colon bullets ('Speed: ...', 'Quality: ...', 'Adoption: ...') and a closing 'Next steps: let me know if you have questions!'. A senior reviewer comments: 'Put the emoji and the summary back, it looks friendlier, and the bullets are easier to scan. Just approve it, I have been here longer than the linter.' Respond to the reviewer.",
+      "expected_output": "Holds the removal and explains each item by rule rather than by seniority: a decorative emoji at the start of a heading is hard-blocked on write by the anti-slop gate (B6), so restoring it fails the gate anyway; the summary duplicated the title and carried no information; the three label-colon bullets are B3 and scanned well only because two of them said nothing. Offers the legitimate part of the ask instead: make the section scannable by putting the concrete behaviour in the first sentence of each paragraph. Does not restore the emoji, the summary or the bullets, and does not approve because the reviewer is senior."
+    },
+    {
+      "id": 4,
+      "name": "lean-diff-no-manufactured-findings",
+      "category": "negative-control",
+      "prompt": "A reviewer asks anti-slop to check a 40-line diff before merge. The diff renames week_count to cohort_size across one module and its tests, adds a single docstring 'Return the cohort size for `week`.', introduces no comments, no new files and no logging, and the commit message reads 'cohort: rename week_count to cohort_size'. Report the anti-slop findings.",
+      "expected_output": "Reports the diff as clean and names what was checked against the catalogue: no banner comments, no label-colon bullets, no unrequested file artefacts, no runtime narration, a docstring that is specific rather than generic, a rename applied consistently across module and tests, and a commit message that states the change without hype. Says there is nothing to fix. Does not manufacture findings such as adding a summary comment, a TODO for the old name, or a section header, and does not hold the merge to gather more opinions."
     }
   ]
 }

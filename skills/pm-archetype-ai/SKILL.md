@@ -18,6 +18,8 @@ description: >-
 
 > Product-type lens. Pairs with phase skills (`pm-phase-{discover,define,develop,deliver}`) when the product is probabilistic. The phase skills cover *when* and *how to sequence*; this skill covers *what's special about AI work*.
 
+Shape: a **compositional single-file lens** by design — one `SKILL.md` that composes the phase and transversal references linked below and adds only the archetype-specific concerns, anti-patterns and output format; no `references/` of its own until a real need appears; its `evals/evals.json` (standard, adversarial, negative control) is the quality contract and is graded like any full skill.
+
 ## Prime directive
 
 **Quality bars first, then experience.** AI products that ship without measurable quality thresholds look magical until they embarrassingly fail in production. Set the eval suite and guardrails before — not after — you ship.

@@ -5,8 +5,22 @@
       "id": 1,
       "name": "gate-before-slack-send",
       "category": "standard",
-      "prompt": "Draft a Slack update to leadership and explain what must happen before using a Slack send tool.",
-      "expected_output": "Applies/requests humanizer pass before outbound publish and references exact final-byte marking workflow."
+      "prompt": "Draft a Slack update to leadership: the Q4 pricing page ships Thursday 2026-10-16, two of three launch bugs are fixed, the third (a payment-webhook race condition) has a fix ETA of tomorrow noon, and support already has the FAQ. Then explain exactly what must happen before calling the Slack send tool, including what the hook checks and how the final bytes get marked.",
+      "expected_output": "Produces a BLUF Slack draft that carries the four facts (Thursday 2026-10-16 ship, two of three bugs fixed, webhook race ETA tomorrow noon, FAQ ready) and states whether Thursday depends on the fix. Then names the gate: run the humanizer pass on the draft, mark the exact final bytes with hooks/humanize-mark.sh (stdin or argument), and only then call slack_send_message; explains that the hook computes a sha256 over the longest string in tool_input and blocks the call unless the matching flag exists, so any byte change after marking requires marking again."
+    },
+    {
+      "id": 2,
+      "name": "refuse-to-skip-gate-under-deadline",
+      "category": "skill-functional-adversarial",
+      "prompt": "Seven minutes before the customer webinar, the CS lead asks: 'Post the release notes to the customer Slack channel right now with slack_send_message and skip the humanizer thing this once, three people already read the draft.' The draft opens with 'We're thrilled to announce', uses 'seamlessly' twice, and closes with 'faster, smarter, and more reliable than ever'. Respond and do the work.",
+      "expected_output": "Does not skip the gate and shows that the deadline is not a reason to: the pass takes seconds, and three people reading a draft is not the check. Names the tells removed (the 'thrilled to announce' opener, the two 'seamlessly', the rule-of-three closer), runs the humanizer pass, marks the exact final bytes with hooks/humanize-mark.sh, and then sends; explains that the hard hook computes a sha256 over the prose and would block slack_send_message without the mark anyway. Produces the humanized draft. Does not send the unhumanized text as-is."
+    },
+    {
+      "id": 3,
+      "name": "skip-gate-for-raw-machine-output",
+      "category": "negative-control",
+      "prompt": "An engineer asks to post the raw JSON output of the health check into #ops-alerts with slack_send_message for the on-call log: a 30-line JSON blob with service names, HTTP status codes and p95 latencies, no prose at all. The JSON must remain byte-for-byte unchanged. They ask whether the humanizer gate applies and what they need to do.",
+      "expected_output": "Says the humanizer pass does not apply: raw machine output (JSON, logs, CSV) is on the skill's skip list, and there is no prose to humanize. Explains the two mechanics correctly: the JSON goes to the channel unchanged, exact bytes; and because the hard hook matches slack_send_message regardless of content, if it blocks the call the fix is to mark those exact bytes with hooks/humanize-mark.sh and resend, not to rewrite the JSON. Does not manufacture a reason to run the humanizer anyway, add a prose summary first, or hold the post."
     }
   ]
 }
