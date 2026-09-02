@@ -11,6 +11,7 @@ bash -n hooks/*.sh
 python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
 python3 scripts/test_hooks.py
+python3 scripts/test_memory.py
 ```
 
 `validate_repo.py` covers:
@@ -24,6 +25,8 @@ python3 scripts/test_hooks.py
 - Memory bootstrap compatibility between `init_context.py`, `memory.py doctor`, and `stage_context.py`.
 
 `scripts/test_hooks.py` runs synthetic payloads against the shared gates and the Codex `apply_patch` adapter to confirm both harness paths block and unblock correctly.
+
+`scripts/test_memory.py` runs `memory.py` and `init_context.py` in a throwaway repo skeleton: caps, the `distill --prepare/--apply` fold (verbatim archive, stale and oversized packages refused, undated blocks never folded), and the in-code PII denylist.
 
 ## Bootstrap smoke test
 

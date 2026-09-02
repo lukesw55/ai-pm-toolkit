@@ -137,7 +137,7 @@ The point is falsifiability: a skill that does not beat the baseline on its own 
 | Warm | the project's state, kickoff, decisions, recent changelog | only when working on that project |
 | Cold | archives, raw evidence, transcripts | never wholesale; retrieved on demand |
 
-Writing memory goes through [`scripts/memory.py`](scripts/memory.py) (`log`, `park`, `activate`, `distill`, `doctor`), which rotates old changelog entries into archives and keeps the pointer under its 2 KB cap. PII and raw-evidence paths are never rotated, distilled, or ingested. The shipped tree contains only templates, so a fresh clone bootstraps its own memory with one command.
+Writing memory goes through [`scripts/memory.py`](scripts/memory.py) (`log`, `park`, `activate`, `distill`, `doctor`), which rotates old changelog entries into archives and keeps the pointer under its 2 KB cap. PII and raw-evidence paths are never rotated, distilled, or ingested; `memory.py` refuses them in code (`PII_DENY`). The shipped tree contains only templates, so a fresh clone bootstraps its own memory with one command.
 
 ## The agents
 
