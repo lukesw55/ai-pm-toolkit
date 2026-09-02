@@ -5,7 +5,7 @@ description: >-
   messages, emails, release notes, exec memos, PRDs, DACI rationale, customer-facing copy, status
   reports, FAQs, knowledge-base articles, public docs. Trigger BEFORE the artefact leaves the
   workspace, never after the user has already seen the "final" draft. Pull
-  `../humanizer/SKILL.md` and apply its 29-pattern catalog. Skip ONLY for inline
+  `../humanizer/SKILL.md` and apply its pattern catalogue. Skip ONLY for inline
   conversational replies to the user, raw machine output (logs/JSON/CSV), code/config, and structured
   ticket fields. Pushy by design — when in doubt, humanize. Trigger phrases: "post to Confluence",
   "send to Slack", "draft the release notes", "memo for leadership", "customer email", "publica essa
@@ -20,7 +20,7 @@ This skill is a **gate**, not a writer. It sits between drafting and delivery an
 
 ## Why this exists
 
-Your deliverables — exec memos, PRDs, Confluence pages, Slack updates, customer comms — get read by leadership, customers, and cross-functional partners. Text that smells like ChatGPT erodes credibility silently. The `humanizer` skill (`../humanizer/SKILL.md`) catalogues 29 universal AI-writing patterns. This gate enforces a pass through those before the artefact ships.
+Your deliverables — exec memos, PRDs, Confluence pages, Slack updates, customer comms — get read by leadership, customers, and cross-functional partners. Text that smells like ChatGPT erodes credibility silently. The `humanizer` skill (`../humanizer/SKILL.md`) carries the AI-writing pattern catalogue from Wikipedia's "Signs of AI writing". This gate enforces a pass through it before the artefact ships.
 
 ## When to trigger
 
@@ -49,10 +49,10 @@ When unsure → run the gate. The cost of an unnecessary pass is seconds; the co
 
 1. **Draft normally.** Don't pre-censor while drafting — easier to clean up than to write under constraint.
 
-2. **Pull the catalogue.** Read `../humanizer/SKILL.md` (or the relevant section if you've already loaded it this session). It contains the full 29-pattern list with before/after examples.
+2. **Pull the catalogue.** Read `../humanizer/SKILL.md` (or the relevant section if you've already loaded it this session). Its `references/` hold the full pattern list with before/after examples; `../humanizer/references/progressive-loading.md` says which file fits the text.
 
 3. **Sweep for the patterns that bite hardest in PM/Eng prose** (this is the high-yield subset of humanizer's catalogue):
-   - **Em-dash overuse** — every em-dash is suspicious; keep at most one or two per page, replace others with periods, parentheses, or `—` → `:`
+   - **Em and en dashes** — the final text carries none unless the author's own writing sample uses them (humanizer §14); replace each with a period, comma, colon, or parentheses, and check spaced dashes and double hyphens too
    - **Rule of three** — "fast, reliable, and scalable" reads like AI; cut to two or expand to a real list
    - **Link-words as throat-clearing** — "Furthermore", "Moreover", "Additionally", "It is important to note that", "In the context of"
    - **Inflated verbs / vocabulary** — "delve into", "leverage", "underscore", "navigate", "robust", "seamless", "comprehensive", "holistic", "tapestry", "foster", "facilitate"
@@ -63,7 +63,7 @@ When unsure → run the gate. The cost of an unnecessary pass is seconds; the co
    - **Passive voice when active is shorter** — "the decision was made" → "we decided"
    - **Hedging stacks** — "may potentially be able to" → "can"
 
-4. **Final anti-AI pass** (humanizer §6, mandatory). Ask: *"What still makes this obviously AI-generated?"* — name the remaining tells in one short sentence. Then revise.
+4. **Final anti-AI pass** (humanizer Rewrite process, step 3; mandatory). Ask: *"What still makes this obviously AI-generated?"* — name the remaining tells in one short sentence. Then revise.
 
 5. **Substance check.** AI-tell removal can quietly strip the load-bearing content; this pass restores it. For every list of suggestions / findings / actions in the draft, audit each item against three checks:
 

@@ -1,10 +1,10 @@
 # N-gram and lexical blacklist
 
-Load this file during **Sweep 1 — Surface** of the humanisation process. These are the multi-word units and single words that production AI detectors (Copyleaks, Originality.ai, Pangram in particular) track as the strongest paraphrase-resistant signal.
+Toolkit supplement to the humanizer catalogue: load it when checking a draft against §7 (overused AI words) and §23 (filler phrases). These are the multi-word units and single words that recur in AI output far above the human rate and survive a synonym pass.
 
 ## Why paraphrasing is not enough
 
-The skeleton of a phrase survives synonym swap. `"navigate the complex landscape"` becomes `"traverse the complex landscape"` after a thesaurus pass, but the phrase fingerprint — verb + the + adjective + landscape/realm/ecosystem — still matches. Detectors hash the skeleton, not the surface.
+The skeleton of a phrase survives synonym swap. `"navigate the complex landscape"` becomes `"traverse the complex landscape"` after a thesaurus pass, but the phrase fingerprint — verb + the + adjective + landscape/realm/ecosystem — still reads as the same stock phrase.
 
 **Rule:** when you catch yourself reaching for a blacklisted phrase, rewrite around the **idea**, not around the **phrase**. If you cannot say what the phrase was trying to say in your own words, the phrase was filler. Cut it.
 
@@ -151,9 +151,9 @@ The skeleton of a phrase survives synonym swap. `"navigate the complex landscape
 
 ## Single-word lexical blacklist
 
-These words appear in AI output at 5-50× their natural human rate. Replace each with a concrete equivalent or cut the sentence. Cases where the word is genuinely the right one and the register fits (a wedding speech can say "journey"; a PR cannot) are rare — when in doubt, replace.
+These words recur in formulaic AI prose. Replace each with a concrete equivalent or cut the sentence. Cases where the word is genuinely the right one and the register fits (a wedding speech can say "journey"; a PR cannot) are rare — when in doubt, replace.
 
-### The high-signal set (Originality.ai's strongest single features)
+### The high-signal set
 
 - delve, delving
 - navigate, navigating, navigation (when metaphorical)
@@ -243,7 +243,7 @@ Informal swaps that read more human: but, and, so, still, anyway.
 - **Adoption:** Usage continues to grow.
 ```
 
-This shape almost never appears in spontaneous human writing. Detectors flag it on sight. Convert to running prose, or use plain dashes with mixed-length items.
+This shape almost never appears in spontaneous human writing. Convert to running prose, or use plain dashes with mixed-length items.
 
 ### Triple-adjective stacks
 
@@ -265,7 +265,7 @@ A near-universal AI-tell. Rewrite as a direct statement.
 
 ## How to use this list
 
-1. **During Sweep 1**, search the draft for every entry. Cut or replace.
+1. **When checking §7 and §23**, search the draft for every entry. Cut or replace.
 2. **Do not paraphrase the skeleton.** "Navigate the landscape" → "traverse the landscape" still flags. Rewrite the underlying idea.
 3. **Keep a workspace blacklist.** When you spot a new high-signal phrase in your own output, add it to this file.
 4. **Treat lexical hits as a smell, not always a fix.** Some uses are genuinely correct. The right test is: would a reader notice if I cut the word? If no, cut it.

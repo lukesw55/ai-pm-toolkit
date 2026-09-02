@@ -63,7 +63,7 @@ Fix:
 - egress is down about $400/month
 ```
 
-Rule: replace categories with evidence. Pairs with `humanizer` pattern §16 (inline-header vertical lists) for prose contexts. The Stop hook `scope-bloat-gate.sh` flags runs of 4+ consecutive label-colon bullets in replies.
+Rule: replace categories with evidence. Pairs with `humanizer` pattern §16 (lists with bold mini-headings) for prose contexts. The Stop hook `scope-bloat-gate.sh` flags runs of 4+ consecutive label-colon bullets in replies.
 
 ## B4. Forced symmetry
 
@@ -71,7 +71,7 @@ Slop: three pros, three cons, three risks, three next steps when only two are re
 
 Fix: keep the real count.
 
-Rule: reality is usually uneven. Pairs with `humanizer` pattern §10 (rule of three) in prose contexts.
+Rule: reality is usually uneven. Pairs with `humanizer` pattern §10 (forced groups of three) in prose contexts.
 
 ## B5. Static metadata nobody maintains
 

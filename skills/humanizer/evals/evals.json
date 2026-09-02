@@ -6,7 +6,7 @@
       "name": "humanize-exec-memo",
       "category": "standard",
       "prompt": "Humanize this exec memo paragraph: 'In today's fast-paced landscape, it is crucial that we leverage a comprehensive approach...'",
-      "expected_output": "Removes detector-like phrases, varies rhythm, preserves facts, and returns production-ready prose plus a brief audit."
+      "expected_output": "Removes stock phrases, varies rhythm, preserves facts, and returns production-ready prose plus a brief list of what was changed and what stayed intact."
     },
     {
       "id": 2,
@@ -14,6 +14,13 @@
       "category": "standard",
       "prompt": "Humanize a technical PRD excerpt without changing metric names, dates, or constraints.",
       "expected_output": "Keeps all load-bearing facts intact while reducing formulaic AI tone and explaining any changes that affect register."
+    },
+    {
+      "id": 3,
+      "name": "keep-attributive-hyphens",
+      "category": "standard",
+      "prompt": "Humanize this status note without changing its facts: 'Our cross-functional team delivered a high-quality, data-driven report on 2026-10-15. The roadmap is high-quality, the process is data-driven, and stakeholders across the organisation have been kept fully in the loop throughout.' Return the final text plus the list of remaining patterns and what stayed intact.",
+      "expected_output": "Keeps the hyphen where the pair modifies a noun (cross-functional team, high-quality report, data-driven report) and drops it in predicate position (the roadmap is high quality, the process is data driven), per pattern 26. Retains the 2026-10-15 date and the three facts. Trims the stakeholder sentence's filler without inventing detail, and the closing list names the date and claims that were kept."
     }
   ]
 }

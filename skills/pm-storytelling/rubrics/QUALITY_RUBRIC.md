@@ -62,7 +62,7 @@ Before any artefact ships outside the immediate team, the following two items ar
 
 | Gate | Required when | How |
 |---|---|---|
-| `humanizer` pass run | Voice quality matters: long-form, exec-facing, customer-facing, public-facing | Read `../../humanizer/SKILL.md`, apply its 29-pattern catalogue, and run its mandatory final pass ("what still makes this AI-generated?") |
+| `humanizer` pass run | Voice quality matters: long-form, exec-facing, customer-facing, public-facing | Read `../../humanizer/SKILL.md`, apply its pattern catalogue, and run its mandatory final pass ("what still makes this AI-generated?") |
 | `humanize-deliverables` mark applied | The artefact will be sent via the publish/send MCP tools (Confluence, Slack, customer email, Jira comments) | Read `../../humanize-deliverables/SKILL.md` and apply step 6 (sentinel marking). The hook hard-blocks the call without it. |
 
 Skip both gates only for: internal scratchpads, `.ai/memory/` updates, raw machine output, code/config, structured ticket fields. When in doubt, run them — the cost is seconds.

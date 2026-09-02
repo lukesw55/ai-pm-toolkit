@@ -61,13 +61,13 @@ This skill always pairs with `humanizer` for voice polish, and with `humanize-de
 | Skill | Role | When |
 |---|---|---|
 | `pm-storytelling` (this) | **Generate** narrative — spine, beats, format | Source needs structure or arc |
-| `humanizer` | **Polish** voice — strip 29 AI-writing patterns | Voice quality matters (long-form, exec-facing, customer-facing) |
+| `humanizer` | **Polish** voice — strip AI-writing patterns | Voice quality matters (long-form, exec-facing, customer-facing) |
 | `humanize-deliverables` | **Gate** outbound prose — hard-enforced sentinel | Before Confluence / Slack / customer / exec / release notes |
 
 Default chain when the artefact ships outside the immediate team:
 
 1. **Draft here** — produce the story (Phases 0–6 below).
-2. **Polish with `humanizer`** — read `../humanizer/SKILL.md`, apply its 29-pattern catalogue, and run its mandatory final pass ("what still makes this AI-generated?"). Don't reimplement that catalogue inside this skill — the inline anti-generic filter (Phase 5) is a tiny first sweep, not a substitute.
+2. **Polish with `humanizer`** — read `../humanizer/SKILL.md`, apply its pattern catalogue, and run its mandatory final pass ("what still makes this AI-generated?"). Don't reimplement that catalogue inside this skill — the inline anti-generic filter (Phase 5) is a tiny first sweep, not a substitute.
 3. **Run `humanize-deliverables` before delivery** — read `../humanize-deliverables/SKILL.md`. The gate is hard-enforced for `createConfluencePage`, `updateConfluencePage`, `slack_send_message`, `slack_send_message_draft`, Slack canvases, and Jira comments. Forgetting it blocks the call.
 
 Skip the humanizer/gate pass for: internal scratchpads, `.ai/memory/` updates, tickets you're triaging, raw analytical output, or anything you'll rewrite anyway. When unsure, run them — the cost of one extra pass is seconds; the cost of AI-tinted prose hitting a customer or a director is reputational drag.
@@ -218,7 +218,7 @@ Use the most relevant template from `templates/OUTPUT_TEMPLATES.md`.
 
 While drafting, watch for the most flagrant generic openings: *"in today's fast-paced world"*, *"this essay will discuss"*, *"throughout history"*, *"in the rapidly evolving landscape of"*, *"at its core"*, *"it is crucial to note that"*, *"a game-changer"*, *"unlock the potential"*. If one slips in, replace with concrete context, tension, or a direct claim.
 
-This is a first sweep, not a complete check. The full 29-pattern catalogue lives in `humanizer/SKILL.md`; run that skill on the draft when voice quality matters, and always before outbound delivery.
+This is a first sweep, not a complete check. The full pattern catalogue lives in `humanizer/SKILL.md` and its `references/`; run that skill on the draft when voice quality matters, and always before outbound delivery.
 
 ## Phase 6 — format-specific rules
 

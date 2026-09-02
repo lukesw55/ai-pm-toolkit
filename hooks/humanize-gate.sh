@@ -64,9 +64,9 @@ The longest prose string in tool_input has not passed through the humanizer.
 Required workflow:
 
   1. Apply skills/humanizer/SKILL.md to the prose body
-     (the 29-pattern catalogue: em-dashes, rule of three, link-words,
-     inflated vocabulary, promotional register, passive voice, hedging
-     stacks, superficial -ing analyses, vague attributions, filler).
+     (the pattern catalogue in its references/: inflated claims, sales
+     language, vague sources, stock AI words, forced groups of three,
+     em dashes, chatbot leftovers, filler, stacked qualifiers).
 
   2. Mark the EXACT FINAL bytes you intend to publish:
         $PROJECT_ROOT/hooks/humanize-mark.sh "<final prose body>"

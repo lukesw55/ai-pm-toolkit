@@ -61,6 +61,13 @@ def hedged(forbidden: str, near: list[str] | None = None, window: int = 160):
     return check
 
 
+def absent_from_prose(phrase: str):
+    """Allow a quoted mention of a removed phrase, not its continued use."""
+    quoted = re.compile(r'"[^"\n]*"|\'[^\'\n]*\'|`[^`\n]*`')
+    phrase_l = phrase.lower()
+    return lambda t: phrase_l not in quoted.sub("", t.lower())
+
+
 def all_named_scores_at_least(dimensions: list[str], minimum: int):
     """Require every named rubric dimension to carry an explicit score at
     or above the threshold. A single high score must not satisfy a claim that
@@ -423,15 +430,24 @@ ASSERTIONS = {
     },
     "humanizer": {
         "humanize-exec-memo": [
-            ("Rewrite avoids 'fast-paced landscape'", not_has("fast-paced")),
-            ("Rewrite avoids 'leverage'", not_has("leverage")),
-            ("Rewrite avoids 'crucial'", not_has("crucial")),
+            ("Rewrite avoids 'fast-paced landscape'", absent_from_prose("fast-paced")),
+            ("Rewrite avoids 'leverage'", absent_from_prose("leverage")),
+            ("Rewrite avoids 'crucial'", absent_from_prose("crucial")),
             ("Keeps the memo's substance", hasr(r"memo|we |our |team")),
         ],
         "preserve-technical-meaning": [
             ("Retains numbers/dates", hasr(r"\d")),
             ("States technical content preserved", hasr(r"preserv|unchanged|intact|same|não alter")),
             ("Actually rewrites the prose", hasr(r"rewrit|humaniz|revis|adjust")),
+        ],
+        # B10: upstream §26 keeps the hyphen before a noun and drops it after;
+        # the pre-resync fork dropped it everywhere. Only the upstream rule
+        # satisfies both the has() and the not_has() below.
+        "keep-attributive-hyphens": [
+            ("Keeps the attributive hyphen in 'cross-functional team'", has("cross-functional team")),
+            ("Does not strip the hyphen before the noun", not_has("cross functional team")),
+            ("Drops the hyphen in predicate position", not_has("roadmap is high-quality")),
+            ("Retains the 2026-10-15 date", has("2026-10-15")),
         ],
     },
     "inference-discipline": {
