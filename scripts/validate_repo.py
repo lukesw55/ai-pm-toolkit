@@ -401,8 +401,13 @@ def check_eval_coverage(errors: list[str]) -> None:
                 err(errors, f"{rel(path)}: eval '{label}' id must be an integer, got {eid!r}")
             if not isinstance(name, str) or not name.strip():
                 err(errors, f"{rel(path)}: eval id {eid} has an empty or non-string name")
-            if category not in EVAL_CATEGORIES:
-                err(errors, f"{rel(path)}: eval '{label}' has invalid or missing category {category!r}; must be one of {sorted(EVAL_CATEGORIES)}")
+            # Valid JSON with an unexpected shape must produce a finding, never a
+            # traceback: a list or object here is unhashable, so it cannot be
+            # tested against the category set or collected for the coverage checks.
+            if not isinstance(category, str):
+                err(errors, f"{rel(path)}: eval '{label}' category must be a string, got {type(category).__name__}")
+            elif category not in EVAL_CATEGORIES:
+                err(errors, f"{rel(path)}: eval '{label}' has invalid category {category!r}; must be one of {sorted(EVAL_CATEGORIES)}")
             for field in ("prompt", "expected_output"):
                 if not isinstance(ev.get(field), str) or not ev.get(field).strip():
                     err(errors, f"{rel(path)}: eval '{label}' has an empty or non-string {field}")
@@ -414,7 +419,8 @@ def check_eval_coverage(errors: list[str]) -> None:
                 if name in seen_names:
                     err(errors, f"{rel(path)}: duplicate eval name {name!r} (parity keys on the name)")
                 seen_names.add(name)
-            categories.append(category)
+            if isinstance(category, str):
+                categories.append(category)
             if isinstance(name, str) and name.strip():
                 manifest_pairs.add((skill, name))
         if not any(c in ADVERSARIAL_CATEGORIES for c in categories):
