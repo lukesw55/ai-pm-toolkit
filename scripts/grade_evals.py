@@ -229,7 +229,7 @@ ASSERTIONS = {
             ("Maps assumptions with types and written-out status", lambda t: bool(re.search(r"desirab|viab|feasib|usab|ethic", t, re.I) and re.search(r"verified|unverified|inferred", t, re.I))),
             ("Tests the riskiest assumption first", hasr(r"riskiest|highest risk|test(?:ed)? first|first test")),
             ("Parks T3 for the prompt's reasons", lambda t: bool(re.search(r"park|defer|not now|out of scope", t, re.I) and re.search(r"audit|\bt3\b|\bo3\b", t, re.I) and re.search(r"pillar|off.strategy|12%|regulated|external|grc", t, re.I))),
-            ("Invents no score: T3 never gets high alignment or reachability and never ranks first", lambda t: not re.search(r"(?:\bt3\b|\bo3\b|audit export)[^\n]{0,80}(?:strategic alignment|alignment|reachab)[^\n]{0,15}\b[45]\b", t, re.I) and not re.search(r"(?:\bt3\b|\bo3\b|audit)[^\n]{0,40}rank(?:ed)? ?(?:#|no\.? ?)?1\b", t, re.I)),
+            ("Invents no score or verified solution feasibility", lambda t: not re.search(r"(?:scorecard|total(?: score)?)[^\n]{0,30}\b\d{1,2}\s*/\s*\d{1,2}\b", t, re.I) and not re.search(r"(?:\bverified\b[^\n]{0,80}(?:feasib|inbox|ships)|(?:feasib|inbox|ships)[^\n]{0,80}\bverified\b)", t, re.I) and not re.search(r"(?:\bt3\b|\bo3\b|audit export)[^\n]{0,80}(?:strategic alignment|alignment|reachab)[^\n]{0,15}\b[45]\b", t, re.I) and not re.search(r"(?:\bt3\b|\bo3\b|audit)[^\n]{0,40}rank(?:ed)? ?(?:#|no\.? ?)?1\b", t, re.I)),
         ],
     },
     "pm-phase-define": {
