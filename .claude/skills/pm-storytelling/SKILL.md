@@ -6,8 +6,9 @@ description: >-
   audience-ready narrative artefacts. Use whenever the output needs a spine
   (tension → insight → change → takeaway) rather than a flat summary. Covers
   PM-native formats (one-pager opener, PRD problem statement, exec / decision
-  memo, release notes, discovery synthesis, QBR / slide storyline, customer
-  case study, pitch deck) and generic prose (essay, article, video script,
+  memo, release notes, discovery synthesis, QBR / slide-deck storyline with an
+  optional .pptx render, customer case study, pitch deck) and generic prose
+  (essay, article, video script,
   lesson, social sequence). Trigger on "rascunha a narrativa", "monta a
   história", "esse texto está sem alma", "give this a spine", "make this
   memorable" — the full trigger list lives in the skill body. Pushy by design
@@ -22,7 +23,7 @@ Forked from the standalone `assignment-storytelling` skill and adapted for the P
 
 ## Trigger phrases
 
-The frontmatter description carries a subset; this is the full list. Invoke on: "rascunha a narrativa", "monta a história", "transforma essas notas em narrativa", "story for the exec memo", "PRD opener", "one-pager narrative", "release notes story", "discovery synthesis story", "case study from this customer", "pitch storyline", "slide narrative", "make this less generic", "give this a spine", "esse texto está sem alma", "make this memorable".
+The frontmatter description carries a subset; this is the full list. Invoke on: "rascunha a narrativa", "monta a história", "transforma essas notas em narrativa", "story for the exec memo", "PRD opener", "one-pager narrative", "release notes story", "discovery synthesis story", "case study from this customer", "pitch storyline", "slide narrative", "monta o deck", "QBR deck", "gera o pptx", "make this less generic", "give this a spine", "esse texto está sem alma", "make this memorable".
 
 ## Progressive loading
 
@@ -168,7 +169,7 @@ Default choices:
 | Release notes | What changed for the user → Why it matters → How to use → What's next |
 | Persuasive recommendation | Problem → Stakes → Evidence → Recommendation |
 | Customer case study | Context → Challenge → Approach → Evidence → Learning → Next |
-| Slide / QBR storyline | Promise → Problem → Stakes → Insight → Solution → Proof → Implications → Action |
+| Slide / QBR storyline | Promise → Problem → Stakes → Insight → Solution → Proof → Implications → Action; per-slide contract and deck rules in `references/deck-storyline.md` |
 | Pitch | Why now → Pain → Shift → Solution → Proof → Ask |
 | Academic / business analysis | SCQA + Insight Arc |
 | Personal reflection | Moment → Conflict → Realisation → Change |
@@ -221,7 +222,7 @@ This is a first sweep, not a complete check. The full 29-pattern catalogue lives
 
 ## Phase 6 — format-specific rules
 
-Pick the deliverable format and load two files: `templates/OUTPUT_TEMPLATES.md` for the fillable structure, and `references/format-editorial-rules.md` for the per-format editorial rules (what to say once the template is in front of you — covers essay, one-pager, exec memo, release notes, article, video script, slide storyline, case study, lesson, social sequence).
+Pick the deliverable format and load two files: `templates/OUTPUT_TEMPLATES.md` for the fillable structure, and `references/format-editorial-rules.md` for the per-format editorial rules (what to say once the template is in front of you — covers essay, one-pager, exec memo, release notes, article, video script, slide storyline, case study, lesson, social sequence). When the deliverable is a deck (QBR, exec review, stage-7 kickoff, pitch), also load `references/deck-storyline.md` for the per-slide contract, the slide budget, and the optional render handoff.
 
 ## Phase 7 — quality review
 
@@ -273,3 +274,4 @@ Load these only when needed; they're referenced from this SKILL.md:
 - `templates/OUTPUT_TEMPLATES.md` — fillable templates per format (PM-specific templates added)
 - `rubrics/QUALITY_RUBRIC.md` — 1–5 scorecard across 7 dimensions plus a voice-gate pre-requisite for outbound
 - `examples/sample_one_pager_opener.md` — worked example showing assignment → strategy → final story → why-this-works
+- `references/deck-storyline.md` — per-slide assertion-evidence contract, QBR slide budget, and the optional harness-dependent `.pptx` render handoff

@@ -56,7 +56,7 @@ Three skills plus one runtime hook split the "kill AI tells" job by surface:
 Two more transversals apply at every stage:
 
 - `inference-discipline` — the hallucination gate. Every claim about external state is either verified this turn or labelled and approved before action; `inference-discipline-gate.sh` blocks writes and outbound publishes that still carry unresolved markers.
-- `pm-storytelling` — the narrative layer. Any stage artefact meant to persuade (impact brief, one-pager, PRD opener, launch comms) gets a spine (tension → insight → change → takeaway) before `humanizer` polishes the voice.
+- `pm-storytelling` — the narrative layer. Any stage artefact meant to persuade (impact brief, one-pager, PRD opener, launch comms) gets a spine (tension → insight → change → takeaway) before `humanizer` polishes the voice. When the artefact is a deck (QBR, exec review, the stage-7 kickoff deck), `pm-storytelling/references/deck-storyline.md` supplies the per-slide contract; rendering to `.pptx` is optional and harness-dependent.
 
 ## Why two prioritisations
 

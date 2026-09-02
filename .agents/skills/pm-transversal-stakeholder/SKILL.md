@@ -50,6 +50,7 @@ Outputs: executive memo, review deck (exception-based), KPI scorecard, portfolio
 Anti-patterns: traffic-light reports without decisions, presenting too much detail, reporting outputs instead of outcomes, burying the ask or risk.
 
 → Deep-dive: `references/exec-reporting.md`
+→ For the QBR / exec-review deck itself (slide-by-slide storyline, claim titles proven by evidence, 6–10 slide budget): `pm-storytelling/references/deck-storyline.md`
 
 ### 3. Stakeholder mapping (tactical)
 

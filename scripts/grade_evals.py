@@ -79,6 +79,76 @@ def all_named_scores_at_least(dimensions: list[str], minimum: int):
 
     return check
 
+
+SLIDE_HEADER = re.compile(
+    r"^\s*#{0,6}\s*slide\s+(\d+)\s*[—–-]\s*(.+?)\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def deck_slides(t: str) -> list[tuple[int, str, str]]:
+    """Return numbered slide headers and the body owned by each header."""
+    matches = list(SLIDE_HEADER.finditer(t))
+    return [
+        (
+            int(match.group(1)),
+            match.group(2).strip(),
+            t[match.end(): matches[i + 1].start() if i + 1 < len(matches) else len(t)],
+        )
+        for i, match in enumerate(matches)
+    ]
+
+
+def deck_has_numbered_slides(t: str, minimum: int = 6, maximum: int = 10) -> bool:
+    """Require a contiguous 1..N storyline inside the QBR slide budget."""
+    slides = deck_slides(t)
+    return minimum <= len(slides) <= maximum and [n for n, _, _ in slides] == list(range(1, len(slides) + 1))
+
+
+def deck_has_contract_fields(t: str) -> bool:
+    """Every numbered slide must carry the exact assertion-evidence fields."""
+    slides = deck_slides(t)
+    fields = (
+        re.compile(r"^\s*evidence(?:\s*\(proves the title\))?\s*:", re.IGNORECASE | re.MULTILINE),
+        re.compile(r"^\s*visual\s*:", re.IGNORECASE | re.MULTILINE),
+        re.compile(r"^\s*speaker note\s*:", re.IGNORECASE | re.MULTILINE),
+    )
+    return bool(slides) and all(all(field.search(body) for field in fields) for _, _, body in slides)
+
+
+def deck_opens_with_scqa(t: str) -> bool:
+    """SCQA must shape slide 1, not appear as a loose mention later."""
+    slides = deck_slides(t)
+    return bool(slides) and slides[0][0] == 1 and "scqa" in f"{slides[0][1]}\n{slides[0][2]}"
+
+
+def deck_titles_are_claims(t: str) -> bool:
+    """Reject short topic labels while allowing complete-sentence claims."""
+    slides = deck_slides(t)
+    label_titles = {
+        "agenda", "activation", "budget", "churn", "dependencies", "hiring",
+        "metrics", "next steps", "overview", "pricing", "q3 metrics", "results",
+        "risks", "roadmap update", "status", "team", "timeline", "update",
+    }
+    return bool(slides) and all(
+        title.strip(" .:").lower() not in label_titles
+        and len(re.findall(r"\b[\w'-]+\b", title)) >= 4
+        for _, title, _ in slides
+    )
+
+
+def deck_render_is_optional(t: str) -> bool:
+    """Mention the render capability without turning it into the deliverable."""
+    has_render = "pptx" in t or "render" in t
+    has_degradation = (
+        "optional" in t
+        or "harness-dependent" in t
+        or "harness dependent" in t
+        or "storyline is the deliverable" in t
+    )
+    return has_render and has_degradation
+
+
 ASSERTIONS = {
     "pm-phase-discover": {
         "problem-framing-from-stakeholder-asks": [
@@ -389,6 +459,14 @@ ASSERTIONS = {
             ("Marks evidence gaps instead of inventing", hasr(r"needs source|\[needs|gap|no evidence|não invent")),
             ("Produces a decision-memo shape", hasr(r"memo|decision|recommend")),
             ("Anchors claims in the source notes", hasr(r"quote|evidence|note")),
+        ],
+        "qbr-deck-storyline-assertion-evidence": [
+            ("Numbers 6–10 contiguous slides", deck_has_numbered_slides),
+            ("Carries Evidence, Visual, and Speaker note under every slide title", deck_has_contract_fields),
+            ("Opens with SCQA on slide 1", deck_opens_with_scqa),
+            ("Titles every slide as a claim, not a topic label", deck_titles_are_claims),
+            ("Marks a missing number instead of inventing a chart", hasr(r"\[needs (?:source|metric)")),
+            ("Names the render step as optional / harness-dependent", deck_render_is_optional),
         ],
     },
     "repo-doctor": {

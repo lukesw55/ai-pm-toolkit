@@ -28,7 +28,7 @@ Time-coded or scene-based. Hook in the first 5–10 seconds. Visual cues, voiceo
 
 ## Slide storyline
 
-One idea per slide. Slide titles are claims, not labels. Speaker notes carry density. Convert dense content into scenes, contrasts, decisions.
+One idea per slide. Slide titles are claims, not labels. Speaker notes carry density. Convert dense content into scenes, contrasts, decisions. For a full deck (QBR, exec review, kickoff, pitch), the per-slide contract, the slide budget, and the render handoff live in `references/deck-storyline.md`.
 
 ## Case study
 

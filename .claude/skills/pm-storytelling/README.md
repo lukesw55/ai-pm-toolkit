@@ -1,6 +1,6 @@
 # pm-storytelling
 
-A Claude Code skill that turns raw PM source material — discovery transcripts, evidence dossiers, briefs, AI-generated drafts, scattered notes, assignments — into audience-ready narrative artefacts.
+A skill for Claude Code and Codex that turns raw PM source material — discovery transcripts, evidence dossiers, briefs, AI-generated drafts, scattered notes, assignments — into audience-ready narrative artefacts.
 
 ## What it does
 
@@ -36,6 +36,9 @@ For internal scratchpads or `.ai/memory/` updates, the chain stops at step 1.
 | `frameworks/STORY_FRAMEWORKS.md` | 13 narrative frameworks (9 general + 4 PM-specific) and a selection heuristic |
 | `templates/OUTPUT_TEMPLATES.md` | Fillable templates per format (8 general + 5 PM-specific) |
 | `rubrics/QUALITY_RUBRIC.md` | 1–5 scorecard across 7 dimensions, plus a binary outbound voice gate |
+| `references/format-editorial-rules.md` | Per-format editorial rules (what to say once the template is in front of you) |
+| `references/deck-storyline.md` | Per-slide assertion-evidence contract, QBR slide budget, optional harness-dependent `.pptx` render handoff |
+| `references/progressive-loading.md` | Loading map: which support file to read for which task |
 | `examples/sample_one_pager_opener.md` | Worked example: scattered interview notes → one-pager opener |
 
 ## Lineage
@@ -50,6 +53,7 @@ Forked from the standalone `assignment-storytelling` skill (zip distribution, 20
 - Added a binary **voice-gate pre-requisite** to the rubric for any artefact that ships outbound
 - Replaced the original "feedback reflection" example with a one-pager opener example using PM evidence
 - Removed the upstream `install.sh` script — this repo *is* the install location
+- Added `references/deck-storyline.md`: an assertion-evidence per-slide contract and a QBR slide budget for decks. Rendering to `.pptx` is an optional handoff to the Anthropic `pptx` skill where the harness offers it, never a bundled renderer — the storyline markdown is the deliverable on both harnesses
 
 ## Suggested user prompt
 
@@ -72,4 +76,4 @@ Source:
 
 ## Notes
 
-Zero-dependency. No scripts, no npm packages, no external services. The skill is pure markdown loaded by Claude Code on demand.
+Zero-dependency. No scripts, no npm packages, no external services. The skill is pure markdown, loaded on demand by either harness. The optional `.pptx` render described in `references/deck-storyline.md` adds no dependency here: it points at a skill the harness may or may not offer.
