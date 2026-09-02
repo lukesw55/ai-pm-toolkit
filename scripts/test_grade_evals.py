@@ -162,6 +162,112 @@ fixture(
     0.0, 0.67,
 )
 
+# -- 7. Deck storyline (B6): assertion-evidence contract vs. label deck ---
+fixture(
+    "deck-storyline-assertion-evidence-scores-well",
+    "pm-storytelling",
+    "qbr-deck-storyline-assertion-evidence",
+    """
+    ## Slide 1 — Moving two engineers from pricing to onboarding is the
+    highest-leverage Q4 bet (SCQA opener: answer first)
+    Evidence (proves the title): D-12 lifted 30-day SMB activation from
+    31% to 38% (n=1,240); the pricing test is inconclusive at n=210/arm.
+    Visual: two-bar before/after activation, pricing arm greyed out.
+    Speaker note: situation and complication compressed here, not on the slide.
+
+    ## Slide 2 — D-12 moved activation, and the effect held for six weeks
+    Evidence (proves the title): 31% -> 38%, n=1,240, dashboard link in notes.
+    Visual: weekly activation line, ship date marked.
+    Speaker note: segment view shows the lift is SMB-only.
+
+    ## Slide 3 — Churn did not move: 2.1%/month for the third quarter running
+    Evidence (proves the title): logo churn flat despite D-12.
+    Visual: flat line, three quarters.
+    Speaker note: activation and churn are decoupled at this horizon.
+
+    ## Slide 4 — The pricing experiment is inconclusive, not a win
+    Evidence (proves the title): +4% conversion in treatment, n=210 per arm,
+    under-powered. [NEEDS METRIC: minimum detectable effect at n=210]
+    Visual: placeholder only; no chart is drawn for the missing power calc.
+    Speaker note: say inconclusive out loud; do not let +4% read as signal.
+
+    ## Slide 5 — The main Q4 risk is mistaking activation lift for retention
+    Evidence (proves the title): churn stayed flat at 2.1% for three quarters.
+    Visual: activation and churn shown as separate outcome paths.
+    Speaker note: protect the decision from an unsupported retention claim.
+
+    ## Slide 6 — Decision requested: approve the reallocation by Oct 1
+    Evidence (proves the title): onboarding has measured activation evidence;
+    pricing remains inconclusive at the current sample.
+    Visual: single decision box.
+    Speaker note: fallback if leadership declines.
+
+    Render: optional. If this session offers the pptx skill, hand off the
+    contract above; otherwise this storyline is the deliverable.
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "label-deck-scores-poorly",
+    "pm-storytelling",
+    "qbr-deck-storyline-assertion-evidence",
+    """
+    Slide 1 — Q3 Metrics
+    Main message: overview of the quarter.
+    Slide 2 — Roadmap Update
+    Main message: what shipped.
+    Slide 3 — Activation
+    Main message: activation improved after D-12.
+    Slide 4 — Churn
+    Main message: churn is stable.
+    Slide 5 — Pricing
+    Main message: the annual-prepay test showed a 4% lift, chart attached
+    showing projected annual impact of the discount.
+    Slide 6 — Team
+    Slide 7 — Hiring
+    Slide 8 — Risks
+    Slide 9 — Dependencies
+    Slide 10 — Timeline
+    Slide 11 — Budget
+    Slide 12 — Next steps
+    Main message: reallocate two engineers.
+    """,
+    0.0, 0.2,
+)
+
+fixture(
+    "one-slide-cannot-satisfy-qbr-budget",
+    "pm-storytelling",
+    "qbr-deck-storyline-assertion-evidence",
+    """
+    ## Slide 1 — Moving two engineers to onboarding is the strongest Q4 bet (SCQA)
+    Evidence (proves the title): activation rose from 31% to 38%.
+    Visual: activation before and after.
+    Speaker note: [NEEDS METRIC: retention effect]
+    Render: optional; the storyline is the deliverable.
+    """,
+    0.0, 0.84,
+)
+fixture(
+    "one-evidence-field-cannot-cover-six-slides",
+    "pm-storytelling",
+    "qbr-deck-storyline-assertion-evidence",
+    """
+    ## Slide 1 — Moving two engineers to onboarding is the strongest Q4 bet (SCQA)
+    Evidence (proves the title): activation rose from 31% to 38%.
+    Visual: activation before and after.
+    Speaker note: [NEEDS METRIC: retention effect]
+    ## Slide 2 — Activation improved after the onboarding release shipped
+    ## Slide 3 — Churn remained flat despite the activation improvement
+    ## Slide 4 — The pricing experiment remains too small for a decision
+    ## Slide 5 — Retention is the main uncertainty for the next quarter
+    ## Slide 6 — Leadership should approve the engineering reallocation
+    Render: optional; the storyline is the deliverable.
+    """,
+    0.0, 0.84,
+)
+
+
 
 def run() -> int:
     failures: list[str] = []

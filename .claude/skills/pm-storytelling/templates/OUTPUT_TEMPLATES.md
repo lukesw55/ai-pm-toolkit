@@ -106,27 +106,29 @@ Voiceover:
 
 ## 5. Slide storyline
 
+Each slide title is a complete-sentence claim and the Evidence field proves exactly that claim. For a full deck (QBR budget, SCQA opener, render handoff) see `references/deck-storyline.md`.
+
 ```markdown
 # Slide storyline: [Title]
 
 ## Slide 1 — [Claim title]
-Main message:
-Visual idea:
+Evidence (proves the title):
+Visual:
 Speaker note:
 
 ## Slide 2 — [Claim title]
-Main message:
-Visual idea:
+Evidence (proves the title):
+Visual:
 Speaker note:
 
 ## Slide 3 — [Claim title]
-Main message:
-Visual idea:
+Evidence (proves the title):
+Visual:
 Speaker note:
 
 ## Closing slide — [Claim title]
-Main message:
-Visual idea:
+Evidence (proves the title):
+Visual:
 Speaker note:
 ```
 

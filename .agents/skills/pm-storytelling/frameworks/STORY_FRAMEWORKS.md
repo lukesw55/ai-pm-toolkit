@@ -118,7 +118,9 @@ Best for: presentations, decks, workshops, QBRs.
 Rules:
 - One message per slide
 - Slide titles are claims, not labels
+- The slide body proves exactly the title; narrow the title until it matches what the evidence shows
 - Dense evidence belongs in speaker notes or appendix
+- Full deck contract (per-slide fields, QBR slide budget, optional render): `references/deck-storyline.md`
 
 ---
 

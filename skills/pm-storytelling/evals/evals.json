@@ -7,6 +7,13 @@
       "category": "standard",
       "prompt": "Turn raw PM discovery notes into a decision memo with a narrative spine, without inventing evidence.",
       "expected_output": "Extracts protagonist/friction/turning point/takeaway, preserves assignment constraints, and separates evidence from narrative structure."
+    },
+    {
+      "id": 2,
+      "name": "qbr-deck-storyline-assertion-evidence",
+      "category": "standard",
+      "prompt": "Build the QBR deck storyline for the Platform team's Q3 review: 45 minutes, exec audience. Source notes: D-12 (self-serve onboarding) shipped Aug 14; 30-day activation for new SMB accounts moved from 31% to 38% (n=1,240 accounts, dashboard link in the notes). Logo churn stayed flat at 2.1%/month for the third quarter running, no movement despite D-12. The pricing experiment (annual-prepay discount) ran 6 weeks and is inconclusive: +4% conversion in the treatment arm but under-powered at n=210 per arm. The team's ask is to reallocate two engineers from the pricing workstream to onboarding for Q4. Produce the slide-by-slide storyline, not the file.",
+      "expected_output": "A numbered storyline of 6-10 slides. Slide 1 is the SCQA opener whose title states the answer (the reallocation ask) as a claim. Every slide follows the per-slide contract: a complete-sentence claim title, an Evidence field that proves exactly that title (activation 31% to 38% at n=1,240; churn flat at 2.1% for three quarters; pricing +4% but n=210, under-powered), a Visual field, and a Speaker note. Titles are claims, never labels like 'Q3 Metrics'. The pricing result is stated as inconclusive rather than spun as a win, and any number the notes do not carry is marked [NEEDS METRIC] instead of charted. Closes on the reallocation ask as a decision slide, and notes that the .pptx render is optional and harness-dependent: the storyline is the deliverable."
     }
   ]
 }
