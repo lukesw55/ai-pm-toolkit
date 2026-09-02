@@ -7,7 +7,7 @@
 - **Project**: Example Initiative
 - **Slug**: `example-initiative`
 - **Current stage**: discovery
-- Read FIRST on resume: `projects/example-initiative/state.md`, then `session-kickoff.md`
+- Read FIRST on resume: `state.md` (at `projects/example-initiative/`), then `session-kickoff.md`
 - Next: [the one next action for the session]
 
 ## Parked / closed (1 line each; detail in `projects/<slug>/state.md`)
@@ -15,12 +15,12 @@
 - `another-project`: develop; parked 2026-01-01; one-line hook on where it stopped
 
 <!--
-Schema contract (read by scripts/ and .claude/hooks/):
+Schema contract (read by scripts/ and hooks/):
 - `Current stage` must be a canonical slug from scripts/advance_stage.py STAGES
   (discovery-prioritization, impact-brief, discovery, one-pager,
   product-prioritization, prd, tech-kickoff, delivery). Legacy alias `discover`
   is accepted and normalised to `discovery`.
-- `Slug` is matched by .claude/hooks/check-project-isolation.sh to scope edits to
+- `Slug` is matched by hooks/check-project-isolation.sh to scope edits to
   the active project's memory.
 - `Project` is surfaced by scripts/stage_context.py on every turn.
 - The whole file is capped at 2 KB (scripts/memory.py doctor enforces); session

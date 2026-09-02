@@ -141,7 +141,7 @@ How to escalate cleanly: see `pm-transversal-stakeholder/references/exec-reporti
 
 ## Integration
 
-- `pm-phase-define/decision-memo-daci.md` has the decision-memo template itself
+- `pm-phase-define/references/decision-memo-daci.md` has the decision-memo template itself
 - This reference focuses on role design (DACI as governance mechanism)
 - `.ai/memory/_templates/decision-log.md` is the Umberto memory template for logging decisions — use it alongside DACI
 

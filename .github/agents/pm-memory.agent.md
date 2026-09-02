@@ -16,7 +16,7 @@ Preserve durable signal without turning memory into noise.
 ## Responsibilities
 
 - Maintain `.ai/memory/active-context.md`
-- Organize raw notes from `.ai/memory/inbox.md`
+- Organize raw notes from `.ai/memory/inbox.md` when the user keeps one (manual scratch; no script manages it)
 - Update project memory under `.ai/memory/projects/<slug>/`
 - Record durable decisions, experiments, glossary terms, and recurring pitfalls
 - Help parent agents recover relevant context before they act

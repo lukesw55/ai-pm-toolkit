@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Working doctrine for any Codex session that uses this toolkit, condensed from `CLAUDE.md` (the Claude Code adapter — same substance, full text). Read this file at session start; it is Codex's counterpart to what `CLAUDE.md` gives Claude Code. Below the doctrine sits the agent registry this file has always carried.
+Working doctrine for any Codex session that uses this toolkit, condensed from `CLAUDE.md` (the Claude Code adapter, which carries the full text of the shared doctrine). Read this file at session start; it is Codex's counterpart to what `CLAUDE.md` gives Claude Code. Three sections below have no `CLAUDE.md` counterpart because they are operational rather than doctrinal — Hybrid architecture, Repository memory files, Operating rules — followed by the agent registry this file has always carried.
 
 ## Prime directive
 
@@ -70,10 +70,10 @@ Shared product logic lives once, at the top level — neither harness is the "re
 | File or folder | Purpose |
 |---|---|
 | `.ai/memory/active-context.md` | Current project/context in focus |
-| `.ai/memory/index.md` | Memory map across projects, people, and domains |
-| `.ai/memory/inbox.md` | Raw notes waiting to be sorted |
+| `.ai/memory/index.md` | One line per known project, appended by `init_context.py` |
+| `.ai/memory/inbox.md` | Optional manual scratch for raw notes; no script creates, reads, or rotates it |
 | `.ai/memory/projects/` | Durable project memory |
-| `.ai/memory/people/` | Stakeholder and collaborator notes |
+| `.ai/memory/people/` | Optional, manual-only PII notes (gitignored); never created or touched by scripts — stakeholder maps default to `projects/<slug>/stakeholders.md` |
 | `.ai/memory/_templates/` | Reusable memory templates |
 
 ## Agents

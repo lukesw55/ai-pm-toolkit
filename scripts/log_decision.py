@@ -21,7 +21,7 @@ def extract_slug() -> str:
 
 def main() -> int:
     if len(sys.argv) < 3:
-        print('Usage: python scripts/log_decision.py "<title>" "<choice>" [status]')
+        print('Usage: python3 scripts/log_decision.py "<title>" "<choice>" [status]')
         return 1
 
     title = sys.argv[1].strip()

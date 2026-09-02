@@ -16,10 +16,10 @@ python3 scripts/test_hooks.py
 `validate_repo.py` covers:
 
 - `SKILL.md` YAML frontmatter for the root skill and every skill under the canonical `skills/` tree.
-- Local markdown links (canonical + repo docs; the `.claude/skills/` and `.agents/skills/` mirrors are byte copies, checked separately by drift).
+- Local markdown links and backtick-quoted file paths (canonical + repo docs; the `.claude/skills/` and `.agents/skills/` mirrors are byte copies, checked separately by drift).
 - `skills/WORKFLOW.md` parsing into the canonical eight-stage contract.
 - `.claude/settings.json` and `.codex/hooks.json` hook shape, unsupported matchers, timeout units, and that every referenced command target exists.
-- Hook shell syntax, and that shared `hooks/*.sh` scripts carry no `CLAUDE_PROJECT_DIR` dependency (enforcement logic must work under both harnesses).
+- Hook shell syntax, and that shared `hooks/*.sh` scripts carry no harness-specific paths (`CLAUDE_PROJECT_DIR`, `.claude/`, `.codex/`, `.agents/`) — enforcement logic must work under both harnesses identically.
 - Mirror drift: `.claude/skills/` and `.agents/skills/` match `skills/` exactly (`scripts/sync_skills.py --check`).
 - Memory bootstrap compatibility between `init_context.py`, `memory.py doctor`, and `stage_context.py`.
 

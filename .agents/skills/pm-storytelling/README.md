@@ -49,7 +49,7 @@ Forked from the standalone `assignment-storytelling` skill (zip distribution, 20
 - Added 4 PM-specific frameworks (Discovery Synthesis Arc, PRD Opener, Decision Memo Narrative, Release Notes Narrative) and 5 PM-specific templates (one-pager opener, PRD problem statement, decision memo, release notes, discovery synthesis story)
 - Added a binary **voice-gate pre-requisite** to the rubric for any artefact that ships outbound
 - Replaced the original "feedback reflection" example with a one-pager opener example using PM evidence
-- Removed `scripts/install.sh` — this repo *is* the install location
+- Removed the upstream `install.sh` script — this repo *is* the install location
 
 ## Suggested user prompt
 

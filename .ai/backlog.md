@@ -19,7 +19,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B19 | Arquitetura híbrida Claude Code + Codex (skills, hooks, doutrina) | Enforcement | verificado + pesquisa | 5 | 4 | 4 | 80 | feito |
 | B3 | Skill de comunicação PM: e-mail e chat (SCQA / Pyramid / BLUF) | Conteúdo PM | pesquisa | 4 | 3 | 3 | 36 | feito |
 | B4 | Skill `product-sense` (6 passos + modo avaliador em 5 dimensões) | Framework | pesquisa | 4 | 3 | 3 | 36 | feito |
-| B5 | Resolver contradições de doutrina entre AGENTS.md, SKILL.md e docs de memória | Docs | agente | 3 | 3 | 3 | 27 |
+| B5 | Resolver contradições de doutrina entre AGENTS.md, SKILL.md e docs de memória | Docs | agente | 3 | 3 | 3 | 27 | feito |
 | B6 | Produção de decks: assertion-evidence + storyline QBR → .pptx | Conteúdo PM | pesquisa | 3 | 3 | 3 | 27 |
 | B7 | Consolidação de memória executável (distill episódico → semântico) | Memória | pesquisa | 3 | 2 | 4 | 24 |
 | B8 | Corrigir crash do `grade_evals.py` em clone fresco | Bug | verificado | 3 | 3 | 2 | 18 | absorvido pelo B2 |
@@ -28,7 +28,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B11 | Ampliar suíte de evals (28 casos, 7 skills com 1–2, zero adversarial) | Skills | verificado | 3 | 2 | 3 | 18 |
 | B12 | Opportunity Solution Tree + assumption mapping em Discover/Define | Framework | pesquisa | 3 | 2 | 3 | 18 |
 | B13 | Protocolo de retrieval da camada fria (grep-first + índice por projeto) | Memória | pesquisa | 3 | 2 | 3 | 18 |
-| B14 | Referências quebradas e títulos de catálogo desatualizados | Docs | verificado | 2 | 2 | 3 | 12 |
+| B14 | Referências quebradas e títulos de catálogo desatualizados | Docs | verificado | 2 | 2 | 3 | 12 | parcial (parte B5 feita; parte humanizer pendente do B10) |
 | B15 | Archetypes sem references, evals e progressive-loading | Skills | agente | 2 | 2 | 3 | 12 |
 | B16 | Fecho de sessão write-after-act (memória atualizada ao encerrar) | Memória | pesquisa | 2 | 2 | 3 | 12 |
 | B17 | Agents Copilot: pins ausentes, tools insuficientes, required-reading divergente | Agents | agente | 2 | 2 | 2 | 8 |
@@ -64,7 +64,9 @@ Taxonomia de eval formalizada em 4 categorias (`standard`, `doctrine-adversarial
 
 ### B5 — Contradições de doutrina (GUT 27)
 
-`AGENTS.md` afirma que o repo não tem build/test/deploy enquanto `SKILL.md` e `CLAUDE.md` mandam nunca pular testes (e o repo tem suíte real de validação); `MEMORY_SYSTEM.md` e `AGENTS.md` documentam `people/` e `inbox.md` que nenhum script cria; instruções alternam `python` e `python3` (quebra em distro sem shim). Contradições nos arquivos que o agente lê toda sessão viram comportamento errático.
+**Feito.** A contradição "AGENTS.md diz que não há build/test/deploy" já tinha sido corrigida no B19 (`c19a330`); o que restava era: `CLAUDE.md` manda testar sem nomear a suíte real (agora § Verify reality cita `validate_repo.py`/`test_hooks.py`/`docs/REPO_HEALTH.md`, e `SKILL.md` raiz ganhou o ponteiro); `AGENTS.md:3` afirmava ser "same substance, full text" do CLAUDE.md tendo 3 seções operacionais a mais (agora declara isso explicitamente); `inbox.md`/`people/`/`index.md` documentados de forma inconsistente com o que os scripts criam — agora `AGENTS.md`, `MEMORY_SYSTEM.md`, `SKILL.md` raiz, `.ai/memory/README.md` e `pm-memory.agent.md` concordam ("inbox.md" é scratch manual opcional que nenhum script toca; "people/" é local opcional, manual, gitignored para PII, nunca criado por script — artefatos de stakeholder vão por padrão para `projects/<slug>/stakeholders.md`, agora incluído no `local_state` do `validate_repo.py`; "index.md" é escopado a projetos, sem a promessa de "pessoas e domínios"); 19 linhas com `python` sem sufixo viraram `python3` em 12 arquivos (a pior: as duas dicas que `scripts/stage_context.py` injeta em todo turno). `.ai/rules.md` ganhou redação híbrida no lugar de "Primary mode: Claude Code skill repo".
+
+`scripts/validate_repo.py` ganhou `check_backtick_paths`: todo caminho em backtick com `/` e extensão conhecida precisa existir resolvido a partir do diretório do arquivo citante, de `skills/`, da raiz da skill citante ou da raiz do repo (tokens `./`/`../` só a partir do arquivo citante, como nos links markdown); ignora placeholders (`<slug>`, glob, `...`), memória de runtime (gitignored, exceto o esqueleto rastreado), `.ai/backlog.md`/`.ai/changelog.md` (histórico) e a menção genérica `evals/evals.json`. Rodado antes das correções como controle negativo: 4 erros reais (3 caminhos em `skills/WORKFLOW.md` que citavam `references/x.md` sem o prefixo da skill — convenção implícita que o validador não conseguia resolver — e um path ilustrativo em `active-context.example.md`); zero após as correções. Absorveu a parte deste item que também estava no **B14** (ver abaixo): os 5 caminhos cross-skill sem `references/`, os títulos dos catálogos do anti-slop (B1–B12/C1–C10), `active-context.example.md` citando `.claude/hooks/`, e o `repo-doctor` com `skills/external/`/description pré-híbrida. Verificado: bateria completa verde, `load_stage_contract` retorna 8 estágios com referências resolvíveis, grep residual de `python ` sem sufixo limpo, validador verde também numa cópia sem memória local (paridade com clone fresco).
 
 ### B6 — Produção de decks (GUT 27)
 
@@ -100,7 +102,7 @@ A doutrina diz "cold nunca é lido wholesale", mas não define como recuperar de
 
 ### B14 — Referências quebradas (GUT 12)
 
-Cinco caminhos cross-skill omitem o segmento `references/` (ex.: `pm-phase-define/decision-memo-daci.md`); `humanizer/references/progressive-loading.md` lista `voice-calibration.md` que não existe; títulos dos catálogos do anti-slop dizem B1–B6 e C1–C6 mas os arquivos contêm B1–B12 e C1–C10. `validate_repo.py` não pega nenhum desses (só valida links markdown formais) — vale estender o validador para caminhos em backtick.
+**Parcial.** Parte fechada pelo **B5**: os 5 caminhos cross-skill sem `references/` (`pm-transversal-stakeholder` ×3, `pm-transversal-analysis`, `prioritisation-frameworks.md`), os títulos dos catálogos do anti-slop (B1–B6→B1–B12, C1–C6→C1–C10), `active-context.example.md` citando `.claude/hooks/` em vez de `hooks/`, `repo-doctor` com `skills/external/` e description pré-híbrida, e o `check_backtick_paths` novo em `validate_repo.py` (cobre o que os links markdown formais não pegavam). Ainda pendente: a linha-fantasma `voice-calibration.md` em `humanizer/references/progressive-loading.md` — a remoção da linha já entrou no B5 para o validador passar, mas o mapa completo (com os 3 arquivos reais da skill) fica para o **B10**, que fecha este item.
 
 ### B15 — Archetypes abaixo da convenção (GUT 12)
 

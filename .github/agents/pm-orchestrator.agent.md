@@ -88,7 +88,7 @@ Implement in small steps, test, verify, and update durable memory.
     - Update `.ai/changelog.md`
     - Update project memory files
     - Note any new product truths in `.ai/app.md`
-    - Advance the workflow stage if appropriate: `python scripts/advance_stage.py <stage>` (see `skills/WORKFLOW.md`)
+    - Advance the workflow stage if appropriate: `python3 scripts/advance_stage.py <stage>` (see `skills/WORKFLOW.md`)
 
 ## Communication modes
 

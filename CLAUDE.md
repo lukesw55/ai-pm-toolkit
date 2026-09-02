@@ -68,7 +68,7 @@ Do not say "best" without context. Name the cost: faster now but more coupling l
 
 ### 6. Verify reality
 
-For code: test, lint if relevant, run the narrowest meaningful verification first, then broaden. For product changes: connect the change to a user pain, a metric, or an experiment.
+For code: test, lint if relevant, run the narrowest meaningful verification first, then broaden. For this toolkit itself, the suite is `python3 scripts/validate_repo.py` and `python3 scripts/test_hooks.py` (full checklist: `docs/REPO_HEALTH.md`); run it before any commit touching `skills/`, `hooks/`, `scripts/`, or either adapter. For product changes: connect the change to a user pain, a metric, or an experiment.
 
 ## Slop discipline
 

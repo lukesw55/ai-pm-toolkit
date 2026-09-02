@@ -3,9 +3,9 @@
 advance_stage.py — Update the current workflow stage in .ai/memory/active-context.md.
 
 Usage:
-    python scripts/advance_stage.py <stage-slug>
-    python scripts/advance_stage.py --next
-    python scripts/advance_stage.py --list
+    python3 scripts/advance_stage.py <stage-slug>
+    python3 scripts/advance_stage.py --next
+    python3 scripts/advance_stage.py --list
 
 Valid stages (in default order):
     discovery-prioritization → impact-brief → discovery → one-pager

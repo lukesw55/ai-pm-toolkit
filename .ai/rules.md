@@ -11,8 +11,8 @@ The product definition lives in `.ai/app.md`.
 
 ## Environment
 
-- Primary mode: Claude Code skill repo
-- Secondary compatibility: GitHub Copilot-style agent docs in `.github/agents/`
+- Hybrid: Claude Code (`CLAUDE.md`, `.claude/`) and Codex (`AGENTS.md`, `.codex/`) run as peers over the same canonical `skills/` and `hooks/` trees; neither is the "real" copy the other degrades from
+- Also present: GitHub Copilot-style agent docs in `.github/agents/`
 - Dependency philosophy: zero-dependency by default; add tooling only when it materially improves leverage
 - Memory system: file-based durable memory under `.ai/memory/`
 - Delivery style: lean startup loop inside the Double Diamond
