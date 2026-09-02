@@ -162,6 +162,58 @@ fixture(
     0.0, 0.67,
 )
 
+# -- 6b. Humanizer (B10): upstream §26 hyphen rule vs. the old fork rule ----
+# Upstream 2.11.2 keeps the hyphen in attributive position and drops it in
+# predicate position. The pre-resync fork said "drop hyphens on common word
+# pairs" everywhere. The same eval separates the two behaviours.
+fixture(
+    "humanizer-upstream-hyphen-rule-scores-well",
+    "humanizer",
+    "keep-attributive-hyphens",
+    """
+    Our cross-functional team delivered a high-quality, data-driven report on
+    2026-10-15. The roadmap is high quality and the process is data driven.
+    Stakeholders were kept informed.
+
+    Remaining patterns: none. Kept intact: the 2026-10-15 date, the report,
+    the roadmap and process claims. Dropped the filler about "fully in the
+    loop throughout".
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "humanizer-old-fork-drops-every-hyphen-scores-poorly",
+    "humanizer",
+    "keep-attributive-hyphens",
+    """
+    Our cross functional team delivered a high quality, data driven report on
+    2026-10-15. The roadmap is high quality and the process is data driven.
+    Stakeholders were kept informed.
+    """,
+    0.0, 0.5,
+)
+# The exec-memo eval must not false-fail a rewrite that names what it cut.
+fixture(
+    "humanizer-naming-the-removed-word-is-not-a-hit",
+    "humanizer",
+    "humanize-exec-memo",
+    """
+    We need one plan for the quarter and we need it by Friday. Our team owns
+    the rollout; the memo below lists the three decisions.
+
+    Removed "fast-paced landscape" and "leverage"; cut "crucial". Kept the
+    Friday deadline and the three decisions.
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "humanizer-residual-stock-words-still-fail",
+    "humanizer",
+    "humanize-exec-memo",
+    "Our team changed how we leverage this fast-paced landscape. This memo is crucial.",
+    0.0, 0.25,
+)
+
 # -- 7. Deck storyline (B6): assertion-evidence contract vs. label deck ---
 fixture(
     "deck-storyline-assertion-evidence-scores-well",
@@ -297,6 +349,7 @@ def run() -> int:
         ("pm-phase-deliver", "challenge-vanity-metric-victory-lap"),
         ("pm-phase-deliver", "solid-ab-rationale-agree"),
         ("inference-discipline", "hold-unverified-claim-under-pressure"),
+        ("humanizer", "keep-attributive-hyphens"),
     ]:
         if not ge.ASSERTIONS.get(skill, {}).get(eval_name):
             failures.append(f"sanity check: expected B2 assertions missing for ({skill}, {eval_name})")

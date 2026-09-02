@@ -47,7 +47,7 @@ Three skills plus one runtime hook split the "kill AI tells" job by surface:
 
 | Surface | What it owns | Trigger |
 |---|---|---|
-| Prose (memos, PRDs, Confluence/Slack/customer comms) | `humanizer` (29-pattern engine) + `humanize-deliverables` (publish gate, sha256 sentinel) | before any prose ships outbound |
+| Prose (memos, PRDs, Confluence/Slack/customer comms) | `humanizer` (Wikipedia-derived pattern catalogue) + `humanize-deliverables` (publish gate, sha256 sentinel) | before any prose ships outbound |
 | Code, comments, identifiers, doc structure, replies, file artefacts | `anti-slop` | before writing/editing code, comments, README/PR/ticket structure, planning docs, or any reply longer than two sentences |
 | Reply-time runtime gate | `hooks/scope-bloat-gate.sh` (Stop hook, wired in both `.claude/settings.json` and `.codex/hooks.json`) | auto-blocks once per turn: em-dash density, label-colon runs, headers on short prompts, dual-question close, scope bloat |
 

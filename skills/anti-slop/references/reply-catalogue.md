@@ -37,7 +37,7 @@ You're absolutely right.
 Sure thing.
 ```
 
-Start with the answer. Pairs with `humanizer` patterns §20 (collaborative communication artifacts) and §22 (sycophantic/servile tone).
+Start with the answer. Pairs with `humanizer` patterns §20 (chatbot text left in the answer) and §22 (overly agreeable tone).
 
 ## C4. Trailing summaries
 

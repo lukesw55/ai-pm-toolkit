@@ -11,7 +11,7 @@ Extracts a story spine (tension → insight → change → takeaway) from messy 
 | Stage | Skill | Role |
 |---|---|---|
 | Generation | **`pm-storytelling`** *(this)* | Build the story — spine, beats, format |
-| Voice polish | [`humanizer`](../humanizer/SKILL.md) | Strip 29 AI-writing patterns, run the "what still makes this AI?" pass |
+| Voice polish | [`humanizer`](../humanizer/SKILL.md) | Strip AI-writing patterns, run the "what still makes this AI?" pass |
 | Outbound gate | [`humanize-deliverables`](../humanize-deliverables/SKILL.md) | Hard-enforced sentinel before Confluence / Slack / customer / exec |
 
 Default chain for outbound work:
@@ -48,7 +48,7 @@ Forked from the standalone `assignment-storytelling` skill (zip distribution, 20
 - Renamed `assignment-storytelling` → `pm-storytelling` to match the repo's `pm-*` / `humanize-*` / `eng-*` convention
 - Description rewritten to be pushy (per skill-creator guidance) and bilingual PT/EN
 - Added an explicit **"Working with humanizer and humanize-deliverables"** section in `SKILL.md` defining the split of labour
-- Reduced the in-line "Anti-Generic Filter" from a duplicate mini-catalogue to a light first-pass; full coverage delegated to `humanizer`'s 29-pattern catalogue
+- Reduced the in-line "Anti-Generic Filter" from a duplicate mini-catalogue to a light first-pass; full coverage delegated to `humanizer`'s pattern catalogue
 - Added 4 PM-specific frameworks (Discovery Synthesis Arc, PRD Opener, Decision Memo Narrative, Release Notes Narrative) and 5 PM-specific templates (one-pager opener, PRD problem statement, decision memo, release notes, discovery synthesis story)
 - Added a binary **voice-gate pre-requisite** to the rubric for any artefact that ships outbound
 - Replaced the original "feedback reflection" example with a one-pager opener example using PM evidence

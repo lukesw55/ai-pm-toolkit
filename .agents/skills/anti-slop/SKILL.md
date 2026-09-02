@@ -269,7 +269,7 @@ Several patterns sit on the seam between anti-slop and `humanizer`. Both skills 
 | Concern | Owned by |
 |---|---|
 | Structure: headings, bullets, lists, tables, banners, file artefacts, PR/ADR/ticket shape, code identifiers, comments, logs, repl shape | **anti-slop** |
-| Prose shape: sentence rhythm, vocabulary, n-gram fingerprints, detector axes, narrative voice, paragraph length variance | **humanizer** |
+| Prose shape: sentence rhythm, vocabulary, stock phrases, narrative voice, paragraph length variance | **humanizer** |
 | The seam (em-dash density, label-colon runs, emoji headings) | **anti-slop** owns the hard rule, `humanizer` owns the prose-level audit |
 | Scope and over-explanation in chat replies | **anti-slop** (catalogue C) |
 | Code, comments, types, identifiers, runtime narration (logs, debug prints) | **anti-slop** (catalogue A) |
