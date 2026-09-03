@@ -694,9 +694,9 @@ ASSERTIONS = {
     },
     "pm-prioritization-regua-comum": {
         "score-backlog-with-regua-comum": [
-            ("Scores ARR dimension", hasr(r"arr")),
+            ("Scores the business-impact dimension", hasr(r"\bd1\b|business impact|commercial impact|\barr\b")),
             ("Scores Abrangência dimension", hasr(r"abrang")),
-            ("Scores CRA/strategic dimension", hasr(r"cra|strateg")),
+            ("Scores the strategic & risk dimension", hasr(r"\bd3\b|strateg|regulat|\bcra\b")),
             ("Applies confidence weighting", hasr(r"confian|confidence")),
             ("Flags the single-account ask against the Abrangência lock", hasr(r"customiz|single account|uma conta|lock")),
             ("Rates effort and plots the matrix", hasr(r"effort|esforço")),
