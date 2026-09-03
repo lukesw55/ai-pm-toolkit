@@ -36,8 +36,8 @@ command -v git >/dev/null 2>&1 || exit 0
 command -v python3 >/dev/null 2>&1 || exit 0
 command -v jq >/dev/null 2>&1 || exit 0
 
-SESSION="$(tr -dc '0-9' < "$MARK" 2>/dev/null || echo "")"
-[[ -n "$SESSION" ]] || exit 0
+SESSION="$(cat "$MARK" 2>/dev/null || true)"
+[[ "$SESSION" =~ ^[0-9]+$ ]] || exit 0
 
 # One python3 call per group: the newest mtime over the paths handed in as
 # argv, so a path holding a space or a newline survives intact. A path that

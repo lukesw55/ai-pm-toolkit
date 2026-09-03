@@ -362,11 +362,13 @@ def run_reminder_cases() -> int:
     failures += reminder_case("reminder: stop_hook_active short-circuits unrecorded work",
                               False, memory_then_code, stdin_text='{"stop_hook_active": true}')
 
-    def unstamped(tmp, t0):
+    def malformed_stamp(tmp, t0):
         memory_then_code(tmp, t0)
-        (tmp / ".ai" / "gates" / "session" / "started").unlink()
+        (tmp / ".ai" / "gates" / "session" / "started").write_text(
+            "bad-123-stamp\n", encoding="utf-8")
 
-    failures += reminder_case("reminder: no session stamp stays silent", False, unstamped)
+    failures += reminder_case("reminder: a malformed session stamp fails open and stays silent",
+                              False, malformed_stamp)
 
     def committed_work(tmp, t0):
         project_log(tmp, t0 + 10)
