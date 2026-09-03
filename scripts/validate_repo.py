@@ -13,6 +13,8 @@ Checks:
 - Hook shell syntax, and that shared hooks/*.sh carry no harness-specific paths
   dependency (D4: shared enforcement logic must be harness-neutral).
 - Mirror drift: .claude/skills/ and .agents/skills/ match skills/ exactly.
+- GitHub custom agents in .github/agents/: frontmatter schema, tool aliases,
+  delegation consistency, and one shared required-reading contract.
 - Memory bootstrap contract: init_context.py creates an ACTIVE pointer that
   memory.py doctor and stage_context.py can read.
 """
@@ -48,6 +50,16 @@ STAGES = {
     "delivery",
 }
 EVAL_CATEGORIES = {"standard", "doctrine-adversarial", "skill-functional-adversarial", "negative-control"}
+AGENTS_DIR = ROOT / ".github" / "agents"
+# Built-in tool aliases documented for GitHub custom agents. A bare name outside
+# this set is an error here because GitHub ignores unrecognized tool names
+# silently, so a typo costs the agent a capability with no signal anywhere.
+# A name containing "/" is an MCP tool (server/tool) and is accepted as given.
+AGENT_TOOL_ALIASES = {"execute", "read", "edit", "search", "agent", "web", "todo"}
+AGENT_READING_HEADING = "## Required reading"
+# Repo policy, not a GitHub requirement: agents omit `model` and inherit the
+# default, which also keeps model identifiers out of the repository.
+AGENT_CORE_READING = (".ai/rules.md", ".ai/app.md", ".ai/memory/active-context.md")
 CLAUDE_EVENTS_WITHOUT_MATCHER = {"SessionStart", "UserPromptSubmit", "Stop"}
 # Codex's SessionStart accepts a `source` matcher (startup|resume|clear|compact),
 # unlike Claude Code's — only these two are confirmed matcher-less in Codex.
@@ -475,6 +487,103 @@ def check_memory_bootstrap(errors: list[str]) -> None:
             err(errors, "scripts/stage_context.py: did not emit rich stage contract after init_context.py")
 
 
+def check_agents(errors: list[str]) -> None:
+    """GitHub custom agents in .github/agents/.
+
+    Schema rules come from GitHub's custom-agents configuration reference:
+    `name` is optional (the filename is the identifier, unlike SKILL.md, which
+    requires one), `model` is a string that inherits the default when unset,
+    and unrecognized tool names are ignored rather than rejected.
+
+    Two rules here are repo policy rather than schema: `model` must be absent,
+    so every agent inherits the default and no model identifier lives in the
+    repository; and `agents`, which GitHub does not document, is validated only
+    for internal consistency — each name must resolve to a file, and a
+    non-empty list needs the `agent` tool to act on it.
+    """
+    paths = sorted(AGENTS_DIR.glob("*.agent.md"))
+    if not paths:
+        err(errors, f"{rel(AGENTS_DIR)}: no *.agent.md files found")
+        return
+    known = {p.name[: -len(".agent.md")] for p in paths}
+
+    for path in paths:
+        name = rel(path)
+        text = path.read_text(encoding="utf-8", errors="replace")
+        match = re.match(r"^---\n(.*?)\n---\n", text, re.S)
+        if not match:
+            err(errors, f"{name}: missing YAML frontmatter")
+            continue
+        if yaml is not None:
+            try:
+                data = yaml.safe_load(match.group(1)) or {}
+            except Exception as exc:
+                err(errors, f"{name}: invalid YAML frontmatter: {exc}")
+                continue
+        else:
+            data = {}
+            for line in match.group(1).splitlines():
+                m = re.match(r"^([A-Za-z0-9_-]+):\s*(.*)$", line)
+                if m:
+                    data[m.group(1)] = m.group(2)
+        if not isinstance(data, dict):
+            err(errors, f"{name}: frontmatter must be a mapping, got {type(data).__name__}")
+            continue
+
+        description = data.get("description")
+        if not isinstance(description, str) or not description.strip():
+            err(errors, f"{name}: frontmatter needs a non-empty string description")
+
+        if "model" in data:
+            err(errors, f"{name}: remove `model` — agents inherit the default model (repo policy)")
+
+        tools = data.get("tools")
+        if not isinstance(tools, list) or not tools:
+            err(errors, f"{name}: `tools` must be a non-empty list")
+            tools = []
+        for tool in tools:
+            if not isinstance(tool, str) or not tool.strip():
+                err(errors, f"{name}: every `tools` entry must be a non-empty string")
+            elif "/" not in tool and tool not in AGENT_TOOL_ALIASES:
+                allowed = ", ".join(sorted(AGENT_TOOL_ALIASES))
+                err(errors, f"{name}: unknown tool {tool!r} — GitHub ignores it silently; use one of {allowed} or an MCP server/tool")
+
+        delegates = data.get("agents")
+        if delegates is not None:
+            if not isinstance(delegates, list):
+                err(errors, f"{name}: `agents` must be a list, got {type(delegates).__name__}")
+            else:
+                for other in delegates:
+                    if not isinstance(other, str) or other not in known:
+                        err(errors, f"{name}: `agents` names {other!r}, which has no file in {rel(AGENTS_DIR)}")
+                if delegates and "agent" not in tools:
+                    err(errors, f"{name}: `agents` is non-empty but `tools` lacks `agent`, so it cannot delegate")
+
+        invocable = data.get("user-invocable")
+        if invocable is not None and not isinstance(invocable, bool):
+            err(errors, f"{name}: `user-invocable` must be a boolean, got {type(invocable).__name__}")
+
+        body = text[match.end():]
+        headings = [l for l in body.splitlines() if l.strip() == AGENT_READING_HEADING]
+        if len(headings) != 1:
+            err(errors, f"{name}: needs exactly one '{AGENT_READING_HEADING}' heading, found {len(headings)}")
+            continue
+        section = body.split(AGENT_READING_HEADING, 1)[1]
+        section = re.split(r"^#", section, maxsplit=1, flags=re.M)[0]
+        for required in AGENT_CORE_READING:
+            if required not in section:
+                err(errors, f"{name}: required reading omits `{required}`")
+        if "memory" not in section.lower():
+            err(errors, f"{name}: required reading names no project memory")
+
+    table = (ROOT / "AGENTS.md").read_text(encoding="utf-8", errors="replace")
+    listed = set(re.findall(r"`\.github/agents/([A-Za-z0-9_-]+)\.agent\.md`", table))
+    for missing in sorted(known - listed):
+        err(errors, f"AGENTS.md: no table row for {missing}")
+    for orphan in sorted(listed - known):
+        err(errors, f"AGENTS.md: table row for {orphan}, which has no file in {rel(AGENTS_DIR)}")
+
+
 def main() -> int:
     errors: list[str] = []
     warnings: list[str] = []
@@ -490,6 +599,7 @@ def main() -> int:
     check_publish_scope(errors)
     check_mirror_drift(errors)
     check_eval_coverage(errors)
+    check_agents(errors)
     check_memory_bootstrap(errors)
 
     for item in warnings:

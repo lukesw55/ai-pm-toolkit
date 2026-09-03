@@ -1,6 +1,5 @@
 ---
 description: "Use when planning or reviewing UI and UX work. pm-design keeps the product visually coherent, accessible, and lean."
-model: ['Claude Sonnet 5 (copilot)', 'GPT-5.4 (copilot)']
 tools: [read, search, web]
 user-invocable: false
 agents: []
@@ -16,9 +15,11 @@ Design must make the current wedge easier to understand, use, and validate.
 
 ## Required reading
 
-- `.ai/design.md`
+- `.ai/rules.md`
 - `.ai/app.md`
+- `.ai/design.md`
 - `.ai/memory/active-context.md`
+- relevant project memory (prior design decisions and rejected patterns)
 
 ## Planner mode
 

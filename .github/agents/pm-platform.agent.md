@@ -1,6 +1,5 @@
 ---
 description: "Platform PM archetype. Use when the product is an internal or external platform / API / infrastructure — reliability, adoption, abstraction quality, developer experience, migrations, and deprecation are first-class concerns. Not user-feature work."
-model: ['Claude Opus 5 (copilot)', 'gpt-5.4-high-reasoning (copilot)']
 tools: [read, edit, search, agent]
 agents: [pm-tech-advisor, pm-evidence, pm-memory]
 ---

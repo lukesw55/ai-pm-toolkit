@@ -1,6 +1,5 @@
 ---
 description: "Use when implementing features, fixing bugs, building prototypes, or shipping the next validated slice. pm-orchestrator is the default builder and runs work through Lean Double Diamond."
-model: ['Claude Opus 5 (copilot)', 'gpt-5.4-high-reasoning (copilot)']
 tools: [read, edit, search, execute, agent, todo]
 argument-hint: "Describe the task, bug, feature, or wedge to build"
 agents: [pm-tech-advisor, pm-evidence, pm-design, pm-memory]
@@ -14,7 +13,7 @@ You do not just code. You help the team move through the correct phase and ship 
 
 Build the **right next thing** with the **smallest maintainable diff**.
 
-## Required reading before work
+## Required reading
 
 - `.ai/rules.md`
 - `.ai/changelog.md`

@@ -31,7 +31,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B14 | Referências quebradas e títulos de catálogo desatualizados | Docs | verificado | 2 | 2 | 3 | 12 | absorvido por B5 + B10 |
 | B15 | Archetypes sem references, evals e progressive-loading | Skills | agente | 2 | 2 | 3 | 12 | absorvido pelo B11 |
 | B16 | Fecho de sessão write-after-act (memória atualizada ao encerrar) | Memória | pesquisa | 2 | 2 | 3 | 12 | feito |
-| B17 | Agents Copilot: pins ausentes, tools insuficientes, required-reading divergente | Agents | agente | 2 | 2 | 2 | 8 |
+| B17 | Agents Copilot: pins ausentes, tools insuficientes, required-reading divergente | Agents | agente | 2 | 2 | 2 | 8 | feito |
 | B18 | `pm-prioritization-regua-comum`: genericizar âncoras e unificar idioma | Skills | agente | 2 | 2 | 2 | 8 | feito |
 
 ## Detalhe por item
@@ -120,7 +120,15 @@ O protocolo de memória do SKILL.md ("after work: update memory, log decision...
 
 ### B17 — Agents Copilot inconsistentes (GUT 8)
 
-`pm-evidence` e `pm-memory` ficaram sem model pin no refresh recente; `pm-memory` não tem tool `execute` e não consegue rodar o `scripts/memory.py` que administra; `pm-tech-advisor` e `pm-design` devem produzir artefatos sem tool de escrita; listas de required-reading divergem entre os 10 e nenhum cita `CLAUDE.md`. Baixa gravidade porque só afeta o uso via Copilot.
+**Feito.** Três das quatro premissas desta linha estavam erradas e a execução as corrigiu contra o schema publicado.
+
+Não faltavam pins: **oito dos dez declaravam `model` como lista YAML**, que é malformado contra um campo de tipo string, e o campo omitido herda o default. Os oito saíram, o que também tirou todo identificador de modelo do repositório. `pm-tech-advisor` e `pm-design` **não** produzem artefato: lidos por inteiro, os dois são consultivos (Planner mode "provide", Reviewer mode "check", output impresso em texto, seção de guideline apenas sugerindo), então continuam somente leitura — a recomendação anterior de dar `edit` ao `pm-design` foi revertida pela evidência. E não citar `CLAUDE.md` é correto, não defeito: é adapter do Claude Code, não doutrina compartilhada com o Copilot.
+
+A premissa certa era o `pm-memory`: mantinha memória de projeto sem `execute`, logo não podia rodar `scripts/memory.py`. Ganhou `execute` e uma linha nomeando o CLI, porque capability sem instrução continuaria editando arquivo de memória na mão.
+
+Também unificado o contrato de leitura: um único `## Required reading` nos dez (o `pm-orchestrator` perdeu o `before work`, o `pm-kickoff` teve a lista promovida acima do fluxo numerado, o `pm-memory` ganhou a seção que não tinha) com o núcleo `.ai/rules.md`, `.ai/app.md`, active-context e memória de projeto; `pm-design` e `pm-evidence` não liam `.ai/rules.md`.
+
+`check_agents` novo em `scripts/validate_repo.py` fecha a lacuna de fundo: `.github/agents/` era o único diretório sem validador. Controle negativo antes das correções deu 13 findings, exatamente os defeitos mapeados, e zero depois. Dez regressões em `scripts/test_validate_repo.py` (8 → 18), uma delas exigindo **nenhum** finding para um tool de MCP `servidor/tool`, porque a allowlist fechada que o desenho original previa rejeitaria configuração válida. Mantidos por decisão: `argument-hint`, ignorado no github.com mas suportado nos IDEs, e `agents`, campo não documentado que o validador trata só como consistência interna.
 
 ### B18 — Régua comum não genericizada (GUT 8)
 

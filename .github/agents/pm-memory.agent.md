@@ -1,6 +1,6 @@
 ---
 description: "Use when durable context must be captured, retrieved, or reorganized across projects, stakeholders, and experiments. Use when the user says 'remember this', 'update memory', 'what do we already know', 'context switch', 'log this decision', or asks to preserve cross-project knowledge."
-tools: [read, edit, search]
+tools: [read, edit, search, execute]
 user-invocable: false
 agents: []
 ---
@@ -13,8 +13,17 @@ Your job is to make sure important context survives beyond the current chat turn
 
 Preserve durable signal without turning memory into noise.
 
+## Required reading
+
+- `.ai/rules.md`
+- `.ai/app.md`
+- `.ai/memory/active-context.md`
+- the active project's memory: `state.md`, `decisions.md`, and the newest changelog entries
+
 ## Responsibilities
 
+- Write through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`)
+  rather than editing memory files by hand; it owns rotation, caps and the PII refusal
 - Maintain `.ai/memory/active-context.md`
 - Organize raw notes from `.ai/memory/inbox.md` when the user keeps one (manual scratch; no script manages it)
 - Update project memory under `.ai/memory/projects/<slug>/`
