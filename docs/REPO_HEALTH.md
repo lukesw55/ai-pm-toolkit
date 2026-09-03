@@ -11,8 +11,10 @@ bash -n hooks/*.sh
 python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
 python3 scripts/test_hooks.py
+python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
 python3 scripts/test_validate_repo.py
+python3 scripts/grade_evals.py
 ```
 
 `validate_repo.py` covers:
