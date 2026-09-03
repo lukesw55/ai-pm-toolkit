@@ -60,7 +60,12 @@ flowchart LR
         S5["5. Product<br/>Prioritization"] --> S6["6. PRD +<br/>Prototype"] --> S7["7. Tech<br/>Kickoff"] --> S8["8. Delivery"]
     end
     S4 --> S5
+    S4 -.->|evidence does not hold| S3
+    S6 -.->|prototype kills the direction| S4
+    S8 -.->|impact measured| S3
 ```
+
+The solid line is the default path. The dotted edges are the return paths the doctrine authorises: a One Pager the evidence stops supporting goes back to the opportunity tree, a prototype that kills the direction goes back to the One Pager, and measured impact at Delivery feeds the next opportunity instead of ending the loop.
 
 Each stage has a skill that produces its artefact and a gate that must pass before advancing:
 
@@ -69,9 +74,9 @@ Each stage has a skill that produces its artefact and a gate that must pass befo
 | 1 | Discovery Prioritization | `pm-phase-define` + régua comum | `discovery-priorities.md` | top-N problems chosen, with rationale |
 | 2 | Impact Brief | `pm-phase-discover` | `impact-brief-<topic>.md` | GTM impact + invalidation conditions named |
 | 3 | Discovery | `pm-phase-discover` | discovery synthesis + opportunity tree | problem framed, JTBD validated, unverified assumptions tested or explicitly accepted |
-| 4 | One Pager | `pm-phase-define` | `one-pager-<topic>.md` | approved by stakeholders |
+| 4 | One Pager | `pm-phase-define` | `one-pager-<topic>.md` | approved by stakeholders, after the mandatory `pm-product-sense` shadow evaluation |
 | 5 | Product Prioritization | `pm-phase-define` + régua comum | `priorities.md` update | bet approved for build |
-| 6 | PRD + Prototype | `pm-phase-develop` | `prds/<feature>.md` + prototype | PRD approved, prototype validated |
+| 6 | PRD + Prototype | `pm-phase-develop` | `prds/<feature>.md` + prototype | PRD approved, prototype validated, after the mandatory `pm-product-sense` shadow evaluation |
 | 7 | Tech Kickoff | `pm-phase-develop` | kickoff deck + epic | team aligned, dependencies and NFRs clear |
 | 8 | Delivery | `pm-phase-deliver` | launch kit + close-out | GA shipped, impact measured |
 
@@ -91,7 +96,9 @@ The orchestrator is a skill codenamed **Umberto** ([`SKILL.md`](SKILL.md)). It d
 
 The archetype lenses are compositional single-file skills (one `SKILL.md` that composes the phase and transversal references and carries its own `evals/evals.json`), and each also ships as an agent in [`.github/agents/`](.github/agents/) for harnesses that speak that dialect. They stack on top of any phase skill when the product context is non-default.
 
-Every skill ships a `SKILL.md` as its control plane; 15 of 21 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so Claude loads the narrowest reference the task needs instead of a whole catalogue. Every skill carries an `evals/evals.json` with at least three cases, one of them adversarial (`scripts/validate_repo.py` enforces the floor and the parity with the grader), so the skill can be graded rather than trusted.
+Every skill ships a `SKILL.md` as its control plane. 15 of the 21 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so the model loads the narrowest reference the task needs instead of a whole catalogue.
+
+Every skill also carries an `evals/evals.json` with at least three cases, one of them adversarial. `scripts/validate_repo.py` enforces that floor and the one-to-one parity with the grader, so a skill can be graded rather than trusted.
 
 Skills support three output profiles (see [`docs/patterns/COMMUNICATION_MODES.md`](docs/patterns/COMMUNICATION_MODES.md)): Standard for stakeholder-grade analysis, Lean for routine work (the default), Caveman for token-constrained sessions.
 
@@ -127,6 +134,8 @@ Each gate has an explicit, per-content override for legitimate exceptions, so th
 
 Every skill ships an `evals/evals.json` with realistic task prompts across four categories (standard, doctrine-adversarial, skill-functional-adversarial, negative-control); the validator requires at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, and one-to-one parity with the grader's assertion blocks. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
 
+Today that floor holds at 76 cases across the 21 skills: 39 standard, 11 doctrine-adversarial, 11 skill-functional-adversarial, and 15 negative controls.
+
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 
 ## Memory that survives context switching
@@ -137,7 +146,9 @@ The point is falsifiability: a skill that does not beat the baseline on its own 
 | Warm | the project's state, kickoff, decisions, recent changelog | only when working on that project |
 | Cold | archives, raw evidence, transcripts | never wholesale; grep-first via the archive index, then one block |
 
-Writing memory goes through [`scripts/memory.py`](scripts/memory.py) (`log`, `park`, `activate`, `distill`, `index`, `doctor`), which rotates old changelog entries into archives, keeps an index block at the top of each archive so the cold layer stays searchable, and keeps the pointer under its 2 KB cap. PII and raw-evidence paths are never rotated, distilled, or ingested; `memory.py` refuses them in code (`PII_DENY`). The shipped tree contains only templates, so a fresh clone bootstraps its own memory with one command.
+Writing memory goes through [`scripts/memory.py`](scripts/memory.py) (`log`, `park`, `activate`, `distill`, `index`, `doctor`). It rotates old changelog entries into archives, keeps an index block at the top of each archive so the cold layer stays searchable, and holds the pointer under its 2 KB cap.
+
+PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py` refuses them in code (`PII_DENY`). The shipped tree contains only templates, so a fresh clone bootstraps its own memory with one command.
 
 ## The agents
 
@@ -150,7 +161,7 @@ Works the same way in Claude Code and in Codex — clone it, open the folder as 
 ```bash
 git clone https://github.com/lukesw55/ai-pm-toolkit.git
 cd ai-pm-toolkit
-bash scripts/check_requirements.sh   # preflight: python3, jq, sha256
+bash scripts/check_requirements.sh   # preflight: bash, python3, jq, git, sha256
 python3 scripts/validate_repo.py     # structural self-check (both harnesses)
 
 # bootstrap your first project context
@@ -173,16 +184,20 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | Script | Purpose |
 |---|---|
 | `init_context.py` | bootstrap a project: memory files, warm layer, and the active pointer (refuses to clobber an active project) |
-| `memory.py` | memory policy engine: `log`, `park`, `activate`, `distill`, `doctor` |
+| `memory.py` | memory policy engine: `log`, `park`, `activate`, `distill`, `index`, `doctor` |
 | `stage_context.py` | inject the current workflow stage into every turn (`UserPromptSubmit` hook) |
 | `advance_stage.py` | move the pipeline to the next stage |
 | `context_watch.py` | live CLI view of the active context and time spent per context |
 | `log_decision.py` | append a decision to the active project's decision log |
 | `validate_context.py` | schema check for `active-context.md` |
 | `grade_evals.py` | grade eval runs with-skill vs baseline; emit benchmark JSON + HTML report |
-| `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), mirror drift, memory bootstrap |
+| `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap |
+| `test_hooks.py` | synthetic payloads through the shared gates, the Codex `apply_patch` adapter, and the soft session-close reminder |
+| `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low |
+| `test_memory.py` | `memory.py` in a throwaway repo: caps, the distill fold, the archive index, the in-code PII denylist |
+| `test_validate_repo.py` | feeds the validator valid JSON in unexpected shapes and asserts a finding comes back, not a traceback |
 | `sync_skills.py` | regenerate `.claude/skills/` and `.agents/skills/` from the canonical `skills/` tree; `--check` for a read-only drift check |
-| `check_requirements.sh` | environment preflight (python3, jq, bash, sha256) |
+| `check_requirements.sh` | environment preflight (bash, python3, jq, git, sha256) |
 
 ## Validation
 
@@ -194,10 +209,15 @@ python3 -m py_compile scripts/*.py
 bash -n hooks/*.sh
 python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
+python3 scripts/test_hooks.py
+python3 scripts/test_grade_evals.py
+python3 scripts/test_memory.py
+python3 scripts/test_validate_repo.py
+python3 scripts/grade_evals.py
 python3 scripts/memory.py doctor
 ```
 
-`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax, mirror drift, and the memory bootstrap contract. It is zero-dependency except for optional PyYAML; without PyYAML it falls back to minimal frontmatter checks. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
+`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax and harness-neutrality, mirror drift, eval coverage and its parity with the grader, and the memory bootstrap contract. The four `test_*.py` suites cover the runtime behaviour the validator cannot see: what the gates block, what the grader scores, what `memory.py` does to a real tree, and how the validator behaves on malformed input. It is zero-dependency except for optional PyYAML; without PyYAML it falls back to minimal frontmatter checks. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
 
 ## Repository layout
 
