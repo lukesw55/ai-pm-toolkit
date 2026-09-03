@@ -122,7 +122,7 @@ The fold is model-assisted and two-step so nothing is summarised silently:
 2. The model replaces the `[Fill in ...]` paragraph in `synthesis.md` with three to six lines: decisions kept, constraints that still bind, open threads. Narration goes.
 3. `python3 scripts/memory.py distill <slug> --apply` re-checks the source hash and every block hash, rejects an untouched skeleton, projects the new size (exit 2 and nothing written if the synthesis pushes the file over its cap), appends the blocks to the sibling archive and regenerates its index block, re-reads the archive to confirm each block landed, and only then rewrites the source with the synthesis in the blocks' place.
 
-Guarantees: content is moved, never deleted; the archive is rebuilt into a sibling temporary file, verified block by block, and swapped in with an atomic replace, so a failed run never leaves it half-written; the archive is verified before the source is touched; the newest dated block is never folded; a package whose source changed since `--prepare` is refused and can be replaced by a new `--prepare`.
+Guarantees: content is moved, never deleted; the archive is rebuilt into a sibling temporary file, read back from disk, verified block by block, and only then swapped in with an atomic replace, so a run that fails before the swap leaves the archive untouched and the swap itself yields either the old content or the new one, never half of each; the archive is verified before the source is touched; the newest dated block is never folded; a package whose source changed since `--prepare` is refused and can be replaced by a new `--prepare`.
 
 ## PII denylist
 

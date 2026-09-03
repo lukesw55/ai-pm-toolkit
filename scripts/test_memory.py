@@ -357,6 +357,32 @@ def main() -> int:
               r.returncode == 0 and index_lines(ra) == heading_lines(ra)
               and "changelog-archive.md" in r.stdout, (r.stdout + r.stderr).strip())
 
+        formats = ("# Decisions archive\n\n> Rotated out of `decisions.md`. Full entries, verbatim.\n\n"
+                   "## 2026-03-01: colon heading\n\n- body\n\n"
+                   "## Parked 2026-03-02\n\n- body\n\n"
+                   "## 2026-03-03 — dash heading\n\n- body\n\n")
+        sb.write(slug, "decisions-archive.md", formats)
+        r = sb.run("index", slug)
+        darch = sb.read(slug, "decisions-archive.md")
+        check("the index line covers the three heading shapes the archives use",
+              r.returncode == 0 and index_lines(darch) == ["- 2026-03-01 colon heading",
+                                                           "- 2026-03-02 Parked",
+                                                           "- 2026-03-03 — dash heading"],
+              str(index_lines(darch)))
+
+        stale_header = INDEX_MARKER + ", file order; grep here before opening a block):"
+        sb.write(slug, "decisions-archive.md",
+                 "# Decisions archive\n\n> Rotated out of `decisions.md`. Full entries, verbatim.\n\n"
+                 + stale_header + "\n- 1999-01-01 a line that no longer matches any block\n"
+                 "## 2026-03-01: colon heading\n\n- body\n\n")
+        r = sb.run("index", slug)
+        fixed = sb.read(slug, "decisions-archive.md")
+        check("an index block missing its blank line is replaced, not duplicated, and the header survives",
+              r.returncode == 0 and fixed.count(INDEX_MARKER) == 1 and "1999-01-01" not in fixed
+              and fixed.startswith("# Decisions archive")
+              and "> Rotated out of `decisions.md`" in fixed
+              and index_lines(fixed) == heading_lines(fixed), fixed[:170])
+
         # 14. PII denylist in code: a project literally named 'data' is refused
         sb.run("park", slug)
         r = sb.init("data")

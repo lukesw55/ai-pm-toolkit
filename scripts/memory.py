@@ -148,9 +148,32 @@ def index_line(entry_date_str: str, heading: str) -> str:
 def index_state(text: str):
     """(blocks, index lines) for an archive, for staleness checks."""
     preamble, entries = split_entries(text)
-    m = re.search(r"(?ms)^" + re.escape(INDEX_MARKER) + r".*?\n\n", preamble)
-    lines = len([ln for ln in m.group(0).splitlines() if ln.startswith("- ")]) if m else 0
+    lines, counting = 0, False
+    for line in preamble.splitlines():
+        if line.startswith(INDEX_MARKER):
+            counting = True
+        elif counting and line.startswith("- "):
+            lines += 1
+        else:
+            counting = False
     return len(entries), lines
+
+
+def strip_index(preamble: str) -> str:
+    """Drop a previous index block: the marker line and the '- ' lines directly
+    under it, and nothing else. Line-based on purpose — a block left without
+    its trailing blank line is still removed, and no other prose is ever
+    consumed on the way."""
+    kept, dropping = [], False
+    for line in preamble.splitlines(keepends=True):
+        if line.startswith(INDEX_MARKER):
+            dropping = True
+            continue
+        if dropping and line.startswith("- "):
+            continue
+        dropping = False
+        kept.append(line)
+    return "".join(kept)
 
 
 def with_index(text: str) -> str:
@@ -161,7 +184,7 @@ def with_index(text: str) -> str:
     preamble, entries = split_entries(text)
     if not entries:
         return text
-    head = re.sub(r"(?ms)^" + re.escape(INDEX_MARKER) + r".*?\n\n", "", preamble).rstrip()
+    head = strip_index(preamble).rstrip()
     lines = "\n".join(index_line(entry_date(e), entry_heading(e)) for e in entries)
     prefix = f"{head}\n\n" if head else ""
     return f"{prefix}{INDEX_HEADER}\n{lines}\n\n" + "".join(entries)
@@ -189,10 +212,14 @@ def discard_staged(path: Path) -> None:
 
 
 def rebuild_archive(archive: Path, header: str, appended) -> bool:
-    """Rewrite the archive with `appended` added and the index regenerated,
-    through a sibling .tmp, a verification, and os.replace. The live archive is
-    never opened for writing: any failure before the replace leaves it byte for
-    byte intact. Returns True when the file changed."""
+    """Rewrite the archive with `appended` added and the index regenerated.
+    The live archive is never opened for writing: the full content is staged in
+    a sibling .tmp, read back, and verified block by block, and only then does
+    os.replace swap it in. Contract: any failure before the replace leaves the
+    archive byte for byte intact, and the replace itself yields atomically
+    either the old content or the new one. The read-back after the replace
+    detects a swap that did not land; it cannot restore the old content, which
+    the replace has already dropped. Returns True when the file changed."""
     guard(archive)
     current = archive.read_text(encoding="utf-8") if archive.exists() else None
     if current is None and not appended:
@@ -201,21 +228,24 @@ def rebuild_archive(archive: Path, header: str, appended) -> bool:
     new = with_index(old + "".join(appended))
     if new == current:
         return False
-    if not verify_rebuild(old, new, appended):
-        fail(f"refusing to rewrite {display(archive)}: the rebuild does not preserve every block and its index line")
     tmp = archive.with_name(archive.name + ".tmp")
     try:
         tmp.write_text(new, encoding="utf-8")
+        staged = tmp.read_text(encoding="utf-8")
     except OSError as exc:
         discard_staged(tmp)
         fail(f"could not stage the archive rebuild at {display(tmp)} ({exc}); {display(archive)} left intact")
+    if staged != new or not verify_rebuild(old, staged, appended):
+        discard_staged(tmp)
+        fail(f"refusing to replace {display(archive)}: the staged rebuild at {display(tmp)} does not hold "
+             f"every block and one index line each; {display(archive)} left intact")
     try:
         os.replace(tmp, archive)
     except OSError as exc:
         discard_staged(tmp)
         fail(f"could not replace {display(archive)} ({exc}); it was left intact")
-    if archive.read_text(encoding="utf-8") != new:
-        fail(f"{display(archive)} does not match the verified rebuild after replacement")
+    if archive.read_text(encoding="utf-8") != staged:
+        fail(f"{display(archive)} does not match the staged rebuild that was verified and swapped in")
     return True
 
 
@@ -596,18 +626,23 @@ def cmd_index(args):
         d = project_dir(args.slug)
         targets = [(d / archive, src, title) for src, archive, title, _order in DISTILL_FILES.values()]
     found = False
-    for archive, src_name, title in targets:
-        if not archive.exists():
-            continue
-        found = True
-        rebuilt = rebuild_archive(archive, archive_header(src_name, title), [])
-        _, entries = split_entries(archive.read_text(encoding="utf-8"))
-        note = " (index rebuilt)" if rebuilt else ""
-        print(f"{display(archive)}: {len(entries)} block(s){note}")
-        for e in entries:
-            print(f"  {index_line(entry_date(e), entry_heading(e))}")
-    if not found:
-        print(f"{args.slug}: no archives yet; nothing has rotated or folded into the cold layer")
+    try:
+        for archive, src_name, title in targets:
+            if not archive.exists():
+                continue
+            found = True
+            rebuilt = rebuild_archive(archive, archive_header(src_name, title), [])
+            _, entries = split_entries(archive.read_text(encoding="utf-8"))
+            note = " (index rebuilt)" if rebuilt else ""
+            print(f"{display(archive)}: {len(entries)} block(s){note}")
+            for e in entries:
+                print(f"  {index_line(entry_date(e), entry_heading(e))}")
+        if not found:
+            print(f"{args.slug}: no archives yet; nothing has rotated or folded into the cold layer")
+    except BrokenPipeError:
+        # the listing is built to be piped (grep, head): a reader that closes
+        # early is the normal case, not a failure
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
 
 
 def stale_index_warning(path: Path, slug: str):
