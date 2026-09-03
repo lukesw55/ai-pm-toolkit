@@ -2,7 +2,7 @@
 
 ## What it is
 
-A **concise synthesis** of validated problem + proposed solution direction + expected impact, produced right after Discovery (stage 3) and before Product Prioritisation (stage 5). It's the artefact that lets the team pick the bet to build.
+A **concise synthesis** of validated problem + proposed solution direction + expected impact, produced right after Discovery (stage 3) and before Bet Selection + Scope Slicing (stage 5). It lets the team compare validated bets without becoming a mini-PRD.
 
 Think of it as the **bridge between "we understand the problem" and "we're committing to build something"**.
 
@@ -15,7 +15,7 @@ Without the One Pager, Discovery insight goes into a deck nobody reads, or gets 
 ```markdown
 # One Pager — [Initiative name] — [YYYY-MM-DD]
 
-**Status:** Draft | In review | **Approved for build** | Parked | Rejected
+**Status:** Draft | In review | **Ready for bet selection** | Parked | Rejected
 **PM:** @name
 **Links:** impact-brief.md / discovery synthesis / opportunity tree (node O<n>-S<k>) / strategy memo / sizing (if done)
 **Stage:** One Pager (stage 4 of 8)
@@ -72,7 +72,7 @@ Open rows of the assumption map for the chosen solution: ID (O<n>-S<k>-A<m>), st
 - [team] for [what] by [when]
 
 ## Ask
-- approve to prioritise for build (advance to stage 5)
+- approve for bet selection and scope slicing (advance to stage 5)
 - decline with rationale
 - park with refresh trigger
 - request more discovery
@@ -102,7 +102,7 @@ Missing any of the five → not yet a One Pager.
 | Evidence depth | rough, order-of-magnitude | validated, discovery-backed |
 | Solution? | no — just problem worth investigating | yes — direction, not detail |
 | Length | 1 page | 1 page |
-| Decision | advance to Discovery / reject | prioritise for build / park / reject |
+| Decision | advance to Discovery / reject | select and slice / park / reject |
 
 ## Common anti-patterns
 
@@ -113,9 +113,9 @@ Missing any of the five → not yet a One Pager.
 - **No alternatives considered.** A One Pager without a rejected alternative looks like the only option existed — usually means the thinking wasn't deep enough.
 - **Spreading across 3 pages.** The discipline of one page is the skill. Multi-page = skip this stage.
 
-## Ranking multiple One Pagers
+## Selecting and slicing at stage 5
 
-When stage 5 (Product Prioritization) evaluates competing One Pagers, each should be scoreable against:
+When several validated One Pagers compete for the same capacity, compare them against:
 
 - expected impact × confidence
 - effort
@@ -123,7 +123,7 @@ When stage 5 (Product Prioritization) evaluates competing One Pagers, each shoul
 - dependency cost
 - competitive timing
 
-See `prioritisation-frameworks.md` for RICE / WSJF / scorecard templates adapted to this stage.
+Do not restart problem prioritisation or manufacture new scores. Use the evidence already linked from Discovery and the One Pager. If one bet is already funded, record the selection without ceremony. Then use `../../pm-phase-develop/references/backlog-scope-slicing.md` to define V1, later slices, the learning goal and explicit non-goals before writing the PRD.
 
 ## Who signs off
 

@@ -166,4 +166,4 @@ The PM's job is to preserve the learning, not the feature list.
 
 ## Files
 
-Epic breakdowns live in `.ai/memory/projects/<slug>/epics/<epic>.md` or in Jira with a link from the PRD.
+The stage-5 selection and release slices live in `.ai/memory/projects/<slug>/scope-slices.md`. Epic breakdowns live under `.ai/memory/projects/<slug>/epics/<epic>.md` or in Jira with a link from the PRD.

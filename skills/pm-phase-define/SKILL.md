@@ -98,6 +98,8 @@ Anti-patterns: treating the score as truth, hiding judgement behind arithmetic, 
 
 → Deep-dive: `references/prioritisation-frameworks.md`
 
+At stage 5, use prioritisation only when several validated One Pagers compete for the same capacity. Do not score the original discovery backlog again. Record the selected bet, then pair with `../pm-phase-develop/references/backlog-scope-slicing.md` to produce `scope-slices.md` before the PRD.
+
 ### 7. Roadmap narrative
 
 Build a roadmap that tells a story: strategy → sequenced bets → dependencies → expected outcomes. Roadmaps create understanding, not just visibility.

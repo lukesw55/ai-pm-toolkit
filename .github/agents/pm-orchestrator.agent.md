@@ -26,6 +26,7 @@ Build the **right next thing** with the **smallest maintainable diff**.
 
 ### Discover
 If the task is still ambiguous, gather facts before proposing a build.
+If feasibility could change the opportunity or solution direction, call **pm-tech-advisor** during Discovery and record the constraint or smallest technical test before the One Pager.
 
 ### Define
 Clarify:
@@ -49,7 +50,7 @@ Implement in small steps, test, verify, and update durable memory.
 
 2. **PRD + scope**
    - Load `pm-phase-develop/references/prd-writing.md` for the PRD template and `backlog-scope-slicing.md` for grain-size discipline.
-   - If priorities aren't set, load `pm-phase-define/references/prioritisation-frameworks.md` first.
+   - At stage 5, compare validated One Pagers only when several bets compete for capacity; otherwise record the selection and go straight to V1/later slicing before the PRD.
 
 3. **Architecture check**
    - Call **pm-tech-advisor** before major implementation choices.

@@ -4,7 +4,7 @@ Use `SKILL.md` as the control plane.
 
 | File | Purpose | Load when |
 |---|---|---|
-| `references/backlog-scope-slicing.md` | Epic-to-story slicing, MVP/MVC, story mapping | Breaking a bet into increments or structuring a backlog |
+| `references/backlog-scope-slicing.md` | Stage-5 release slicing, story maps, MVP/MVC, backlog hierarchy | Selecting a validated bet's V1, breaking an epic, defining later slices, or cleaning a backlog |
 | `references/cross-functional-orchestration.md` | Function-by-function launch coordination and role maps | Aligning design, eng, analytics, legal, support, and GTM on a delivery |
 | `references/dependency-risk.md` | RAID log, dependency mapping, mitigation planning | Surfacing cross-team dependencies or maintaining a risk register |
 | `references/prd-writing.md` | PRD template and specification-writing discipline | Writing or reviewing a PRD or spec |

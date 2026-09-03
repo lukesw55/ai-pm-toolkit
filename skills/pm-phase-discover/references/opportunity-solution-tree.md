@@ -62,6 +62,7 @@ Exit rule for the stage-4 handoff: every `unverified` assumption has either a te
 - Every opportunity comes from synthesis evidence; quote the theme and the count. No opportunity without a source.
 - At least two solutions per pursued opportunity. The one-pager's rejected alternative is a sibling solution from this tree.
 - Experiments reuse the hypothesis template in `references/opportunity-hypothesis.md`; the tree does not copy it.
+- A material feasibility assumption names the tech lead or architect who reviewed it and the smallest technical test that could change the decision. This is early evidence, not detailed architecture.
 - Prune explicitly. A parked opportunity keeps its row and its reason so nobody re-proposes it in six months.
 - A solution that arrives without a parent opportunity (a stakeholder ask, a competitor feature, a demo request) is attached to an opportunity, mapped as an assumption to test, or parked. It does not become a one-pager.
 

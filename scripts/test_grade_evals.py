@@ -516,6 +516,71 @@ fixture(
     0.8, 1.0,
 )
 
+# -- Workflow loop: Discovery updates the brief and tests feasibility early ---
+fixture(
+    "discovery-updates-impact-and-tests-feasibility",
+    "pm-phase-discover",
+    "update-impact-brief-and-test-feasibility-during-discovery",
+    """
+    Update the Impact Brief before any One Pager. Discovery replaces the 8/10
+    monthly-use claim with 2/6; support evidence is 9 tickets per quarter, not
+    30. Fewer than half repeat the job monthly, so the original invalidation
+    condition fired. Defer the bet and reframe it around migration-only demand.
+
+    The tech lead is involved during Discovery, before the PRD. Batch-service
+    reuse is a feasibility signal, but rollback after partial writes remains
+    an unverified feasibility assumption. Run the smallest technical test: a
+    rollback spike that injects a partial failure and checks whether created
+    users can be reversed cleanly. Detailed architecture waits for a selected bet.
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "discovery-freezes-brief-and-delays-engineering",
+    "pm-phase-discover",
+    "update-impact-brief-and-test-feasibility-during-discovery",
+    """
+    The Impact Brief remains approved with 8 of 10 admins importing monthly
+    and a 25% ticket reduction. Close Discovery and write the One Pager now.
+    We can wait until the PRD for engineering input and decide the rollback
+    architecture during stage 6.
+    """,
+    0.0, 0.34,
+)
+
+# -- Stage 5: select from validated evidence, then slice before the PRD --------
+fixture(
+    "validated-bet-is-selected-and-sliced",
+    "pm-phase-define",
+    "select-validated-bet-and-slice-v1",
+    """
+    Selection record: the already funded audit-export bet stays selected from
+    its validated One Pager: 12 enterprise accounts need self-serve audit
+    evidence and three renewals are at risk. Do not rerun problem prioritisation.
+
+    V1, within three weeks: CSV export over the existing 90-day data. Learning
+    goal: prove that admins can self-serve audit evidence and unblock the three
+    renewals. Later slices: filters, a searchable one-year log, API access and
+    scheduled delivery. Non-goals for V1: API, scheduling, custom filters and
+    one-year retention. Reconsider those only after V1 evidence.
+
+    Produce priorities.md plus scope-slices.md now; the PRD comes after this
+    scope-slices handoff.
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "validated-bet-is-rescored-and-sent-whole-to-prd",
+    "pm-phase-define",
+    "select-validated-bet-and-slice-v1",
+    """
+    Rerun RICE against the original discovery backlog. Rank every problem from
+    zero, then put the complete one-year audit log, CSV, API, filters and
+    scheduled delivery into the PRD as one initiative.
+    """,
+    0.0, 0.34,
+)
+
 
 def run() -> int:
     failures: list[str] = []

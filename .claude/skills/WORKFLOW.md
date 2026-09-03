@@ -8,12 +8,12 @@ START
 [1] Discovery Prioritization
   ↓
 [2] Impact Brief (GTM)
-  ↓
-[3] Discovery
+  ↕ evidence updates the case
+[3] Discovery + early technical feasibility
   ↓
 [4] One Pager
   ↓
-[5] Product Prioritization
+[5] Bet Selection + Scope Slicing
   ↓
 [6] PRD + Prototype + Refinement
   ↓
@@ -28,9 +28,9 @@ START
 |---|---|---|---|---|---|
 | 1 | Discovery Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (opportunity-level) | `discovery-priorities.md` | top N candidate problems selected with rationale |
 | 2 | Impact Brief (GTM) | `pm-phase-discover` | `pm-phase-discover/references/impact-brief.md` | `impact-brief-<topic>.md` | business + GTM impact articulated, invalidation conditions named |
-| 3 | Discovery | `pm-phase-discover` | `pm-phase-discover/references/research-design.md` + `pm-phase-discover/references/jtbd-segmentation.md` + `pm-phase-discover/references/opportunity-hypothesis.md` + `pm-phase-discover/references/opportunity-solution-tree.md` | `discovery/<topic>/synthesis.md` + `discovery/<topic>/opportunity-tree.md` | problem framed, JTBD validated, hypothesis ranked on the opportunity tree, and every unverified assumption has either a test or an explicit accepted-risk decision with named owner, rationale, and reconsideration trigger |
+| 3 | Discovery | `pm-phase-discover` | `pm-phase-discover/references/research-design.md` + `pm-phase-discover/references/jtbd-segmentation.md` + `pm-phase-discover/references/opportunity-hypothesis.md` + `pm-phase-discover/references/opportunity-solution-tree.md` + `pm-phase-develop/references/technical-fluency.md` | `discovery/<topic>/synthesis.md` + `discovery/<topic>/opportunity-tree.md` | problem framed, JTBD validated, Impact Brief updated from the evidence, material feasibility assumptions reviewed with a technical partner, and every unverified assumption has either a test or an explicit accepted-risk decision with named owner, rationale, and reconsideration trigger |
 | 4 | One Pager | `pm-phase-define` | `pm-phase-define/references/one-pager.md` | `one-pager-<topic>.md` | one-pager approved by stakeholders + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
-| 5 | Product Prioritization | `pm-phase-define` | `pm-prioritization-regua-comum` (build-level) | `priorities.md` update | bet approved for build |
+| 5 | Bet Selection + Scope Slicing | `pm-phase-define` + `pm-phase-develop` | `pm-prioritization-regua-comum` (validated-bet selection, when needed) + `pm-phase-develop/references/backlog-scope-slicing.md` | `priorities.md` + `scope-slices.md` | one validated bet selected; V1, later slices, learning goal and non-goals agreed before PRD work |
 | 6 | PRD + Prototype + Refinement | `pm-phase-develop` | `pm-phase-develop/references/prd-writing.md` + prototype loops | `prds/<feature>.md` + prototype | PRD approved, prototype validated + mandatory pm-product-sense shadow evaluation (non-blocking; formal gate unchanged) |
 | 7 | Tech Team Kickoff | `pm-phase-develop` | `pm-phase-develop/references/tech-team-kickoff.md` | kickoff deck + epic | team aligned, tickets refined, dependencies & NFRs clear |
 | 8 | Delivery | `pm-phase-deliver` | `pm-phase-deliver/references/launch-readiness.md` + `pm-phase-deliver/references/release-notes.md` + `pm-phase-deliver/references/post-launch-monitoring.md` | launch kit + close-out | GA shipped, impact measured |
@@ -44,6 +44,12 @@ Stages 4 (One Pager) and 6 (PRD) each carry a **mandatory non-blocking shadow ev
 ### Stage 3 → 4 bridge: the opportunity tree
 
 Stage 3 hands over two artefacts, not one: the synthesis and the **Opportunity Solution Tree** (`pm-phase-discover/references/opportunity-solution-tree.md`), which hangs opportunities, solutions and experiments off the outcome and maps the assumptions behind the chosen solution. The One Pager cites the node it comes from (`O<n>-S<k>`) and lists the open assumption rows; a solution with no parent opportunity does not become a One Pager. Every `unverified` assumption has a test or an explicit accepted-risk decision (named owner, rationale, reconsideration trigger); `verified` and `inferred` assumptions never block.
+
+### Impact Brief ↔ Discovery loop
+
+Stage 2 funds the learning; it does not freeze the business case. During stage 3, new evidence updates the Impact Brief's segment, impact range, GTM constraints and invalidation condition. If an invalidation condition fires, stop or defer the bet instead of carrying an outdated brief into the One Pager.
+
+When feasibility could change the opportunity or the cheapest solution shape, involve a tech lead or architect during Discovery. Record the constraint, evidence and smallest technical test in the synthesis or assumption map. Detailed architecture still belongs after bet selection; early technical input prevents a polished but infeasible direction from reaching the PRD.
 
 ### Slop-removal transversals (every stage, every artefact)
 
@@ -62,12 +68,12 @@ Two more transversals apply at every stage:
 - `inference-discipline` — the hallucination gate. Every claim about external state is either verified this turn or labelled and approved before action; `inference-discipline-gate.sh` blocks writes and outbound publishes that still carry unresolved markers.
 - `pm-storytelling` — the narrative layer. Any stage artefact meant to persuade (impact brief, one-pager, PRD opener, launch comms) gets a spine (tension → insight → change → takeaway) before `humanizer` polishes the voice. When the artefact is a deck (QBR, exec review, the stage-7 kickoff deck), `pm-storytelling/references/deck-storyline.md` supplies the per-slide contract; rendering to `.pptx` is optional and harness-dependent.
 
-## Why two prioritisations
+## Why stages 1 and 5 are different
 
 - **Discovery Prioritization (stage 1)** decides *which problems to invest discovery on*. Cheap inputs (hunch + limited evidence); picks the top N bets to research.
-- **Product Prioritization (stage 5)** decides *which one-pagers to build*. Richer inputs (validated problems, sized impact); picks the bet that clears the build bar.
+- **Bet Selection + Scope Slicing (stage 5)** starts from validated One Pagers. Compare them only when several bets compete for the same capacity; do not rescore the original problems from zero. Select the bet, then split it into the smallest V1 that tests the learning goal, later slices and explicit non-goals.
 
-A single prioritisation collapses these and under-funds either discovery or delivery. Keeping them separate protects both ends of the pipeline.
+Stage 1 protects discovery capacity. Stage 5 turns validated evidence into a buildable slice. For a single already-funded bet, skip the portfolio comparison and go straight to slicing. The CLI slug remains `product-prioritization` so existing active contexts and scripts keep working.
 
 ## Active context
 

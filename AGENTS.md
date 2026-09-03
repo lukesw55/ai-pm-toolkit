@@ -109,7 +109,7 @@ Agents load skills directly from the canonical `skills/` tree (see `SKILL.md` fo
 ## Default orchestration
 
 ### New project
-pm-kickoff → (pm-phase-discover) → pm-tech-advisor → pm-memory
+pm-kickoff → (pm-phase-discover ↔ pm-tech-advisor when feasibility is material) → pm-memory
 
 ### Feature or bug
 pm-orchestrator → (pm-phase-develop) → pm-tech-advisor → pm-evidence → pm-design (if UI) → (pm-phase-deliver on launch) → pm-memory

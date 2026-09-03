@@ -59,6 +59,8 @@ Break bets into increments that maximise **learning per week**. Strong PMs shape
 
 Outputs: story map, backlog hierarchy, MVP/MVC definition, staged rollout plan.
 
+At stage 5, pair this sub-skill with the validated One Pager. Compare bets only when several compete for capacity, then produce `scope-slices.md` with V1, later slices, the learning goal and non-goals before stage-6 PRD work.
+
 Anti-patterns: giant epics, backlog as dumping ground, confusing output granularity with customer value, slicing by component rather than user need.
 
 → Deep-dive: `references/backlog-scope-slicing.md`
