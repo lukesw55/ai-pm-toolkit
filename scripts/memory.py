@@ -10,6 +10,7 @@ Usage:
     python3 scripts/memory.py distill <slug>                        # report files over caps
     python3 scripts/memory.py distill <slug> --prepare [--file changelog|state|decisions]
     python3 scripts/memory.py distill <slug> --apply [PATH]
+    python3 scripts/memory.py index <slug>|repo
     python3 scripts/memory.py doctor
 
 Layers (see CLAUDE.md "Memory rules"): active-context.md is a pointer capped at
@@ -19,13 +20,17 @@ projects/<slug>/state.md. Warm files carry soft caps (DISTILL_CAPS). When one
 is over, `distill --prepare` extracts the oldest dated blocks into a package
 the model summarises, and `distill --apply` moves those blocks verbatim into
 the sibling *-archive.md and puts the synthesis in their place. Nothing is
-ever deleted. PII paths (raw-evidence/, people/, **/data) are refused in code
+ever deleted. Every *-archive.md carries an index block (one line per
+archived block), regenerated on each append and rebuilt by `index`, so the
+cold layer is retrieved grep-first and never read wholesale.
+PII paths (raw-evidence/, people/, **/data) are refused in code
 (PII_DENY): never rotated, distilled, logged, or parked.
 """
 
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from datetime import date, datetime
@@ -65,6 +70,8 @@ DISTILL_FILES = {
 }
 DISTILL_DIR = ".distill"
 FOLDED_MARKER = "Folded blocks (verbatim in"
+INDEX_MARKER = "Index (one line per archived block"
+INDEX_HEADER = INDEX_MARKER + ", file order; grep here before opening a block):"
 
 # Any path segment on this list, relative to the repo root, is PII territory:
 # the scripts refuse to read, write, rotate, or fold it. The guarantee used to
@@ -128,14 +135,125 @@ def entry_heading(entry):
     return entry.splitlines()[0].lstrip("#").strip()
 
 
-def append_archive(archive: Path, source_name: str, title: str, blocks) -> None:
-    """Append blocks verbatim to the sibling archive; header written once, on creation."""
+def archive_header(source_name: str, title: str) -> str:
+    return f"# {title} archive\n\n> Rotated out of `{source_name}`. Full entries, verbatim.\n\n"
+
+
+def index_line(entry_date_str: str, heading: str) -> str:
+    """One index line: '- <date> <heading without its own date>'."""
+    text = re.sub(r"\d{4}-\d{2}-\d{2}:?\s*", "", heading, count=1).strip()
+    return f"- {entry_date_str} {text}".rstrip()
+
+
+def index_state(text: str):
+    """(blocks, index lines) for an archive, for staleness checks."""
+    preamble, entries = split_entries(text)
+    lines, counting = 0, False
+    for line in preamble.splitlines():
+        if line.startswith(INDEX_MARKER):
+            counting = True
+        elif counting and line.startswith("- "):
+            lines += 1
+        else:
+            counting = False
+    return len(entries), lines
+
+
+def strip_index(preamble: str) -> str:
+    """Drop a previous index block: the marker line and the '- ' lines directly
+    under it, and nothing else. Line-based on purpose — a block left without
+    its trailing blank line is still removed, and no other prose is ever
+    consumed on the way."""
+    kept, dropping = [], False
+    for line in preamble.splitlines(keepends=True):
+        if line.startswith(INDEX_MARKER):
+            dropping = True
+            continue
+        if dropping and line.startswith("- "):
+            continue
+        dropping = False
+        kept.append(line)
+    return "".join(kept)
+
+
+def with_index(text: str) -> str:
+    """Archive text with its index block regenerated from the block headings.
+    The block sits in the preamble, before the first '## ', so split_entries
+    and entry_date never see it. Idempotent: the index is a function of the
+    headings and the preamble is normalised."""
+    preamble, entries = split_entries(text)
+    if not entries:
+        return text
+    head = strip_index(preamble).rstrip()
+    lines = "\n".join(index_line(entry_date(e), entry_heading(e)) for e in entries)
+    prefix = f"{head}\n\n" if head else ""
+    return f"{prefix}{INDEX_HEADER}\n{lines}\n\n" + "".join(entries)
+
+
+def verify_rebuild(old_text: str, new_text: str, appended) -> bool:
+    """True when the rebuilt archive holds exactly the old blocks followed by
+    the appended ones, byte for byte and in order, with one index line each."""
+    _, old_entries = split_entries(old_text)
+    _, new_entries = split_entries(new_text)
+    if new_entries != list(old_entries) + list(appended):
+        return False
+    if not new_entries:
+        return True
+    blocks, lines = index_state(new_text)
+    return blocks == lines
+
+
+def discard_staged(path: Path) -> None:
+    """Drop a staged temporary file, tolerating whatever sits in its place."""
+    try:
+        path.unlink()
+    except OSError:
+        pass
+
+
+def rebuild_archive(archive: Path, header: str, appended) -> bool:
+    """Rewrite the archive with `appended` added and the index regenerated.
+    The live archive is never opened for writing: the full content is staged in
+    a sibling .tmp, read back, and verified block by block, and only then does
+    os.replace swap it in. Contract: any failure before the replace leaves the
+    archive byte for byte intact, and the replace itself yields atomically
+    either the old content or the new one. The read-back after the replace
+    detects a swap that did not land; it cannot restore the old content, which
+    the replace has already dropped. Returns True when the file changed."""
     guard(archive)
-    header = "" if archive.exists() else (
-        f"# {title} archive\n\n> Rotated out of `{source_name}`. Full entries, verbatim.\n\n"
-    )
-    with archive.open("a", encoding="utf-8") as f:
-        f.write(header + "".join(blocks))
+    current = archive.read_text(encoding="utf-8") if archive.exists() else None
+    if current is None and not appended:
+        return False
+    old = current if current is not None else header
+    new = with_index(old + "".join(appended))
+    if new == current:
+        return False
+    tmp = archive.with_name(archive.name + ".tmp")
+    try:
+        tmp.write_text(new, encoding="utf-8")
+        staged = tmp.read_text(encoding="utf-8")
+    except OSError as exc:
+        discard_staged(tmp)
+        fail(f"could not stage the archive rebuild at {display(tmp)} ({exc}); {display(archive)} left intact")
+    if staged != new or not verify_rebuild(old, staged, appended):
+        discard_staged(tmp)
+        fail(f"refusing to replace {display(archive)}: the staged rebuild at {display(tmp)} does not hold "
+             f"every block and one index line each; {display(archive)} left intact")
+    try:
+        os.replace(tmp, archive)
+    except OSError as exc:
+        discard_staged(tmp)
+        fail(f"could not replace {display(archive)} ({exc}); it was left intact")
+    if archive.read_text(encoding="utf-8") != staged:
+        fail(f"{display(archive)} does not match the staged rebuild that was verified and swapped in")
+    return True
+
+
+def append_archive(archive: Path, source_name: str, title: str, blocks) -> bool:
+    """Add blocks verbatim to the sibling archive and regenerate its index
+    block; header written once, on creation. Goes through rebuild_archive, so
+    the archive is replaced atomically or not at all."""
+    return rebuild_archive(archive, archive_header(source_name, title), blocks)
 
 
 def rotate(changelog: Path, keep=CHANGELOG_KEEP, quiet=False):
@@ -383,7 +501,7 @@ def distill_prepare(slug, d, file_stem):
     picked = set(chosen)
     oldest_first = [i for i, _ in dated_blocks(entries, order) if i in picked]
     newest_date = max(entry_date(entries[i]) for i in chosen)
-    index = "\n".join(f"- {entry_date(entries[i])} {entry_heading(entries[i])}" for i in oldest_first)
+    index = "\n".join(index_line(entry_date(entries[i]), entry_heading(entries[i])) for i in oldest_first)
 
     synthesis = render_template(
         SYNTHESIS_TEMPLATE, date=newest_date, count=len(chosen),
@@ -462,7 +580,7 @@ def distill_apply(slug, d, pkg_arg):
         fail("synthesis.md still carries the template placeholder; write the synthesis first")
     if not re.match(r"## .*\d{4}-\d{2}-\d{2}", body.lstrip("\n").splitlines()[0]):
         fail("synthesis.md must open with a '## ' heading (dated, so entry_date keeps working)")
-    index = "\n".join(f"- {b['date']} {b['heading']}" for b in manifest["blocks"])
+    index = "\n".join(index_line(b["date"], b["heading"]) for b in manifest["blocks"])
     synthesis = f"{body.lstrip(chr(10))}\n\n{FOLDED_MARKER} `{archive_name}`):\n{index}\n\n"
 
     folded = [entries[i] for i in chosen]
@@ -497,6 +615,44 @@ def cmd_distill(args):
     if args.prepare:
         return distill_prepare(args.slug, d, args.file)
     distill_report(args.slug, d)
+
+
+def cmd_index(args):
+    """Rebuild and list the cold-layer index: what the archives hold, one line
+    per block, without opening a single block."""
+    if args.slug == "repo":
+        targets = [(ROOT_CHANGELOG.with_name("changelog-archive.md"), "changelog.md", "Changelog")]
+    else:
+        d = project_dir(args.slug)
+        targets = [(d / archive, src, title) for src, archive, title, _order in DISTILL_FILES.values()]
+    found = False
+    try:
+        for archive, src_name, title in targets:
+            if not archive.exists():
+                continue
+            found = True
+            rebuilt = rebuild_archive(archive, archive_header(src_name, title), [])
+            _, entries = split_entries(archive.read_text(encoding="utf-8"))
+            note = " (index rebuilt)" if rebuilt else ""
+            print(f"{display(archive)}: {len(entries)} block(s){note}")
+            for e in entries:
+                print(f"  {index_line(entry_date(e), entry_heading(e))}")
+        if not found:
+            print(f"{args.slug}: no archives yet; nothing has rotated or folded into the cold layer")
+    except BrokenPipeError:
+        # the listing is built to be piped (grep, head): a reader that closes
+        # early is the normal case, not a failure
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+
+
+def stale_index_warning(path: Path, slug: str):
+    """WARN string when the archive's index no longer matches its blocks."""
+    text = path.read_text(encoding="utf-8")
+    if with_index(text) == text:
+        return None
+    blocks, lines = index_state(text)
+    return (f"{path.relative_to(ROOT)}: archive index stale ({blocks} block(s), {lines} index line(s))"
+            f" — run memory.py index {slug}")
 
 
 def check_pointer_cap():
@@ -535,6 +691,12 @@ def cmd_doctor(_args):
         if ROOT_CHANGELOG.stat().st_size > CHANGELOG_SOFT_CAP:
             warns.append(f"{ROOT_CHANGELOG.relative_to(ROOT)}: {ROOT_CHANGELOG.stat().st_size} B > {CHANGELOG_SOFT_CAP} B")
 
+    root_archive = ROOT_CHANGELOG.with_name("changelog-archive.md")
+    if root_archive.exists():
+        stale = stale_index_warning(root_archive, "repo")
+        if stale:
+            warns.append(stale)
+
     for proj in sorted(p for p in PROJECTS.glob("*") if p.is_dir()) if PROJECTS.is_dir() else []:
         rel = proj.relative_to(ROOT)
         if is_pii(proj):
@@ -549,6 +711,12 @@ def cmd_doctor(_args):
             f = proj / name
             if f.exists() and f.stat().st_size > cap:
                 warns.append(f"{rel}/{name}: {f.stat().st_size} B > {cap} B — candidate for memory.py distill")
+        for _src, archive_name, _title, _order in DISTILL_FILES.values():
+            archive = proj / archive_name
+            if archive.exists():
+                stale = stale_index_warning(archive, proj.name)
+                if stale:
+                    warns.append(stale)
         pending = load_manifest(proj / DISTILL_DIR)
         if pending and not pending.get("applied"):
             warns.append(f"{rel}/{DISTILL_DIR}/: pending distill package — fill synthesis.md, then memory.py distill {proj.name} --apply")
@@ -589,6 +757,10 @@ def main():
     mode.add_argument("--apply", nargs="?", const="", metavar="PATH", help="apply a prepared package (default: the project's own)")
     s.add_argument("--file", choices=sorted(DISTILL_FILES), help="which block log to fold (with --prepare)")
     s.set_defaults(func=cmd_distill)
+
+    s = sub.add_parser("index", help="rebuild and list the cold-layer archive index (grep-first entry point)")
+    s.add_argument("slug", help="project slug, or 'repo' for .ai/changelog-archive.md")
+    s.set_defaults(func=cmd_index)
 
     s = sub.add_parser("doctor", help="cap + structure checks (exit 1 on errors)")
     s.set_defaults(func=cmd_doctor)

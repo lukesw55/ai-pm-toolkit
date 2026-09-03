@@ -107,9 +107,9 @@ Memory is layered. Never read it wholesale.
 
 - **Hot**: the pointer (`active-context.md`) plus the active project, injected at session start.
 - **Warm**: that project's kickoff, state, decisions, and the most recent changelog entries, read only when working on it.
-- **Cold**: archives, raw evidence, transcripts, never read wholesale into the main context.
+- **Cold**: archives, raw evidence, transcripts. Never read wholesale: retrieve grep-first through the archive index (`memory.py index <slug>`), then open only the block that matched.
 
-Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `doctor`). Rotation and distillation move content to archives, they never delete it. PII paths are never rotated, distilled, or ingested.
+Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`). Rotation and distillation move content to archives, they never delete it. PII paths are never rotated, distilled, or ingested.
 
 ## Decision rules
 

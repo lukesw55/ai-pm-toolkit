@@ -191,6 +191,7 @@ Before work:
 
 - read active context
 - read latest relevant decisions and experiments
+- when the warm set lacks a fact, search the cold layer grep-first (`memory.py index <slug>`, then the one block that matched); never read an archive wholesale
 - identify what is still assumed versus evidenced
 
 During work:
