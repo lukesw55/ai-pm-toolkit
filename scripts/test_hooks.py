@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-test_hooks.py — synthetic-payload smoke suite for the shared gates and the
-Codex apply_patch adapter.
+test_hooks.py — synthetic-payload smoke suite for the shared gates, the
+Codex apply_patch adapter, and the soft session-close memory reminder.
 
 Every case sends a fake tool-call payload to the real hook script over
 stdin and checks the exit code (and, where it matters, that a per-content
@@ -18,9 +18,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -258,9 +262,198 @@ def run_cases() -> int:
     return failures
 
 
+def touch(path: Path, when: int) -> None:
+    os.utime(path, (when, when))
+
+
+def git(tmp: Path, *args: str, when: int | None = None) -> None:
+    env = dict(os.environ, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.com",
+               GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.com")
+    if when is not None:
+        env["GIT_AUTHOR_DATE"] = f"@{when}"
+        env["GIT_COMMITTER_DATE"] = f"@{when}"
+    subprocess.run(["git", *args], cwd=tmp, env=env, check=True, capture_output=True)
+
+
+def reminder_sandbox(tmp: Path, t0: int) -> None:
+    """A throwaway repo carrying the reminder hook, a session stamp at t0, a
+    gitignored project changelog, tracked work files (one with a space in its
+    name), and one commit dated before the stamp."""
+    (tmp / "hooks").mkdir()
+    shutil.copy(HOOKS / "memory-reminder.sh", tmp / "hooks" / "memory-reminder.sh")
+    (tmp / "hooks" / "memory-reminder.sh").chmod(0o755)
+    (tmp / ".ai" / "gates" / "session").mkdir(parents=True)
+    (tmp / ".ai" / "gates" / "session" / "started").write_text(f"{t0}\n", encoding="utf-8")
+    (tmp / ".ai" / "memory" / "projects" / "demo").mkdir(parents=True)
+    (tmp / ".gitignore").write_text(".ai/memory/\n.ai/gates/\n", encoding="utf-8")
+    (tmp / "src").mkdir()
+    (tmp / "src" / "code.py").write_text("print(1)\n", encoding="utf-8")
+    (tmp / "src" / "with space.py").write_text("print(2)\n", encoding="utf-8")
+    (tmp / "src" / "doomed.py").write_text("print(3)\n", encoding="utf-8")
+    (tmp / ".ai" / "changelog.md").write_text("# Changelog\n\n", encoding="utf-8")
+    git(tmp, "init", "-q", ".")
+    git(tmp, "add", "-A")
+    git(tmp, "commit", "-qm", "base", when=t0 - 600)
+    # Everything the fixture itself wrote predates the stamp, so only what a
+    # case does afterwards can move either side of the comparison.
+    for rel in (".ai/changelog.md", ".gitignore", "src/code.py", "src/with space.py",
+                "src/doomed.py", "src"):
+        touch(tmp / rel, t0 - 600)
+
+
+def project_log(tmp: Path, when: int, text: str = "## entry\n") -> None:
+    path = tmp / ".ai" / "memory" / "projects" / "demo" / "changelog.md"
+    path.write_text(text, encoding="utf-8")
+    touch(path, when)
+
+
+def repo_log(tmp: Path, when: int) -> None:
+    path = tmp / ".ai" / "changelog.md"
+    path.write_text("# Changelog\n\n## entry\n", encoding="utf-8")
+    touch(path, when)
+
+
+def edit(tmp: Path, rel: str, when: int, body: str = "print(99)\n") -> None:
+    path = tmp / rel
+    path.write_text(body, encoding="utf-8")
+    touch(path, when)
+
+
+def run_reminder(tmp: Path, stdin_text: str = "{}") -> tuple[int, str, str]:
+    return run(["bash", str(tmp / "hooks" / "memory-reminder.sh")], stdin_text, cwd=tmp)
+
+
+def reminder_case(name: str, expect_message: bool, build, stdin_text: str = "{}",
+                  quiet_stderr: bool = False) -> int:
+    """Build a sandbox, run the Stop hook, and check the one thing that matters:
+    a systemMessage or silence. The hook must exit 0 either way."""
+    t0 = int(time.time()) - 3600
+    with tempfile.TemporaryDirectory(prefix="test-reminder-") as td:
+        tmp = Path(td)
+        reminder_sandbox(tmp, t0)
+        build(tmp, t0)
+        code, out, err = run_reminder(tmp, stdin_text)
+        spoke = "systemMessage" in out
+        ok = code == 0 and spoke == expect_message
+        if quiet_stderr and err.strip():
+            ok = False
+        print(f"{'PASS' if ok else 'FAIL'}  {name}")
+        if not ok:
+            print(f"  exit={code} stdout={out.strip()[:160]!r} stderr={err.strip()[:160]!r}")
+        return 0 if ok else 1
+
+
+def run_reminder_cases() -> int:
+    failures = 0
+
+    def memory_then_code(tmp, t0):
+        project_log(tmp, t0 + 10)
+        edit(tmp, "src/code.py", t0 + 20)
+
+    def code_then_memory(tmp, t0):
+        edit(tmp, "src/code.py", t0 + 10)
+        project_log(tmp, t0 + 20)
+
+    # (a) and (b) are the two mandatory regressions of the temporal invariant.
+    failures += reminder_case("reminder: memory at T0+10, code at T0+20 warns", True, memory_then_code)
+    failures += reminder_case("reminder: code at T0+10, memory at T0+20 stays silent", False, code_then_memory)
+    failures += reminder_case("reminder: clean tree with nothing since the stamp stays silent",
+                              False, lambda tmp, t0: None)
+    failures += reminder_case("reminder: stop_hook_active short-circuits unrecorded work",
+                              False, memory_then_code, stdin_text='{"stop_hook_active": true}')
+
+    def unstamped(tmp, t0):
+        memory_then_code(tmp, t0)
+        (tmp / ".ai" / "gates" / "session" / "started").unlink()
+
+    failures += reminder_case("reminder: no session stamp stays silent", False, unstamped)
+
+    def committed_work(tmp, t0):
+        project_log(tmp, t0 + 10)
+        edit(tmp, "src/code.py", t0 + 20)
+        git(tmp, "add", "-A")
+        git(tmp, "commit", "-qm", "work", when=t0 + 30)
+        touch(tmp / "src" / "code.py", t0 + 20)
+
+    failures += reminder_case("reminder: work committed after the stamp is measured by file mtime",
+                              True, committed_work)
+
+    def stale_dirt(tmp, t0):
+        edit(tmp, "src/code.py", t0 - 10)
+
+    failures += reminder_case("reminder: dirt older than the stamp is not this session's work",
+                              False, stale_dirt)
+    failures += reminder_case("reminder: the Codex Stop payload shape behaves identically",
+                              True, memory_then_code,
+                              stdin_text='{"last_assistant_message": "done"}')
+
+    def deletion(tmp, t0):
+        project_log(tmp, t0 + 10)
+        (tmp / "src" / "doomed.py").unlink()
+        touch(tmp / "src", t0 + 20)
+
+    failures += reminder_case("reminder: a tracked file deleted after the stamp warns", True, deletion)
+
+    def rename_with_space(tmp, t0):
+        project_log(tmp, t0 + 10)
+        git(tmp, "mv", "src/with space.py", "src/renamed with space.py")
+        touch(tmp / "src" / "renamed with space.py", t0 + 20)
+
+    failures += reminder_case("reminder: a rename of a path holding a space warns, without parse noise",
+                              True, rename_with_space, quiet_stderr=True)
+
+    def archive_only(tmp, t0):
+        project_log(tmp, t0 - 10)
+        edit(tmp, "src/code.py", t0 + 10)
+        archive = tmp / ".ai" / "memory" / "projects" / "demo" / "changelog-archive.md"
+        archive.write_text("# Changelog archive\n\n## old\n", encoding="utf-8")
+        touch(archive, t0 + 20)
+
+    failures += reminder_case("reminder: an archive rebuild does not count as recording the work",
+                              True, archive_only)
+
+    def space_in_modified_path(tmp, t0):
+        project_log(tmp, t0 + 10)
+        edit(tmp, "src/with space.py", t0 + 20)
+
+    failures += reminder_case("reminder: a modified path holding a space warns, without parse noise",
+                              True, space_in_modified_path, quiet_stderr=True)
+
+    # (m) and (n) are the two mandatory regressions proving no commit timestamp
+    # enters either side, with the repo changelog tracked by git on both.
+    def repo_log_then_code(tmp, t0):
+        repo_log(tmp, t0 + 10)
+        edit(tmp, "src/code.py", t0 + 20)
+        git(tmp, "add", "-A")
+        git(tmp, "commit", "-qm", "both", when=t0 + 30)
+        touch(tmp / ".ai" / "changelog.md", t0 + 10)
+        touch(tmp / "src" / "code.py", t0 + 20)
+
+    failures += reminder_case("reminder: repo changelog at T0+10, code at T0+20, both committed at T0+30 warns",
+                              True, repo_log_then_code)
+
+    def code_then_repo_log(tmp, t0):
+        edit(tmp, "src/code.py", t0 + 10)
+        repo_log(tmp, t0 + 20)
+        git(tmp, "add", "-A")
+        git(tmp, "commit", "-qm", "both", when=t0 + 30)
+        touch(tmp / "src" / "code.py", t0 + 10)
+        touch(tmp / ".ai" / "changelog.md", t0 + 20)
+
+    failures += reminder_case("reminder: code at T0+10, memory at T0+20, both committed at T0+30 stays silent",
+                              False, code_then_repo_log)
+
+    return failures
+
+
+REMINDER_CASES = 14
+
+
 def main() -> int:
     failures = run_cases()
-    total = len(CASES) + 3  # + sentinel round-trip + matcher parity + nested-cwd
+    failures += run_reminder_cases()
+    # + sentinel round-trip + matcher parity + nested-cwd + the reminder cases
+    total = len(CASES) + 3 + REMINDER_CASES
     if failures:
         print(f"\ntest_hooks: {failures}/{total} case(s) failed")
         return 1

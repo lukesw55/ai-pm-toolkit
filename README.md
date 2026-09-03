@@ -121,7 +121,7 @@ flowchart LR
     SB --> OK2["Turn completes"]
 ```
 
-Each gate has an explicit, per-content override for legitimate exceptions, so the enforcement is strict without being a dead end. Two softer hooks complete the wiring: `memory-context.sh` injects the memory hot layer at session start, and `check-project-isolation.sh` warns when a tool touches another project's memory.
+Each gate has an explicit, per-content override for legitimate exceptions, so the enforcement is strict without being a dead end. Three softer hooks complete the wiring: `memory-context.sh` injects the memory hot layer at session start and stamps the session start, `check-project-isolation.sh` warns when a tool touches another project's memory, and `memory-reminder.sh` reminds, at Stop, when files or commits changed after the last changelog entry `memory.py log` wrote. None of the three blocks.
 
 ## The toolkit grades itself
 
@@ -217,7 +217,7 @@ Shared product logic — skills, enforcement, doctrine — lives once, at the to
 │   ├── anti-slop/, humanizer/, humanize-deliverables/, inference-discipline/
 │   ├── data-science-analyst/
 │   └── repo-doctor/         # most skills: references/ + evals/ + progressive-loading.md
-├── hooks/                   # CANONICAL — 4 blocking gates, 3 mark helpers, 2 context hooks
+├── hooks/                   # CANONICAL — 4 blocking gates, 3 mark helpers, 3 context hooks
 ├── .claude/
 │   ├── settings.json        # Claude Code adapter: hook wiring
 │   └── skills/               # generated mirror of skills/ — never hand-edited

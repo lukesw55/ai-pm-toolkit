@@ -17,6 +17,7 @@ need() {
 need bash
 need python3
 need jq
+need git
 
 if command -v sha256sum >/dev/null 2>&1; then
   printf 'OK    sha256sum\n'

@@ -1,5 +1,5 @@
 {
-  "_comment": "Claude Code adapter for the ai-pm-toolkit. Shared enforcement lives in hooks/ (harness-neutral); this file only wires Claude Code events to those scripts. SessionStart injects the memory hot layer. UserPromptSubmit surfaces the current workflow stage. PreToolUse runs the anti-slop, inference-discipline, project-isolation, and humanize gates. Stop runs the reply scope-bloat gate. Remove any block to fall back to manual control; the skills still work without the hooks. The Codex adapter with the same wiring lives in .codex/hooks.json.",
+  "_comment": "Claude Code adapter for the ai-pm-toolkit. Shared enforcement lives in hooks/ (harness-neutral); this file only wires Claude Code events to those scripts. SessionStart injects the memory hot layer. UserPromptSubmit surfaces the current workflow stage. PreToolUse runs the anti-slop, inference-discipline, project-isolation, and humanize gates. Stop runs the reply scope-bloat gate and the soft memory reminder. Remove any block to fall back to manual control; the skills still work without the hooks. The Codex adapter with the same wiring lives in .codex/hooks.json.",
   "hooks": {
     "SessionStart": [
       {
@@ -72,6 +72,11 @@
           {
             "type": "command",
             "command": "\"${CLAUDE_PROJECT_DIR:-.}/hooks/scope-bloat-gate.sh\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}/hooks/memory-reminder.sh\"",
             "timeout": 5
           }
         ]

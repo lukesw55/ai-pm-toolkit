@@ -207,6 +207,7 @@ After work:
 - append experiment result if one occurred
 - update `.ai/tasks.md`
 - update `.ai/changelog.md`
+- a Stop hook (`hooks/memory-reminder.sh`) reminds you when files changed after your last `memory.py log`; it never blocks
 
 ## Response contract
 

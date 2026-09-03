@@ -1,5 +1,5 @@
 {
-  "_comment": "Codex adapter for the ai-pm-toolkit. Shared enforcement lives in hooks/ (harness-neutral); this file only wires Codex lifecycle events to those scripts, mirroring .claude/settings.json's wiring. Commands resolve the repo root via `git rev-parse --show-toplevel` so they work regardless of Codex's cwd at invocation time. The one Codex-specific execution adapter is .codex/adapters/pretooluse.py, which normalizes apply_patch's V4A patch format into the Write/Edit shape the shared write gates already consume; MCP publish tool calls need no adapter, since Codex reports tool_name/tool_input in the same shape Claude Code does. Trust the shared scripts once via `/hooks` in the Codex CLI, and again after any edit to hooks/*.sh or this file (Codex tracks trust by content hash). Known gap: check-project-isolation.sh has no Codex wiring here — Codex's PreToolUse matcher catalogue has no confirmed equivalent to Claude Code's Read tool, so the isolation warning is Claude Code-only for now.",
+  "_comment": "Codex adapter for the ai-pm-toolkit. Shared enforcement lives in hooks/ (harness-neutral); this file only wires Codex lifecycle events to those scripts, mirroring .claude/settings.json's wiring. Commands resolve the repo root via `git rev-parse --show-toplevel` so they work regardless of Codex's cwd at invocation time. The one Codex-specific execution adapter is .codex/adapters/pretooluse.py, which normalizes apply_patch's V4A patch format into the Write/Edit shape the shared write gates already consume; MCP publish tool calls need no adapter, since Codex reports tool_name/tool_input in the same shape Claude Code does. Trust the shared scripts once via `/hooks` in the Codex CLI, and again after any edit to hooks/*.sh or this file (Codex tracks trust by content hash). Known gap: check-project-isolation.sh has no Codex wiring here \u2014 Codex's PreToolUse matcher catalogue has no confirmed equivalent to Claude Code's Read tool, so the isolation warning is Claude Code-only for now.",
   "hooks": {
     "SessionStart": [
       {
@@ -57,6 +57,11 @@
           {
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)/hooks/scope-bloat-gate.sh\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)/hooks/memory-reminder.sh\"",
             "timeout": 5
           }
         ]
