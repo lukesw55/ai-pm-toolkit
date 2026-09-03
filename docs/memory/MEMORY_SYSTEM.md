@@ -148,6 +148,7 @@ After a task:
 1. append decision or experiment entries when relevant
 2. refresh `active-context.md` if focus changed
 3. update `index.md` if a new project was added
+4. if the Stop reminder fires, the session changed files without touching the changelog: log before closing
 
 ## What belongs in memory
 

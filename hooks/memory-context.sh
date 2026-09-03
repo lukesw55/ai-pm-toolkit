@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# SessionStart hook: inject the hot memory layer (index + active-context pointer).
+# SessionStart hook: inject the hot memory layer (index + active-context pointer)
+# and stamp the session start for hooks/memory-reminder.sh.
 # Both files are policy-capped (pointer <=2 KB, index ~1 line/project); the 8 KB
 # guard below only trips if that policy drifts -- memory.py doctor flags it first.
 # Wired by both harness lifecycle adapters on SessionStart.
@@ -7,6 +8,11 @@
 set -u
 
 MEM="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.ai/memory"
+
+# Stamp the session start for hooks/memory-reminder.sh. Fail-open: a stamp
+# that cannot be written only means the reminder stays quiet.
+GATES="$(dirname "$MEM")/gates/session"
+mkdir -p "$GATES" 2>/dev/null && date +%s > "$GATES/started" 2>/dev/null || true
 
 idx="(missing)"
 active="(missing)"

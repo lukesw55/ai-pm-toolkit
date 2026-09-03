@@ -63,6 +63,8 @@ Shared product logic lives once, at the top level — neither harness is the "re
 
 **Known degradation**: `hooks/check-project-isolation.sh` (warns when a tool touches another project's memory) has no confirmed Codex equivalent — Claude Code-only for now.
 
+**Session close**: both harnesses run `hooks/memory-reminder.sh` on Stop. When files or commits changed after the last changelog entry of this session (`.ai/changelog.md` or the project's `changelog.md`, the files `memory.py log` writes), it prints a one-line reminder to run `memory.py log`. Archive rebuilds, park and activate, and other lifecycle writes do not count as recording the work. It never blocks, and sessions sharing one clone share the session stamp.
+
 **Known degradation**: the optional `.pptx` render step in `pm-storytelling` (see `skills/pm-storytelling/references/deck-storyline.md`) hands off to the Anthropic `pptx` skill, which Claude Code sessions may offer and Codex does not — Claude Code-only for now. The storyline is the deliverable on both harnesses.
 
 **Stage-awareness**: both harnesses inject the current workflow stage into every turn via a `UserPromptSubmit` hook reading `.ai/memory/active-context.md` (see `scripts/stage_context.py`). If hooks are disabled or not yet trusted, read `active-context.md` manually before substantial work — it's the source of truth for pipeline position either way.
