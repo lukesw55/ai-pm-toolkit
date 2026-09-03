@@ -54,18 +54,19 @@ This toolkit encodes the corrections as reusable skills and as hooks the harness
 ```mermaid
 flowchart LR
     subgraph problem [Problem space]
-        S1["1. Discovery<br/>Prioritization"] --> S2["2. Impact<br/>Brief"] --> S3["3. Discovery"] --> S4["4. One<br/>Pager"]
+        S1["1. Discovery<br/>Prioritization"] --> S2["2. Impact<br/>Brief"] --> S3["3. Discovery<br/>with Engineering"] --> S4["4. One<br/>Pager"]
     end
     subgraph solution [Solution space]
-        S5["5. Product<br/>Prioritization"] --> S6["6. PRD +<br/>Prototype"] --> S7["7. Tech<br/>Kickoff"] --> S8["8. Delivery"]
+        S5["5. Bet Selection<br/>+ Scope Slicing"] --> S6["6. PRD +<br/>Prototype"] --> S7["7. Tech<br/>Kickoff"] --> S8["8. Delivery"]
     end
     S4 --> S5
+    S3 -.->|evidence reshapes impact| S2
     S4 -.->|evidence does not hold| S3
     S6 -.->|prototype kills the direction| S4
     S8 -.->|impact measured| S3
 ```
 
-The solid line is the default path. The dotted edges are the return paths the doctrine authorises: a One Pager the evidence stops supporting goes back to the opportunity tree, a prototype that kills the direction goes back to the One Pager, and measured impact at Delivery feeds the next opportunity instead of ending the loop.
+The solid line is the default path. During Discovery, evidence updates the Impact Brief instead of leaving its commercial case frozen. Engineering joins that work when feasibility is material, before the One Pager hardens a direction. The other dotted edges return unsupported bets to the opportunity tree, failed prototype directions to the One Pager, and measured delivery impact to the next opportunity.
 
 Each stage has a skill that produces its artefact and a gate that must pass before advancing:
 
@@ -73,9 +74,9 @@ Each stage has a skill that produces its artefact and a gate that must pass befo
 |---|---|---|---|---|
 | 1 | Discovery Prioritization | `pm-phase-define` + régua comum | `discovery-priorities.md` | top-N problems chosen, with rationale |
 | 2 | Impact Brief | `pm-phase-discover` | `impact-brief-<topic>.md` | GTM impact + invalidation conditions named |
-| 3 | Discovery | `pm-phase-discover` | discovery synthesis + opportunity tree | problem framed, JTBD validated, unverified assumptions tested or explicitly accepted |
+| 3 | Discovery | `pm-phase-discover` | discovery synthesis + opportunity tree | problem and JTBD validated, Impact Brief updated, material feasibility reviewed with a technical partner, unverified assumptions tested or explicitly accepted |
 | 4 | One Pager | `pm-phase-define` | `one-pager-<topic>.md` | approved by stakeholders, after the mandatory `pm-product-sense` shadow evaluation |
-| 5 | Product Prioritization | `pm-phase-define` + régua comum | `priorities.md` update | bet approved for build |
+| 5 | Bet Selection + Scope Slicing | `pm-phase-define` + `pm-phase-develop` | `priorities.md` + `scope-slices.md` | validated bet selected; V1, later slices, learning goal and non-goals agreed |
 | 6 | PRD + Prototype | `pm-phase-develop` | `prds/<feature>.md` + prototype | PRD approved, prototype validated, after the mandatory `pm-product-sense` shadow evaluation |
 | 7 | Tech Kickoff | `pm-phase-develop` | kickoff deck + epic | team aligned, dependencies and NFRs clear |
 | 8 | Delivery | `pm-phase-deliver` | launch kit + close-out | GA shipped, impact measured |
@@ -134,7 +135,7 @@ Each gate has an explicit, per-content override for legitimate exceptions, so th
 
 Every skill ships an `evals/evals.json` with realistic task prompts across four categories (standard, doctrine-adversarial, skill-functional-adversarial, negative-control); the validator requires at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, and one-to-one parity with the grader's assertion blocks. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
 
-Today that floor holds at 76 cases across the 21 skills: 39 standard, 11 doctrine-adversarial, 11 skill-functional-adversarial, and 15 negative controls.
+Today that floor holds at 78 cases across the 21 skills: 39 standard, 11 doctrine-adversarial, 13 skill-functional-adversarial, and 15 negative controls.
 
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 

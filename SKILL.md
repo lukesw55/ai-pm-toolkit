@@ -57,14 +57,14 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 | Phase / transversal | Skill | Covers |
 |---|---|---|
 | Discover (phase 1) | `pm-phase-discover` | problem framing, research design, JTBD/segmentation, opportunity hypothesis, opportunity solution tree + assumption map (stage 3 → 4 bridge), competitive intel, **Impact Brief (stage 2)** |
-| Define (phase 2) | `pm-phase-define` | strategy memo, KPI tree, opportunity sizing, business case/PRFAQ, pricing & packaging, prioritisation (RICE/WSJF/Kano), roadmap narrative, decision memos, **One Pager (stage 4)** |
-| Develop (phase 3) | `pm-phase-develop` | PRD writing, backlog & scope slicing, dependency/risk, cross-functional orchestration, tracking-plan design, technical fluency (PM lens), **Tech Team Kickoff (stage 7)** |
+| Define (phase 2) | `pm-phase-define` | strategy memo, KPI tree, opportunity sizing, business case/PRFAQ, pricing & packaging, problem prioritisation and validated-bet selection, roadmap narrative, decision memos, **One Pager (stage 4)** |
+| Develop (phase 3) | `pm-phase-develop` | scope slicing (stage 5), PRD writing, backlog structure, dependency/risk, cross-functional orchestration, tracking-plan design, technical fluency (PM lens), **Tech Team Kickoff (stage 7)** |
 | Deliver (phase 4) | `pm-phase-deliver` | launch readiness, release notes (user/internal/customer), post-launch monitoring, experiment interpretation, product analytics, metric quality & guardrails |
 | Transversal | `pm-transversal-stakeholder` | DACI/RACI/RAPID, exec reporting, stakeholder mapping |
 | Transversal | `pm-transversal-docs` | Confluence structure & templates, Jira ticket hygiene, linking & automation |
 | Transversal | `pm-transversal-analysis` | qualitative synthesis, quantitative analysis (HogQL), triangulation, media/transcript parsing |
 | Transversal | `pm-transversal-comms` | executive email (SCQA), chat/Slack messages (BLUF), channel-fit rules (chat vs. email vs. doc vs. call) |
-| Transversal | `pm-prioritization-regua-comum` | Impact × Effort with one shared ruler (ARR/Abrangência/CRA), Abrangência lock, HIPO weighting — used at stages 1 and 5 |
+| Transversal | `pm-prioritization-regua-comum` | Impact × Effort with one shared ruler (ARR/Abrangência/CRA), Abrangência lock, HIPO weighting — stage 1 problem ranking; stage 5 only when validated bets compete |
 | Transversal | `pm-storytelling` | narrative spine (tension → insight → change → takeaway) for memos, PRD openers, discovery syntheses, QBR storylines |
 | Transversal | `pm-product-sense` | BUILD (6-step decision framework) + EVALUATE (5-dimension rubric); mandatory non-blocking shadow evaluation at stages 4 and 6 |
 | Transversal | `data-science-analyst` | technical correctness of the analysis itself: dataset profiling, SQL audits, A/B validation, leakage checks |

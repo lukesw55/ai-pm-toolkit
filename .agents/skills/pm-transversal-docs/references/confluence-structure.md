@@ -25,7 +25,7 @@ Confluence is where PM decisions, strategies, PRDs, launches, and retros live. W
 │   └── Insight repository
 ├── 📂 Priorities
 │   ├── Discovery prioritisation (stage 1 output)
-│   ├── Product prioritisation (stage 5 output)
+│   ├── Bet selection + scope slicing (stage 5 output)
 │   └── Roadmap narrative
 ├── 📂 One Pagers
 │   └── [per-initiative pages]

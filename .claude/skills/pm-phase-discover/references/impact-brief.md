@@ -2,7 +2,7 @@
 
 ## What it is
 
-A **lightweight, business-and-GTM-first brief** that establishes why an opportunity is worth full discovery. Sits between "we have a candidate problem" (stage 1 output) and "we're going to deeply investigate it" (stage 3 discovery).
+A **lightweight, business-and-GTM-first brief** that establishes why an opportunity is worth full discovery. It opens stage 3 and stays live while discovery changes the evidence; approval funds the learning, not a frozen business case.
 
 Think of it as the smallest doc that lets PM + PMM + leadership agree "yes, this is worth 1-3 weeks of discovery effort".
 
@@ -22,7 +22,7 @@ The brief compresses the commercial lens (segment, willingness to buy, positioni
 
 **Status:** Draft | In review | **Approved for discovery** | Rejected
 **PM:** @name   **PMM:** @name   **Exec sponsor:** @name
-**Links:** discovery-priorities.md entry / strategy memo
+**Links:** discovery-priorities.md entry / strategy memo / discovery synthesis and opportunity tree (when available)
 **Stage:** Impact Brief (stage 2 of 8)
 
 ## TL;DR
@@ -56,10 +56,13 @@ Name 2-3 things that, if true, make this not worth pursuing.
 - positioning / brand risk:
 
 ## What discovery must answer
-The questions we expect discovery to resolve. If discovery can't change the answer to these, we're not designing discovery well.
-- [ ] Q1: is the problem real and frequent for [segment]?
-- [ ] Q2: is the willingness-to-pay / willingness-to-switch strong enough?
-- [ ] Q3: do the GTM assumptions hold (channel reach, positioning)?
+Update this table as evidence arrives. If discovery cannot change the business case, the questions are too weak.
+
+| Question | Current answer + evidence | Effect on the case |
+|---|---|---|
+| Is the problem real and frequent for [segment]? | [unknown / evidence] | strengthens / weakens / invalidates |
+| Is willingness-to-pay or willingness-to-switch strong enough? | [unknown / evidence] | strengthens / weakens / invalidates |
+| Do the GTM assumptions hold (channel reach, positioning)? | [unknown / evidence] | strengthens / weakens / invalidates |
 
 ## Discovery plan (lightweight)
 - method(s): [interviews / survey / data pull / competitive / mixed]
@@ -69,7 +72,9 @@ The questions we expect discovery to resolve. If discovery can't change the answ
 - handoff artefact: [synthesis + ranked hypotheses → stage 3 output]
 
 ## Invalidation condition
-"We will NOT advance to Product Prioritisation if [specific finding]."
+"We will NOT advance to a One Pager if [specific finding]."
+
+During stage 3, keep this condition and the affected impact or GTM claim current. If it fires, stop or defer the bet rather than carrying the original brief forward.
 
 ## Decision ask
 - approve: advance to stage 3 (Discovery)
@@ -86,13 +91,14 @@ One page. Two max. If it's longer, you're either over-thinking (move to discover
 | Artefact | Stage | Focus | Depth |
 |---|---|---|---|
 | **Impact Brief** | 2 (this doc) | "should we invest discovery?" — commercial lens | light, ≤ 1 page |
-| **One Pager** | 4 | "should we invest build?" — validated problem + solution direction | medium, 1-2 pages |
+| **One Pager** | 4 | "should we invest build?" — validated problem + solution direction | medium, 1 page |
 | **PRFAQ** | optional (usually around stage 5-6) | executive-level "working backwards" narrative | deeper, 2-5 pages |
 | **PRD** | 6 | "what exactly are we building and how will we know it worked?" | 2-5 pages |
 
 ## Common anti-patterns
 
-- **Technical design.** Impact Brief is not for architecture. Save that for stage 6.
+- **Technical design.** The brief needs a feasibility smell-test, not an architecture proposal. Test material technical unknowns during Discovery and leave detailed design for stage 6.
+- **Frozen after approval.** Discovery changes the segment, impact estimate or GTM case, but the brief still presents the stage-2 assumptions as current.
 - **Full sizing theatre.** Rough order of magnitude is fine; don't over-invest in precision before discovery.
 - **Solution statement.** Don't pick the solution here; pick the problem worth investigating.
 - **Missing GTM.** If PMM didn't read this, it's not an Impact Brief — it's just a problem memo.

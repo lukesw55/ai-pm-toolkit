@@ -31,6 +31,8 @@ The stage-2 artefact this skill commonly produces is the **Impact Brief** — se
 
 The stage-3 handoff artefact is the **Opportunity Solution Tree** — see `references/opportunity-solution-tree.md`; it bridges `discovery/<topic>/synthesis.md` to the stage-4 One Pager (stage 3 of 8 in `../WORKFLOW.md`).
 
+Stages 2 and 3 form a loop: discovery evidence updates the Impact Brief's segment, impact range, GTM constraints and invalidation condition. When feasibility is material, bring in a tech lead or architect during Discovery and record the constraint or test in the synthesis and assumption map; do not wait for a finished prototype or PRD.
+
 ## Prime directive
 
 **Learn the smallest thing that changes the decision.** Research is cheap when targeted and expensive when performative. Expert PMs do not treat interviews as sales calls, do not collect quotes without synthesis, and do not polish a prototype before the underlying risk is resolved.
@@ -101,8 +103,10 @@ Use this flow when invoked. Tailor depth to the phase — Lean Double Diamond st
 1. **Read active context** — `.ai/memory/active-context.md` and any existing `.ai/memory/projects/<slug>/profile.md`. Do not redo discovery that has already been done; build on top.
 2. **Classify the ask** — problem-framing, research, segmentation, opportunity, competitive, or a mix? State this explicitly to the user in one line before producing artefacts.
 3. **Produce the smallest useful artefact** — prefer a problem brief + assumptions list over a 10-page research plan. If the decision can be made with what's already known, say so and stop.
-4. **Name what would change the answer** — every discovery output must end with "this would flip to a different conclusion if X".
-5. **Update memory** — append insights to `.ai/memory/projects/<slug>/` (experiments.md, glossary.md, or a new `discovery.md` note) and update `active-context.md` if the project focus changes.
+4. **Keep the Impact Brief live** — update only the commercial claims the evidence strengthened, weakened or invalidated.
+5. **Test feasibility early when it is material** — involve a tech lead or architect, record the constraint and use the cheapest spike or review that can change the decision. Do not turn Discovery into architecture design.
+6. **Name what would change the answer** — every discovery output must end with "this would flip to a different conclusion if X".
+7. **Update memory** — append insights to `.ai/memory/projects/<slug>/` (experiments.md, glossary.md, or a new `discovery.md` note) and update `active-context.md` if the project focus changes.
 
 ## Output contract
 
@@ -122,6 +126,12 @@ When generating a discovery artefact, structure it as:
 
 ### Framing / synthesis
 - the actual output (problem statement, segment, hypothesis, etc.)
+
+### Impact Brief update
+- commercial claims strengthened, weakened, invalidated, or unchanged
+
+### Technical feasibility (when material)
+- technical partner, constraint, evidence, and smallest test
 
 ### Invalidation condition
 - what would change this conclusion
@@ -148,3 +158,4 @@ This skill is working when:
 - research outputs consistently change the team's behaviour (not just accumulate in a repo)
 - segmentation models survive three quarters without being rewritten from scratch
 - the team can name two opportunities it chose *not* to pursue and why
+- material feasibility constraints surface before a direction reaches the One Pager

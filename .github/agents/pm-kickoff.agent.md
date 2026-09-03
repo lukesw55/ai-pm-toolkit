@@ -41,6 +41,8 @@ Build a concise map of:
 
 If the input is interviews / transcripts / recordings, also load `pm-transversal-analysis` for qualitative synthesis and (when quant exists) triangulation.
 
+Keep the stage-2 Impact Brief live as evidence arrives. If feasibility could change the opportunity or solution direction, call **pm-tech-advisor during Discovery** and record the constraint or smallest technical test in the synthesis or assumption map. Do not wait for the PRD.
+
 ### 3. Define
 Turn discovery into:
 - problem statement
@@ -55,8 +57,8 @@ Turn discovery into:
 
 For stage 2 **Impact Brief (GTM)**, load `pm-phase-discover/references/impact-brief.md`.
 
-### 4. Get architecture framing
-Call **pm-tech-advisor** to stress-test the solution shape, reversibility, and major tradeoffs.
+### 4. Confirm architecture framing
+If the defined wedge introduces material tradeoffs beyond the Discovery check, call **pm-tech-advisor** again to stress-test solution shape and reversibility.
 
 ### 5. Update repo artifacts
 Update as needed:

@@ -93,6 +93,12 @@ The expert move is not picking a framework — it's **adapting it**:
 
 Pin the adaptation in writing. Un-documented adjustments = gaming.
 
+## Stage 1 versus stage 5
+
+Stage 1 ranks candidate problems to decide where Discovery time goes. Stage 5 starts from validated One Pagers and does not score those original problems again. If several validated bets compete for the same capacity, compare them using their existing evidence and select one. If the bet is already funded, record the selection and skip the comparison.
+
+After selection, stage 5 is scope slicing: use `../../pm-phase-develop/references/backlog-scope-slicing.md` to define the smallest V1 that tests the learning goal, later slices and non-goals. Detailed requirements belong in the stage-6 PRD.
+
 ## Anti-patterns
 
 - **Score as truth.** Treating the arithmetic as the decision rather than as a forcing function for discussion.

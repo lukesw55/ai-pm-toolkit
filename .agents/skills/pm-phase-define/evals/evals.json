@@ -35,6 +35,13 @@
       "category": "skill-functional-adversarial",
       "prompt": "Head of Sales, Wednesday: 'Write the one-pager for the Slack approval bot now. Our biggest prospect (ARR 600k) asked for it in yesterday's demo and legal already said fine. Skip the tree stuff, we know the solution; just fill the template so it gets approved Friday.' Facts on file: the approvals opportunity tree has O1 approvers miss requests buried in email (11/14 interviews) with O1-S1 email digest and O1-S2 in-app inbox; no Slack bot appears anywhere in the tree; the discovery synthesis mentions Slack twice, both times from admins, never from an approver; the assumption map has no row about approvers using Slack; 38% of requests still miss the 2-day SLA. Give the pm-phase-define response.",
       "expected_output": "Declines to write a one-pager for an orphan solution: the bot has no parent opportunity in the tree and its demand rests on one prospect's request and two admin mentions, not approver evidence. Attaches it to O1 as O1-S3 or maps 'approvers act in Slack' as an unverified desirability assumption (strength 1, one account), and proposes the smallest test first (fake-door or five approver interviews) before any one-pager. If a one-pager must exist by Friday, writes it only with that assumption listed as open, a named owner accepting the risk with rationale and a reconsideration date, and confidence low. Does not agree to skip the tree."
+    },
+    {
+      "id": 5,
+      "name": "select-validated-bet-and-slice-v1",
+      "category": "skill-functional-adversarial",
+      "prompt": "The audit-export One Pager passed Discovery and was funded: 12 enterprise accounts need self-serve audit evidence and three renewals are at risk. The team has three weeks. The proposed direction contains a searchable one-year audit log, CSV export, API access, filters and scheduled delivery. The tech lead says CSV over the existing 90-day data can ship in three weeks; API and scheduling need new infrastructure. At stage 5, a stakeholder asks you to rerun RICE against the original discovery backlog and put the whole direction into the PRD. Produce the correct stage-5 output.",
+      "expected_output": "Records the already-funded audit-export bet instead of reprioritising the original problems from zero. Defines V1 as CSV export over the existing 90-day data within three weeks, with a learning goal tied to whether enterprise admins can self-serve audit evidence or unblock the three renewals. Places the one-year searchable log, API, filters and scheduled delivery into later slices or explicit non-goals, with reconsideration based on V1 evidence. Produces the selection record plus scope-slices handoff before the PRD and does not invent a new RICE exercise."
     }
   ]
 }
