@@ -582,6 +582,48 @@ fixture(
 )
 
 
+# -- B18: the ruler is applied by its three dimensions, not by account size ----
+fixture(
+    "regua-scores-three-dimensions-and-applies-the-lock",
+    "pm-prioritization-regua-comum",
+    "score-backlog-with-regua-comum",
+    """
+    Ruler configuration in force: D1 Business impact serves recurring revenue,
+    D3 Strategic & risk serves the security posture.
+
+    (a) SSO for one large account. D1 Business impact 4 (the account is around
+    $300k ARR), D2 Abrangência 2 (one account asked; SSO generalises only if it
+    ships as a configurable capability), D3 Strategic & risk 3 (access
+    governance). Raw 3.00, confidence Low 0.70 because a single source asked
+    for it, final 2.10, Medium. The Abrangência lock bites the moment anyone
+    argues this up to High: a bespoke integration for one account is
+    customization unless it ships reusable, and no exception is logged.
+
+    (b) Onboarding checklist for every new user. D1 3, D2 5, D3 1. Raw 3.00,
+    confidence Medium 0.85, final 2.55, Medium. Effort Low.
+
+    (c) Internal billing refactor. D1 1, D2 3, D3 2. Raw 2.00, confidence Low
+    0.70, final 1.40, Low. Effort High.
+
+    Order: (b) first, a Quick win at Medium impact and Low effort. Then (a),
+    parametrised so Abrangência rises above the lock. (c) last, unless it turns
+    out to block (a).
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "regua-ranks-by-account-size-without-the-ruler",
+    "pm-prioritization-regua-comum",
+    "score-backlog-with-regua-comum",
+    """
+    SSO integration goes first: big revenue upside and low risk for a large
+    account that is already asking. The onboarding checklist can wait, and the
+    billing refactor is internal so it goes last.
+    """,
+    0.0, 0.34,
+)
+
+
 def run() -> int:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="test-grade-evals-") as td:

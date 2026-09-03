@@ -1,42 +1,42 @@
-# Workshop de priorização e governança
+# Prioritization workshop and governance
 
-## Como rodar um workshop (60–90 min)
+## Running a workshop (60–90 min)
 
-**Participantes:** Product (facilita), Engineering (esforço), Sales e CS (evidência de mercado), Security (CRA/risco), liderança (HIPO, exceções, desempate). 5–7 pessoas.
+**Participants:** Product (facilitates), Engineering (effort), Sales and CS (market evidence), the owner of the strategic dimension in your ruler configuration (security, compliance, or whoever owns D3), leadership (HIPO, exceptions, tie-breaks). 5–7 people.
 
-**Inputs necessários (preparados antes):** lista curta de iniciativas candidatas (8–15), template em branco (ver `templates.md` ou a planilha), e a definição oficial de impacto visível na sala.
+**Inputs to prepare beforehand:** a short list of candidate initiatives (8–15), a blank template (see `templates.md` or the sheet), the ruler configuration filled in, and the official impact definition visible in the room.
 
-| Etapa | Tempo | O que acontece |
+| Step | Time | What happens |
 |---|---|---|
-| 1. Enquadrar | 5 min | Ler a definição de impacto e as regras de proteção em voz alta. Lembrar: a régua é a mesma para todos. |
-| 2. Evidência | 15 min | Para cada item, Sales/CS/Security trazem evidência em 1–2 frases. Sem defender notas ainda — só os fatos. |
-| 3. Notas de impacto | 20–30 min | Pontuar as 3 dimensões item a item. Divergência > 1 ponto → ouvir os dois lados por 60s e fechar. Product registra. |
-| 4. Ponderadores | 10 min | Definir confiança (por contagem de fontes) e HIPO (padrão Neutro; sair disso só com decisão de liderança **registrada**). Calcular impacto final. |
-| 5. Trava + esforço | 10 min | Aplicar a trava de Abrangência e registrar exceções. Engineering dá o esforço (Baixo/Médio/Alto). |
-| 6. Plotar e decidir | 10–15 min | Posicionar na matriz, ler o quadrante, registrar decisão e dono de cada item. |
+| 1. Frame | 5 min | Read the impact definition and the protection rules aloud. Remind everyone: the ruler is the same for all. |
+| 2. Evidence | 15 min | For each item, Sales/CS/the D3 owner bring evidence in 1–2 sentences. No defending scores yet — facts only. |
+| 3. Impact scores | 20–30 min | Score the 3 dimensions item by item. Disagreement > 1 point → hear both sides for 60s and close. Product records. |
+| 4. Weighters | 10 min | Set confidence (by source count) and HIPO (default Neutral; leaving it needs a **logged** leadership decision). Compute final impact. |
+| 5. Lock + effort | 10 min | Apply the Abrangência lock and log exceptions. Engineering gives effort (Low/Medium/High). |
+| 6. Plot and decide | 10–15 min | Place on the matrix, read the quadrant, record decision and owner per item. |
 
-**Output esperado:** matriz/planilha preenchida + tabela de decisões (item → quadrante → decisão → dono → próximo passo) + lista de exceções e HIPOs registrados — pronta para virar entrada do PI Planning.
+**Expected output:** filled matrix/sheet + decision table (item → quadrant → decision → owner → next step) + the logged lists of exceptions and non-Neutral HIPOs — ready as input for PI Planning.
 
-Dicas: time-box cada item; o facilitador corta debates longos; nada de reabrir notas fora da etapa certa.
+Tips: time-box each item; the facilitator cuts long debates; no reopening scores outside the right step.
 
-## Regras de proteção contra customização
+## Protection rules against customization
 
-- **a) Demandas de vendas** entram na régua como qualquer outra. Vendas fornece **evidência**, não a nota final. Nenhum pedido de vendas é "alto impacto" automático.
-- **b) Pedidos de clientes atuais** aumentam a **confiança no problema**, não o impacto da solução. Avalie a Abrangência separadamente: "o ACME pediu" eleva confiança; só vira alto impacto se o problema se generaliza **e** a solução é reutilizável.
-- **c) Trava de Abrangência (proteção principal):** nenhuma iniciativa pode ser **alto impacto** com Abrangência **baixa (1–2)**, exceto quando **obrigatória** para CRA readiness/evidence, segurança crítica, ou retenção de ARR material (deal/renovação grande comprovadamente em risco).
-- **d) Exceções permitidas (override da trava):** só para os três casos de (c). Toda exceção registrada com dono, justificativa em uma frase, e o OKR/risco que protege. Sem registro, sem exceção.
-- **e) HIPO não substitui a trava:** liderança pode sinalizar convicção via HIPO, mas isso **não** desliga a trava nem dispensa o registro de exceção. Item com Abrangência 1–2 elevado a Alto continua marcado como "checar exceção".
-- **f) Quando tratar como customização:** se **Abrangência = 1–2 E não há exceção válida**, o item **não entra no roadmap de produto**. Três caminhos: **parametrizar** (vira config que serve a todos, e a Abrangência sobe), **entregar como serviço/projeto pago** (fora do roadmap), ou **recusar** com explicação clara.
+- **a) Sales requests** enter the ruler like any other. Sales provides **evidence**, not the final score. No sales request is automatically high impact.
+- **b) Current-customer requests** raise **confidence in the problem**, not the impact of the solution. Score Abrangência separately: "ACME asked for it" raises confidence; it only becomes high impact if the problem generalizes **and** the solution is reusable.
+- **c) Abrangência lock (the main protection):** no initiative may be classified **high impact** while scoring **low on Abrangência (1–2)**, except when it is **mandatory** for a documented regulatory or strategic obligation, critical security, or retention of **material recurring revenue** (a large deal/renewal provably at risk). *Material* is the limit in the ruler configuration, never a number invented in the session.
+- **d) Allowed exceptions (lock override):** only the three cases in (c). Every exception is logged with an owner, a one-sentence rationale, and the OKR/risk it protects. No log, no exception.
+- **e) HIPO does not replace the lock:** leadership can signal conviction through HIPO, but that **does not** disable the lock nor waive the exception log. An item with Abrangência 1–2 raised to High stays flagged as "check the exception".
+- **f) When to treat it as customization:** if **Abrangência = 1–2 and there is no valid exception**, the item **does not enter the product roadmap**. Three paths: **parametrize** (turn it into config that serves everyone, raising Abrangência), **deliver it as a paid service/project** (outside the roadmap), or **decline** with a clear reason.
 
-## Governança leve
+## Light governance
 
-Manter o modelo vivo sem burocracia.
+Keep the model alive without bureaucracy.
 
-- **Cadência de revisão:** a cada PI/trimestre, numa retro curta de 20 min — não uma reunião nova.
-- **Notas:** só recalibre uma nota antiga com evidência nova relevante (não revise o passado por esporte).
-- **Thresholds (faixas):** ajuste só se, na prática, quase tudo cair na mesma faixa (a régua não separa bem).
-- **Dimensões:** mude as 3 só quando os OKRs mudarem. Hoje espelham ARR, base de clientes e CRA.
-- **Fatores (confiança e HIPO):** mantenha os valores por pelo menos 2 ciclos antes de mexer.
-- **Monitorar o HIPO:** conte quantos itens dependeram de HIPO ≠ Neutro no ciclo. Muitos = a régua está sendo contornada; investigue por quê.
-- **Monitorar exceções da trava:** se a trava é vencida com frequência, reavalie a régua.
-- **Dono do modelo:** Product mantém a Régua Comum, o registro de exceções e o registro de HIPOs.
+- **Review cadence:** every PI/quarter, in a short 20-minute retro — not a new meeting.
+- **Scores:** only recalibrate an old score with relevant new evidence (do not revisit the past for sport).
+- **Thresholds (bands):** adjust only if, in practice, nearly everything lands in the same band (the ruler is not separating well).
+- **Dimensions:** the three change only when the OKRs change. What D1 and D3 serve is written in the ruler configuration; change it there, then reread the anchors.
+- **Factors (confidence and HIPO):** keep the values for at least 2 cycles before touching them.
+- **Watch the HIPO:** count how many items depended on a non-Neutral HIPO in the cycle. Many means the ruler is being worked around; investigate why.
+- **Watch the lock exceptions:** if the lock is overridden often, re-examine the ruler.
+- **Model owner:** Product maintains the Régua Comum, the exception log and the HIPO log.

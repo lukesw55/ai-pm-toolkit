@@ -6,7 +6,7 @@
       "name": "score-backlog-with-regua-comum",
       "category": "standard",
       "prompt": "Score these 3 backlog items with the Régua Comum and recommend what to do first: (a) SSO integration requested by one large account (~$300k ARR), (b) onboarding checklist shown to all new users, (c) internal billing-module refactor the tech lead wants.",
-      "expected_output": "Scores ARR, Abrangência, and CRA/Strategic per item with confidence weighting, flags (a) against the Abrangência lock as possible one-account customization, rates effort, plots Impact × Effort, and recommends an execution order with rationale."
+      "expected_output": "Scores D1 Business impact, D2 Abrangência, and D3 Strategic & risk per item with confidence weighting, flags (a) against the Abrangência lock as possible one-account customization, rates effort, plots Impact × Effort, and recommends an execution order with rationale."
     },
     {
       "id": 2,

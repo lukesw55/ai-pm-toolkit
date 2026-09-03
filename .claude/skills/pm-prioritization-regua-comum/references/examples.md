@@ -1,54 +1,56 @@
-# Exemplos preenchidos
+# Worked examples
 
-Três exemplos cobrindo três quadrantes diferentes e mostrando os ponderadores em ação — inclusive o HIPO no máximo **não** resgatando uma customização (Exemplo B).
+Three examples across three quadrants, showing the weighters in action — including HIPO at its maximum **failing** to rescue a customization (Example B).
 
-## Exemplo A — Relatório de vulnerabilidades exportável para auditoria
-*(SBOM/VEX/CVE audit-ready, ligado ao Vulnerability Manager)*
+> **One instantiation, not universal anchors.** These examples come from an embedded/IoT platform whose ruler is configured with **D1 Business impact serving ARR** and **D3 Strategic & risk serving EU CRA readiness** (see the example instantiation at the bottom of `rubric.md`). The scores illustrate how the method behaves; the domain anchors are that company's configuration, not part of the model. Score notes are written as `D1 Business (ARR)` and `D3 Strategic (CRA)` so structure and configuration stay visible.
 
-| Campo | Avaliação |
+## Example A — Exportable vulnerability report for audit
+*(SBOM/VEX/CVE audit-ready, tied to the Vulnerability Manager)*
+
+| Field | Assessment |
 |---|---|
-| Origem | Security/CRA + Marketing + Discovery |
-| Problema | Clientes precisam de evidência exportável e audit-ready de CVEs/SBOM/VEX para demonstrar diligência (CRA readiness) |
-| Notas | D1 ARR = **4** · D2 Abrangência = **5** · D3 CRA = **5** |
-| Impacto bruto | (4+5+5)/3 = **4,67** |
-| Confiança | **Alta** (1,00) — regulação + múltiplas fontes |
-| HIPO | **Neutro** (1,00) — a evidência se sustenta sozinha |
-| Impacto final | 4,67 × 1,00 × 1,00 = **4,67 → Alto** |
-| Trava alavancagem | OK (D2=5) |
-| Esforço | **Médio** — reaproveita SBOM/VEX/CVE já existentes; foco em formatação + validação |
-| Quadrante | Alto + Médio = **Planejar** |
-| Decisão | Planejar para o próximo PI; capability central de CRA evidence, reutilizável por toda a base |
+| Origin | Security/Compliance + Marketing + Discovery |
+| Problem | Customers need exportable, audit-ready evidence of CVEs/SBOM/VEX to demonstrate diligence (CRA readiness) |
+| Scores | D1 Business (ARR) = **4** · D2 Abrangência = **5** · D3 Strategic (CRA) = **5** |
+| Raw impact | (4+5+5)/3 = **4.67** |
+| Confidence | **High** (1.00) — regulation + multiple sources |
+| HIPO | **Neutral** (1.00) — the evidence stands on its own |
+| Final impact | 4.67 × 1.00 × 1.00 = **4.67 → High** |
+| Abrangência lock | Clear (D2=5) |
+| Effort | **Medium** — reuses existing SBOM/VEX/CVE data; the work is formatting + validation |
+| Quadrant | High + Medium = **Plan (PI)** |
+| Decision | Plan for the next PI; a central compliance-evidence capability the whole base reuses |
 
-## Exemplo B — Ajuste específico pedido por um prospect para fechar um deal pequeno
-*(ex.: formato de export sob medida para o ERP interno de um prospect)*
+## Example B — Bespoke tweak a prospect asked for to close a small deal
+*(e.g. an export format tailored to one prospect's internal ERP)*
 
-| Campo | Avaliação |
+| Field | Assessment |
 |---|---|
-| Origem | Vendas (um prospect) |
-| Problema | Formato de export sob medida para o ERP do prospect; vendas diz que destrava um deal pequeno |
-| Notas | D1 ARR = **2** · D2 Abrangência = **1** · D3 CRA = **1** |
-| Impacto bruto | (2+1+1)/3 = **1,33** |
-| Confiança | **Média** (0,85) — pedido real de prospect, mas fonte única |
-| HIPO | **Priorizar** (1,15) — *um líder de vendas pressiona para fechar o logo* (registrado) |
-| Impacto final | min(5 ; 1,33 × 0,85 × 1,15) = **1,30 → Baixo** |
-| Trava alavancagem | Dispara: D2=1 → **tratar como customização** |
-| Esforço | **Baixo** |
-| Quadrante | Baixo + Baixo = **Opportunistic** |
-| Decisão | **Não entra como produto.** Mesmo com o HIPO no máximo, segue baixo — o modelo resiste à pressão. Caminhos: parametrizar (se houver reuso), entregar como serviço pago, ou recusar. |
+| Origin | Sales (one prospect) |
+| Problem | Export format tailored to the prospect's ERP; sales says it unblocks a small deal |
+| Scores | D1 Business (ARR) = **2** · D2 Abrangência = **1** · D3 Strategic (CRA) = **1** |
+| Raw impact | (2+1+1)/3 = **1.33** |
+| Confidence | **Medium** (0.85) — a real prospect request, but a single source |
+| HIPO | **Prioritize** (1.15) — *a sales leader is pushing to land the logo* (logged) |
+| Final impact | min(5 ; 1.33 × 0.85 × 1.15) = **1.30 → Low** |
+| Abrangência lock | Triggers: D2=1 → **treat as customization** |
+| Effort | **Low** |
+| Quadrant | Low + Low = **Opportunistic** |
+| Decision | **Does not enter the product roadmap.** Even with HIPO at its maximum it stays low — the model resists the pressure. Paths: parametrize (if reuse exists), deliver as a paid service, or decline. |
 
-## Exemplo C — Integração com ferramenta usada por vários prospects enterprise
-*(IAM enterprise: SSO + SCIM, identificado como deal-blocker em discovery)*
+## Example C — Integration with a tool several enterprise prospects use
+*(enterprise IAM: SSO + SCIM, identified as a deal-blocker in discovery)*
 
-| Campo | Avaliação |
+| Field | Assessment |
 |---|---|
-| Origem | Discovery + Pipeline (vários prospects enterprise) |
-| Problema | Prospects enterprise exigem SSO (autenticação) e SCIM (provisionamento) para adotar o produto em escala |
-| Notas | D1 ARR = **5** · D2 Abrangência = **5** · D3 CRA = **4** |
-| Impacto bruto | (5+5+4)/3 = **4,67** |
-| Confiança | **Média** (0,85) — discovery feito, mas segmento/ARR ainda não confirmados |
-| HIPO | **Neutro** (1,00) |
-| Impacto final | 4,67 × 0,85 × 1,00 = **3,97 → Alto** |
-| Trava alavancagem | OK (D2=5) |
-| Esforço | **Alto** — mexe em arquitetura de identidade, modelo de organização, validação de segurança |
-| Quadrante | Alto + Alto = **Avaliar trade-off** |
-| Decisão | Forte candidato. **Fasear** para reduzir risco: SSO como MVP primeiro, SCIM depois. Confirmar segmento/ARR antes de comprometer todo o esforço. |
+| Origin | Discovery + Pipeline (several enterprise prospects) |
+| Problem | Enterprise prospects require SSO (authentication) and SCIM (provisioning) to adopt the product at scale |
+| Scores | D1 Business (ARR) = **5** · D2 Abrangência = **5** · D3 Strategic (CRA) = **4** |
+| Raw impact | (5+5+4)/3 = **4.67** |
+| Confidence | **Medium** (0.85) — discovery done, but segment/revenue not yet confirmed |
+| HIPO | **Neutral** (1.00) |
+| Final impact | 4.67 × 0.85 × 1.00 = **3.97 → High** |
+| Abrangência lock | Clear (D2=5) |
+| Effort | **High** — touches identity architecture, the organization model, security validation |
+| Quadrant | High + High = **Evaluate trade-off** |
+| Decision | Strong candidate. **Phase it** to cut risk: SSO as the MVP first, SCIM after. Confirm segment and revenue before committing the full effort. |
