@@ -56,7 +56,7 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 
 | Phase / transversal | Skill | Covers |
 |---|---|---|
-| Discover (phase 1) | `pm-phase-discover` | problem framing, research design, JTBD/segmentation, opportunity hypothesis, competitive intel, **Impact Brief (stage 2)** |
+| Discover (phase 1) | `pm-phase-discover` | problem framing, research design, JTBD/segmentation, opportunity hypothesis, opportunity solution tree + assumption map (stage 3 → 4 bridge), competitive intel, **Impact Brief (stage 2)** |
 | Define (phase 2) | `pm-phase-define` | strategy memo, KPI tree, opportunity sizing, business case/PRFAQ, pricing & packaging, prioritisation (RICE/WSJF/Kano), roadmap narrative, decision memos, **One Pager (stage 4)** |
 | Develop (phase 3) | `pm-phase-develop` | PRD writing, backlog & scope slicing, dependency/risk, cross-functional orchestration, tracking-plan design, technical fluency (PM lens), **Tech Team Kickoff (stage 7)** |
 | Deliver (phase 4) | `pm-phase-deliver` | launch readiness, release notes (user/internal/customer), post-launch monitoring, experiment interpretation, product analytics, metric quality & guardrails |

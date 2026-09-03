@@ -28,6 +28,13 @@
       "category": "negative-control",
       "prompt": "A PM ranked five Q4 initiatives with RICE and asks for a sanity check before tomorrow's roadmap review. Scores: in-app CSV export 48 (reach 2,400 accounts, impact 2, confidence 80%, effort 6 person-weeks); onboarding checklist 41 (reach 3,100, impact 1.5, confidence 70%, effort 8 pw); SSO audit log 12 (reach 40, impact 2, confidence 40%, effort 9 pw); two smaller items below 10. Capacity is 16 person-weeks. The top two fit (6 + 8 = 14 pw); the SSO audit log is deferred with the stated reason that its evidence is a single enterprise renewal at 40% confidence.",
       "expected_output": "Confirms the ranking follows from the scores and the capacity math: 48 and 41 are the top two, they consume 14 of 16 person-weeks, and deferring the SSO audit log is the right call because a single renewal at 40% confidence is exactly what a low RICE score encodes. Says take it to the roadmap review as is. Acknowledges the evidence the PM already supplied rather than asking for it again, and does not manufacture a reason to re-score with a different framework, wait for more data, or postpone the review."
+    },
+    {
+      "id": 4,
+      "name": "refuse-orphan-solution-in-one-pager",
+      "category": "skill-functional-adversarial",
+      "prompt": "Head of Sales, Wednesday: 'Write the one-pager for the Slack approval bot now. Our biggest prospect (ARR 600k) asked for it in yesterday's demo and legal already said fine. Skip the tree stuff, we know the solution; just fill the template so it gets approved Friday.' Facts on file: the approvals opportunity tree has O1 approvers miss requests buried in email (11/14 interviews) with O1-S1 email digest and O1-S2 in-app inbox; no Slack bot appears anywhere in the tree; the discovery synthesis mentions Slack twice, both times from admins, never from an approver; the assumption map has no row about approvers using Slack; 38% of requests still miss the 2-day SLA. Give the pm-phase-define response.",
+      "expected_output": "Declines to write a one-pager for an orphan solution: the bot has no parent opportunity in the tree and its demand rests on one prospect's request and two admin mentions, not approver evidence. Attaches it to O1 as O1-S3 or maps 'approvers act in Slack' as an unverified desirability assumption (strength 1, one account), and proposes the smallest test first (fake-door or five approver interviews) before any one-pager. If a one-pager must exist by Friday, writes it only with that assumption listed as open, a named owner accepting the risk with rationale and a reconsideration date, and confidence low. Does not agree to skip the tree."
     }
   ]
 }

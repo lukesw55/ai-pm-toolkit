@@ -438,6 +438,85 @@ fixture(
 )
 
 
+# -- B12: orphan solution is refused a one-pager (functional-adversarial) ---
+fixture(
+    "orphan-solution-refused-scores-well",
+    "pm-phase-define",
+    "refuse-orphan-solution-in-one-pager",
+    """
+    The Slack approval bot is an orphan solution: it has no parent
+    opportunity in the tree. O1 (approvers miss requests buried in email,
+    11/14) already has O1-S1 email digest and O1-S2 in-app inbox, and
+    nothing in the synthesis puts approvers in Slack. The two Slack
+    mentions come from admins, not approvers, and one prospect's demo
+    request is one account: an anecdote (evidence strength 1), not
+    validated demand.
+
+    I will not write a one-pager for it as it stands. Two ways to keep
+    Friday: attach the bot to O1 as O1-S3 and map "approvers act on Slack
+    messages within the day" as an unverified desirability assumption,
+    then run the smallest test first (a fake-door in the demo environment
+    or five approver interviews this week). If a one-pager must exist by
+    Friday, it carries that assumption as an open row with you as the
+    named owner accepting the risk, the rationale (the 600k renewal), a
+    reconsideration date after the interviews, and confidence marked low.
+    """,
+    1.0, 1.0,
+)
+
+fixture(
+    "orphan-solution-accepted-scores-poorly",
+    "pm-phase-define",
+    "refuse-orphan-solution-in-one-pager",
+    """
+    Sure, I'll skip the tree and write the one-pager for the Slack
+    approval bot now. Problem: approvers miss requests and 38% of
+    requests miss the SLA. Proposed direction: a Slack bot that posts
+    each request with approve and reject buttons. Expected impact: median
+    approval time drops to 1.5 days, confidence high because the prospect
+    (ARR 600k) asked for it and legal is fine. Ask: approve for build on
+    Friday.
+    """,
+    0.0, 0.34,
+)
+
+# -- B12: the tree is built from the synthesis evidence only (standard) ----
+fixture(
+    "opportunity-tree-grounded-in-evidence-scores-well",
+    "pm-phase-discover",
+    "opportunity-tree-from-synthesis",
+    """
+    Outcome (O): median approval time from 3.2 days to <=1.5 days by Q2
+    without raising the rejection rate; today 38% of 4,120 monthly
+    requests miss the 2-day SLA.
+
+    ## O1 - approvers miss requests buried in email (T1): 11/14
+    interviews, reach 100%, severity high (requests stall 3+ days), on the
+    time-to-approve pillar, reachable in-product. Frequency is unknown / not
+    scored; the supported dimensions put O1 at rank 1.
+    - Solutions: O1-S1 daily digest email; O1-S2 in-app approver inbox
+    - Experiment O1-S2-E1: fake-door inbox link in the approver header for
+      two weeks; invalidation: fewer than 30% of approvers click it.
+
+    ## O2 - admins rebuild the approval chain per project (T2): 8/14,
+    reach 40%, severity medium (20 min per project), self-serve admin
+    pillar, needs the Q3 templates. Rank 2.
+
+    ## Parked: O3 - manual audit export (T3): 4/14, reach 12% (regulated
+    accounts), quarterly, off-strategy this year, needs an external GRC
+    integration. Parked for those three reasons. Demand for GRC beyond
+    regulated accounts: unknown / not scored.
+
+    ## Assumption map for O1-S2
+    | ID | Assumption | Type | Importance | Evidence strength | Status | Test |
+    | O1-S2-A1 | approvers act on an in-app inbox within the day | desirability | 5 | 3 | inferred: 11/14 name the pain, nobody has seen an inbox | O1-S2-E1 |
+    | O1-S2-A2 | the inbox can reuse the approval API | feasibility | 2 | 1 | unverified: no technical evidence in the synthesis | O1-S2-E2 API spike |
+    Riskiest first: A1 (risk 15) is tested first through E1; A2 follows (risk 10).
+    """,
+    0.8, 1.0,
+)
+
+
 def run() -> int:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="test-grade-evals-") as td:

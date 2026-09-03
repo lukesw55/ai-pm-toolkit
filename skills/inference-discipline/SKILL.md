@@ -53,7 +53,7 @@ Use one of these inline tags. Tags are not decorative; they trigger approval flo
 | Tag                  | Meaning                                                                            | Action                                                                |
 |----------------------|------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | `[INFER: <claim>]`   | I deduced this from priors / pattern. State the basis.                             | List in "Inferences" block. Wait for approval if blocking.            |
-| `[ASSUMING: <X>]`    | I am proceeding as if X is true. Name the fallback if X is wrong.                  | List in "Assumptions" block.                                          |
+| `[ASSUMING: <X>]`    | I am proceeding as if X is true. Name the fallback if X is wrong.                  | List under "Inferences (need OK)", naming the fallback.               |
 | `[UNVERIFIED: <X>]`  | Claim that needs a tool call / human confirmation to be trusted.                   | Name the verification action. Do not act on the claim until verified. |
 | `[FROM MEMORY: <X>]` | Recalled from `.ai/memory` or prior session, not re-checked this turn.             | Reverify before any action that depends on it.                        |
 | `[RECALL: <X>]`      | Recalled from earlier in **this** conversation. Lower risk but still not fresh.    | Use freely for conversational continuity; reverify before write/edit. |
@@ -144,6 +144,7 @@ Non-negotiable rules:
 - **humanize-deliverables** is the outbound hard gate (Confluence/Slack/Jira). When you trigger it, the approval block here must already be resolved — outbound artefacts cannot contain `[INFER]` or `[UNVERIFIED]` markers.
 - **systematic-debugging** complements: that skill forces evidence-driven diagnosis; this skill forces evidence-driven *claims*.
 - **calibrated disagreement** (`../DOCTRINE.md`) governs the human side of this skill: user pressure, confidence, or "I'll take responsibility" is not evidence. Hold the marker until the claim is actually checked.
+- **pm-phase-discover / pm-phase-define** (`../pm-phase-discover/references/opportunity-solution-tree.md`): the assumption map is the artefact-side counterpart of this skill. Each assumption carries a written-out evidence status (verified / inferred / unverified) plus a test or an accepted-risk decision with a named owner; the bracket tags stay conversation-only and never appear in the artefact.
 
 ## Output contracts
 

@@ -1,6 +1,6 @@
 ---
 name: pm-phase-discover
-description: Lean Double Diamond **Discover phase** skill for PMs. Invoke whenever the work upstream of building is still soft — vague brief, pile of feature requests, conflicting stakeholder asks, a new market/segment, or any moment where "what exactly are we solving and for whom?" is fuzzy. Also trigger when the user mentions user research, JTBD, personas, opportunity assessment, competitive analysis, problem statements, entrevistas com usuários, or asks to "understand the problem" / "entender o problema" — even without naming "discovery". Covers problem framing, research design/synthesis, segmentation/JTBD, opportunity & hypothesis design, and competitive/market intelligence. For qualitative synthesis of interviews, triangulation with quant data, or parsing of videos/transcripts, also pull in `pm-transversal-analysis`.
+description: Lean Double Diamond **Discover phase** skill for PMs. Invoke whenever the work upstream of building is still soft — vague brief, pile of feature requests, conflicting stakeholder asks, a new market/segment, or any moment where "what exactly are we solving and for whom?" is fuzzy. Also trigger when the user mentions user research, JTBD, personas, opportunity assessment, competitive analysis, problem statements, entrevistas com usuários, or asks to "understand the problem" / "entender o problema" — even without naming "discovery". Covers problem framing, research design/synthesis, segmentation/JTBD, opportunity & hypothesis design (including the opportunity solution tree and assumption map that bridge to the one-pager), and competitive/market intelligence. For qualitative synthesis of interviews, triangulation with quant data, or parsing of videos/transcripts, also pull in `pm-transversal-analysis`.
 ---
 
 # PM Phase — Discover
@@ -22,11 +22,14 @@ Invoke this skill whenever the work upstream of building is still soft:
 - the team is being asked to build before anyone has talked to real customers
 - a segment, JTBD, or persona needs to be defined or refined
 - you need to rank opportunities or design the smallest useful test
+- a synthesis needs to become an opportunity solution tree, a solution needs its assumptions mapped, or a solution arrives with no parent opportunity ("árvore de oportunidades", "mapear premissas")
 - a competitor's move is triggering a reactive response and you need to separate signal from panic
 
 If the work is already clearly framed and evidence is solid, skip this skill and use `pm-phase-define` directly.
 
 The stage-2 artefact this skill commonly produces is the **Impact Brief** — see `references/impact-brief.md` for the template (stage 2 of 8 in `../WORKFLOW.md`).
+
+The stage-3 handoff artefact is the **Opportunity Solution Tree** — see `references/opportunity-solution-tree.md`; it bridges `discovery/<topic>/synthesis.md` to the stage-4 One Pager (stage 3 of 8 in `../WORKFLOW.md`).
 
 ## Prime directive
 
@@ -74,11 +77,12 @@ Anti-patterns: treating marketing demographics as product segments, decorative p
 
 Rank opportunities by evidence strength and expected impact, then design the smallest test that reduces the biggest remaining risk. Discovery becomes actionable only when a PM can compare opportunities and commit to a specific learning step.
 
-Typical outputs: hypothesis log (belief + expected evidence + invalidation condition), opportunity scorecard, MVP or fake-door test plan, experiment backlog entry.
+Typical outputs: hypothesis log (belief + expected evidence + invalidation condition), opportunity scorecard, opportunity solution tree with its assumption map, MVP or fake-door test plan, experiment backlog entry.
 
-Anti-patterns: treating ideas as opportunities, testing too much at once, polishing prototypes before core risks are resolved, "we'll know it when we see it" acceptance criteria.
+Anti-patterns: treating ideas as opportunities, orphan solutions (no parent opportunity), testing too much at once, polishing prototypes before core risks are resolved, "we'll know it when we see it" acceptance criteria.
 
 → Deep-dive: `references/opportunity-hypothesis.md`
+→ Deep-dive: `references/opportunity-solution-tree.md` (stage 3 → 4 bridge)
 
 ### 5. Competitive and market intelligence
 

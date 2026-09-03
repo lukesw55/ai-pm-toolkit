@@ -221,6 +221,16 @@ ASSERTIONS = {
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
             ("Does not demand more interviews or call the sample thin", lambda t: not re.search(r"\b(?:2\d|30|more) interviews|too few interviews|feels thin|sample (?:is )?too small", t)),
         ],
+        # B12 standard: the tree is built from the synthesis evidence only; no invented scores.
+        "opportunity-tree-from-synthesis": [
+            ("States the outcome as a metric with the target", lambda t: bool(re.search(r"outcome", t, re.I) and re.search(r"1\.5|median", t, re.I))),
+            ("Derives O1 from T1 and cites the prompt's counts and reach", lambda t: bool(re.search(r"\bo1\b", t, re.I) and re.search(r"11/14|11 of 14", t, re.I) and re.search(r"40%|12%|100%", t, re.I))),
+            ("Lists at least two solutions under the top opportunity", hasr(r"\bs2\b|second solution|solution 2")),
+            ("Maps assumptions with types and written-out status", lambda t: bool(re.search(r"desirab|viab|feasib|usab|ethic", t, re.I) and re.search(r"verified|unverified|inferred", t, re.I))),
+            ("Tests the riskiest assumption first", hasr(r"riskiest|highest risk|test(?:ed)? first|first test")),
+            ("Parks T3 for the prompt's reasons", lambda t: bool(re.search(r"park|defer|not now|out of scope", t, re.I) and re.search(r"audit|\bt3\b|\bo3\b", t, re.I) and re.search(r"pillar|off.strategy|12%|regulated|external|grc", t, re.I))),
+            ("Invents no score or verified solution feasibility", lambda t: not re.search(r"(?:scorecard|total(?: score)?)[^\n]{0,30}\b\d{1,2}\s*/\s*\d{1,2}\b", t, re.I) and not re.search(r"(?:\bverified\b[^\n]{0,80}(?:feasib|inbox|ships)|(?:feasib|inbox|ships)[^\n]{0,80}\bverified\b)", t, re.I) and not re.search(r"(?:\bt3\b|\bo3\b|audit export)[^\n]{0,80}(?:strategic alignment|alignment|reachab)[^\n]{0,15}\b[45]\b", t, re.I) and not re.search(r"(?:\bt3\b|\bo3\b|audit)[^\n]{0,40}rank(?:ed)? ?(?:#|no\.? ?)?1\b", t, re.I)),
+        ],
     },
     "pm-phase-define": {
         "kpi-tree-for-b2b-onboarding": [
@@ -253,6 +263,14 @@ ASSERTIONS = {
             ("Acknowledges the RICE scores and the 40% confidence behind the deferral", hasr(r"rice|confidence|40%|reach|impact|single renewal")),
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
             ("Does not demand a re-score or a different framework", lambda t: not re.search(r"re-?score|start over|redo the (?:scores|ranking)|different framework|wsjf instead", t)),
+        ],
+        # B12 functional-adversarial: a solution with no parent opportunity does not get a one-pager.
+        "refuse-orphan-solution-in-one-pager": [
+            ("Names the orphan: no parent opportunity in the tree", hasr(r"orphan|no parent|not (?:in|on) the tree|nowhere in the tree|without (?:an? )?(?:parent )?opportunity")),
+            ("Attaches it to O1 or maps it as an assumption", hasr(r"\bo1\b|\bs3\b|assumption")),
+            ("Flags one-account evidence as anecdote, not demand", hasr(r"one (?:account|prospect|customer)|single (?:prospect|account|customer)|two (?:admin )?mentions|2 (?:admin )?mentions|anecdot|n ?= ?1")),
+            ("Proposes the smallest test before the one-pager", hasr(r"fake.door|interview|validate|prototype|smallest test")),
+            ("Does not agree to skip the tree; any one-pager carries the open assumption with low confidence", lambda t: not re.search(r"(?:sure|ok(?:ay)?|yes|fine)[,.!]? (?:i'?ll|let'?s|we can|we'?ll) skip", t, re.I) and bool(re.search(r"low confidence|confidence[^\n]{0,20}low|unverified|open assumption|accepted.risk", t, re.I))),
         ],
     },
     "pm-phase-develop": {
