@@ -26,7 +26,7 @@ This system is inspired by navigable memory structures: information is easier to
 │       ├── state.md             # read FIRST on resume; park/close blocks
 │       ├── session-kickoff.md   # working agreement; read after state.md
 │       ├── changelog.md         # 3 newest entries (memory.py log)
-│       ├── changelog-archive.md # older entries, rotated verbatim
+│       ├── changelog-archive.md # older entries, rotated verbatim; index block on top
 │       ├── state-archive.md     # oldest state blocks, folded verbatim by memory.py distill
 │       ├── decisions-archive.md # same, for decisions.md
 │       ├── .distill/            # transient fold package: manifest.json, blocks.md, synthesis.md
@@ -37,6 +37,8 @@ This system is inspired by navigable memory structures: information is easier to
 │       └── retrospective.md
 └── _templates/
 ```
+
+Every `*-archive.md` opens with an index block, one line per archived block, regenerated on every append and rebuilt by `memory.py index <slug>`. It is the entry point for cold-layer retrieval: the index answers "what is in there" without opening a block.
 
 ## File roles
 
@@ -100,7 +102,7 @@ The layering in `CLAUDE.md` maps onto these files. Nothing in the cold layer is 
 |---|---|---|
 | Hot | `active-context.md` (pointer, ≤2 KB) | injected at session start by `stage_context.py` |
 | Warm | `projects/<slug>/state.md`, `session-kickoff.md`, `decisions.md`, `profile.md`, the 3 newest `changelog.md` entries | working on that project |
-| Cold | `changelog-archive.md`, `state-archive.md`, `decisions-archive.md`, `raw-evidence/`, transcripts | grep for a specific block, never all of it |
+| Cold | `changelog-archive.md`, `state-archive.md`, `decisions-archive.md`, `raw-evidence/`, transcripts | grep-first: the archive index (`memory.py index <slug>`) or `grep -n` for a term or date, then only the matching block |
 
 ## Caps and consolidation
 
@@ -118,9 +120,9 @@ The fold is model-assisted and two-step so nothing is summarised silently:
 
 1. `python3 scripts/memory.py distill <slug> --prepare [--file changelog|state|decisions]` picks the oldest dated `## ` blocks (never the newest, never an undated block such as the template example) until the file would sit a quarter below its cap, and writes `projects/<slug>/.distill/`: `blocks.md` (the blocks, verbatim), `manifest.json` (sha256 of the source and of each block), `synthesis.md` (rendered from `.ai/memory/_templates/distill-synthesis.md`, with a dated heading and an index line per block). With an explicit `--file` on a file still under its cap, exactly one block is folded.
 2. The model replaces the `[Fill in ...]` paragraph in `synthesis.md` with three to six lines: decisions kept, constraints that still bind, open threads. Narration goes.
-3. `python3 scripts/memory.py distill <slug> --apply` re-checks the source hash and every block hash, rejects an untouched skeleton, projects the new size (exit 2 and nothing written if the synthesis pushes the file over its cap), appends the blocks to the sibling archive, re-reads the archive to confirm each block landed, and only then rewrites the source with the synthesis in the blocks' place.
+3. `python3 scripts/memory.py distill <slug> --apply` re-checks the source hash and every block hash, rejects an untouched skeleton, projects the new size (exit 2 and nothing written if the synthesis pushes the file over its cap), appends the blocks to the sibling archive and regenerates its index block, re-reads the archive to confirm each block landed, and only then rewrites the source with the synthesis in the blocks' place.
 
-Guarantees: content is moved, never deleted; the archive is verified before the source is touched; the newest dated block is never folded; a package whose source changed since `--prepare` is refused and can be replaced by a new `--prepare`.
+Guarantees: content is moved, never deleted; the archive is rebuilt into a sibling temporary file, verified block by block, and swapped in with an atomic replace, so a failed run never leaves it half-written; the archive is verified before the source is touched; the newest dated block is never folded; a package whose source changed since `--prepare` is refused and can be replaced by a new `--prepare`.
 
 ## PII denylist
 
@@ -133,6 +135,13 @@ Before a task:
 1. read `active-context.md`
 2. read the active project's `state.md`, then `session-kickoff.md`
 3. scan `profile.md`, `decisions.md`, `experiments.md`, and the newest `changelog.md` entries
+
+From the cold layer (grep-first, read-before-reasoning):
+
+1. list before opening: `python3 scripts/memory.py index <slug>` prints one line per archived block across the three archives (slug `repo` covers the repository-level changelog archive). By term or date: `grep -n -i "<term>" .ai/memory/projects/<slug>/*-archive.md`.
+2. open only the block that matched, by its heading: `sed -n '/^## <heading>/,/^## /p' <archive>`. Never read a whole archive into the context.
+3. cite the heading and its date when you reason from the block. If the fact matters again, rewrite it into the warm set (`decisions.md`, `state.md`) instead of reopening the archive next session.
+4. `raw-evidence/` is PII and script-free: search it in place (`grep -ril "<term>" .ai/memory/projects/<slug>/raw-evidence/`), read only the passage you need, and never paste a transcript into memory or chat. A manual index inside that folder (`.ai/memory/projects/<slug>/raw-evidence/index.md`, one line per file: date, source type, topic) is optional and is never touched or injected by a script.
 
 After a task:
 

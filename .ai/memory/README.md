@@ -7,5 +7,6 @@ This folder stores durable context that should survive chat sessions and project
 - raw notes can go to `inbox.md` (manual scratch; no script reads or writes it)
 - durable context goes into project memory under `projects/<slug>/`; stakeholder notes default to `projects/<slug>/stakeholders.md`
 - active focus is always reflected in `active-context.md`
+- rotated and folded blocks live in the sibling `*-archive.md` files; each one carries an index block, so `python3 scripts/memory.py index <slug>` lists what the cold layer holds before any of it is opened
 
 Use `python3 scripts/init_context.py <project-name>` to create a new project memory folder.

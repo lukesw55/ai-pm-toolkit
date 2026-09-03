@@ -39,7 +39,7 @@ Do not skip phases when uncertainty is high: Discover when facts are thin, Defin
 
 ## Memory rules
 
-Layered, never read wholesale: Hot (the `active-context.md` pointer + active project, injected at session start), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it), Cold (archives, raw evidence, transcripts — never read wholesale). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
+Layered, never read wholesale: Hot (the `active-context.md` pointer + active project, injected at session start), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it), Cold (archives, raw evidence, transcripts — never read wholesale, retrieved grep-first through the archive index and then one block). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
 
 ## Decision rules, stop conditions, definition of done
 

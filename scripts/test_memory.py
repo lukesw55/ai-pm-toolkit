@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-test_memory.py — sandboxed cases for memory.py's caps, distill fold, and the
-in-code PII denylist.
+test_memory.py — sandboxed cases for memory.py's caps, distill fold, the
+cold-layer archive index, and the in-code PII denylist.
 
 Each case runs the real scripts/memory.py (and init_context.py) copied into a
 throwaway repo skeleton, then inspects the files they wrote. Nothing touches
@@ -14,6 +14,7 @@ Usage: python3 scripts/test_memory.py
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -71,10 +72,38 @@ class Sandbox:
         path.write_text(f"{head}\n\n{body}\n\n{rest}", encoding="utf-8")
 
 
+INDEX_MARKER = "Index (one line per archived block"
+
+
 def blocks_of(text: str) -> list[str]:
-    import re
     parts = re.split(r"(?m)^(?=## )", text)
     return parts[1:]
+
+
+def index_block(text: str) -> str:
+    m = re.search(r"(?ms)^" + re.escape(INDEX_MARKER) + r".*?\n\n", text)
+    return m.group(0) if m else ""
+
+
+def index_lines(text: str) -> list[str]:
+    return [ln for ln in index_block(text).splitlines() if ln.startswith("- ")]
+
+
+def heading_lines(text: str) -> list[str]:
+    """The index the archive should carry, re-derived from its own block headings
+    here rather than by calling memory.py, so the two can disagree."""
+    out = []
+    for block in blocks_of(text):
+        head = block.splitlines()[0].lstrip("#").strip()
+        m = re.search(r"\d{4}-\d{2}-\d{2}", head)
+        date = m.group(0) if m else "0000-00-00"
+        rest = re.sub(r"\d{4}-\d{2}-\d{2}:?\s*", "", head, count=1).strip()
+        out.append(f"- {date} {rest}".rstrip())
+    return out
+
+
+def drop_index(text: str) -> str:
+    return text.replace(index_block(text), "", 1)
 
 
 def main() -> int:
@@ -259,16 +288,88 @@ def main() -> int:
         check("one dated block cannot be folded (needs two, exit 1)",
               r.returncode == 1 and "at least two" in r.stderr, r.stderr.strip())
 
-        # 13. PII denylist in code: a project literally named 'data' is refused
+        # 13. cold layer: the archive index block (grep-first retrieval)
+        archive = sb.project(slug) / "changelog-archive.md"
+        r = sb.run("log", slug, "an entry that pushes the oldest one out", "--title", "ix1")
+        arch = archive.read_text(encoding="utf-8")
+        check("rotation regenerates the index: one line per archived block, file order",
+              r.returncode == 0 and INDEX_MARKER in arch and len(blocks_of(arch)) >= 1
+              and index_lines(arch) == heading_lines(arch),
+              f"{len(index_lines(arch))} line(s) vs {len(blocks_of(arch))} block(s)")
+
+        r = sb.run("log", slug, "and one more after that", "--title", "ix2")
+        arch2 = archive.read_text(encoding="utf-8")
+        check("a second rotation extends the index instead of duplicating lines",
+              r.returncode == 0 and index_lines(arch2) == heading_lines(arch2)
+              and len(blocks_of(arch2)) == len(blocks_of(arch)) + 1,
+              f"{len(index_lines(arch2))} line(s) vs {len(blocks_of(arch2))} block(s)")
+
+        archive.write_text(drop_index(arch2), encoding="utf-8")
+        r = sb.run("index", slug)
+        once = archive.read_text(encoding="utf-8")
+        r2 = sb.run("index", slug)
+        twice = archive.read_text(encoding="utf-8")
+        check("index rebuilds a missing index block, lists it, and is idempotent",
+              r.returncode == 0 and r2.returncode == 0 and once == twice
+              and index_lines(once) == heading_lines(once)
+              and "changelog-archive.md" in r.stdout and index_lines(once)[0] in r.stdout,
+              (r.stderr + r2.stderr).strip())
+        check("rebuild keeps every pre-existing block byte-for-byte, in the same order",
+              blocks_of(once) == blocks_of(arch2))
+
+        sarch = sb.read(slug, "state-archive.md")
+        check("index line drops the date the heading already carries (state.md blocks)",
+              "- 2026-01-01 Parked" in sarch and index_lines(sarch) == heading_lines(sarch),
+              str(index_lines(sarch)))
+
+        archive.write_text(once.replace(index_lines(once)[0] + "\n", "", 1), encoding="utf-8")
+        d = sb.run("doctor")
+        fix = sb.run("index", slug)
+        d2 = sb.run("doctor")
+        check("doctor WARNs on a stale index and goes quiet once index rebuilds it",
+              d.returncode == 0 and "archive index stale" in d.stdout and fix.returncode == 0
+              and "archive index stale" not in d2.stdout, d.stdout.strip())
+
+        # a failure before os.replace must leave the live archive untouched. The
+        # staging path is occupied by a directory, so the write fails for any
+        # user, root included.
+        archive.write_text(drop_index(archive.read_text(encoding="utf-8")), encoding="utf-8")
+        before = archive.read_bytes()
+        blocker = archive.with_name(archive.name + ".tmp")
+        blocker.mkdir()
+        broken = sb.run("index", slug)
+        mid = archive.read_bytes()
+        blocker.rmdir()
+        rec = sb.run("index", slug)
+        recovered = archive.read_text(encoding="utf-8")
+        check("a failure before the replace leaves the archive intact; index recovers after",
+              broken.returncode != 0 and mid == before and rec.returncode == 0
+              and index_lines(recovered) == heading_lines(recovered),
+              f"exit={broken.returncode} {broken.stderr.strip()}")
+
+        for n in range(4):
+            sb.run("log", "repo", f"repo entry {n}", "--title", f"r{n}")
+        root_archive = sb.root / ".ai" / "changelog-archive.md"
+        root_archive.write_text(drop_index(root_archive.read_text(encoding="utf-8")), encoding="utf-8")
+        r = sb.run("index", "repo")
+        ra = root_archive.read_text(encoding="utf-8")
+        check("index repo rebuilds and lists .ai/changelog-archive.md",
+              r.returncode == 0 and index_lines(ra) == heading_lines(ra)
+              and "changelog-archive.md" in r.stdout, (r.stdout + r.stderr).strip())
+
+        # 14. PII denylist in code: a project literally named 'data' is refused
         sb.run("park", slug)
         r = sb.init("data")
         lg = sb.run("log", "data", "x")
         pr = sb.run("distill", "data", "--prepare")
+        ix = sb.run("index", "data")
         dc = sb.run("doctor")
         check("denylist: init creates projects/data but memory.py log refuses it",
               r.returncode == 0 and lg.returncode == 1 and "PII" in lg.stderr, lg.stderr.strip())
         check("denylist: distill --prepare refuses the PII project",
               pr.returncode == 1 and "PII" in pr.stderr, pr.stderr.strip())
+        check("denylist: index refuses the PII project too",
+              ix.returncode == 1 and "PII" in ix.stderr, ix.stderr.strip())
         check("doctor skips the PII project with a WARN and still exits 0",
               dc.returncode == 0 and "PII path" in dc.stdout, dc.stdout.strip())
 
