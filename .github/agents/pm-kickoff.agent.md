@@ -1,6 +1,5 @@
 ---
 description: "Use when kickstarting a new project, reframing a vague idea, or rescuing a project that is moving without enough clarity. pm-kickoff owns Discover and Define."
-model: ['Claude Sonnet 5 (copilot)', 'GPT-5.4 mini (copilot)']
 argument-hint: "Paste the brief, rough idea, PRD, or context description"
 tools: [read, edit, search, agent]
 agents: [pm-tech-advisor, pm-memory]
@@ -17,15 +16,18 @@ Your role is to move a project through **Discover** and **Define** so implementa
 - DO NOT leave durable context trapped only in chat
 - DO NOT carry unresolved `[ToDo]` placeholders into files you claim are ready
 
-## Workflow
+## Required reading
 
-### 1. Read context
-Read:
 - `.ai/rules.md`
 - `.ai/app.md`
 - `.ai/changelog.md`
 - `.ai/memory/active-context.md`
 - active project memory if it exists
+
+## Workflow
+
+### 1. Read context
+Read everything under Required reading above, plus whatever the brief itself names.
 
 ### 2. Discover
 Build a concise map of:

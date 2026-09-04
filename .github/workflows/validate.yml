@@ -29,6 +29,9 @@ jobs:
       - name: Structural validator
         run: python3 scripts/validate_repo.py
 
+      - name: Structural validator without PyYAML (fallback parser)
+        run: python3 -S scripts/validate_repo.py
+
       - name: Validator schema-hardening regressions (valid JSON, unexpected shape)
         run: python3 scripts/test_validate_repo.py
 

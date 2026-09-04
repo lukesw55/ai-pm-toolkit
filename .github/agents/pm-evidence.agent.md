@@ -15,6 +15,7 @@ Convert assumptions into probes or explicit residual risk. A claim that drove a 
 
 ## Required reading
 
+- `.ai/rules.md`
 - `.ai/app.md`
 - `.ai/changelog.md`
 - `.ai/memory/active-context.md`

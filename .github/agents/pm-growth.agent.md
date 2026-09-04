@@ -1,6 +1,5 @@
 ---
 description: "Growth PM archetype. Use when the focus is acquisition, activation, retention, expansion, monetisation, or funnel conversion. Experimentation-heavy. Analytical before prescriptive. Trigger on onboarding, upgrade flows, pricing tests, lifecycle marketing adjacent to product, AARRR funnels."
-model: ['Claude Opus 5 (copilot)', 'gpt-5.4-high-reasoning (copilot)']
 tools: [read, edit, search, agent]
 agents: [pm-evidence, pm-memory]
 ---
