@@ -135,7 +135,7 @@ Each gate has an explicit, per-content override for legitimate exceptions, so th
 
 Every skill ships an `evals/evals.json` with realistic task prompts across four categories (standard, doctrine-adversarial, skill-functional-adversarial, negative-control); the validator requires at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, and one-to-one parity with the grader's assertion blocks. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
 
-Today that floor holds at 78 cases across the 21 skills: 39 standard, 11 doctrine-adversarial, 13 skill-functional-adversarial, and 15 negative controls.
+Today that floor holds at 79 cases across the 21 skills: 40 standard, 11 doctrine-adversarial, 13 skill-functional-adversarial, and 15 negative controls.
 
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 

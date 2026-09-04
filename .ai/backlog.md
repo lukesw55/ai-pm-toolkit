@@ -33,7 +33,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B16 | Fecho de sessão write-after-act (memória atualizada ao encerrar) | Memória | pesquisa | 2 | 2 | 3 | 12 | feito |
 | B17 | Agents Copilot: pins ausentes, tools insuficientes, required-reading divergente | Agents | agente | 2 | 2 | 2 | 8 | feito |
 | B18 | `pm-prioritization-regua-comum`: genericizar âncoras e unificar idioma | Skills | agente | 2 | 2 | 2 | 8 | feito |
-| B20 | Régua Comum sem eval fora do domínio ARR/CRA (genericidade não provada por eval) | Skills | verificado | 2 | 2 | 2 | 8 |
+| B20 | Régua Comum sem eval fora do domínio ARR/CRA (genericidade não provada por eval) | Skills | verificado | 2 | 2 | 2 | 8 | feito |
 
 ## Detalhe por item
 
@@ -137,19 +137,11 @@ Também unificado o contrato de leitura: um único `## Required reading` nos dez
 
 ### B20 — Régua Comum sem eval fora do domínio ARR/CRA (GUT 8)
 
-**Aberto.** O B18 genericizou a estrutura da régua: D1 virou `Business impact` e D3 `Strategic & risk`, ambos configuráveis, e os anchors do domínio de origem foram para blocos rotulados como uma instanciação. O que ele não fez foi exercitar essa configurabilidade: os três evals da skill instanciam D1 como ARR (`~$300k ARR`, `R$ 900 mil`, `R$ 2,4 milhões`), então nenhum prova que a régua opera sob outra configuração. A genericidade está sustentada por estrutura e documentação, não por eval.
+**Feito.** O B18 genericizou a estrutura da régua, mas os três evals da skill instanciavam D1 como ARR (`~$300k ARR`, `R$ 900 mil`, `R$ 2,4 milhões`), então a genericidade estava sustentada por estrutura e documentação, nunca exercitada. Eval `4` novo, `score-with-non-revenue-ruler-configuration` (standard, id por `max(id)+1`), roda a régua numa configuração de plataforma interna: **D1 serve custo operacional**, medido em horas de suporte por trimestre com limite de materialidade em 200 horas, e **D3 serve conformidade WCAG 2.2 AA**, obrigação contratual, não CRA. Os dois itens do cenário separam as dimensões: um economiza 340 horas com 6 de 9 equipes pedindo e zero ângulo de acessibilidade; o outro tem uma equipe só e um bloqueador WCAG apontado em auditoria, logo aciona a trava e exige exceção registrada.
 
-Escopo, a executar numa PR separada cortada de `main`:
+A asserção que faz o eval valer é a última do bloco: **uma resposta que recorre a ARR falha**, porque teria pontuado o domínio de origem em vez da configuração declarada. As duas fixtures permanentes provam isso, 1,00 contra 0,00, gap 1,00 — dentro das bandas do B11 com folga. Prompt 720 chars, expected 624, ambos na faixa vinculante.
 
-- id por `max(id)+1` lido em tempo de execução, sem renumerar; categoria `standard`;
-- cenário com **D1 ligado a custo operacional, eficiência ou outro resultado não baseado em receita**;
-- **D3 ligado a uma obrigação não-CRA** — acessibilidade, privacidade ou soberania de dados;
-- bloco em `ASSERTIONS` com paridade exata, imposta por `check_eval_coverage`;
-- fixtures permanentes good e bad em `test_grade_evals.py`, com prova discriminativa nas bandas do B11 (good ≥ 0,80, bad ≤ 0,34, gap ≥ 0,50);
-- contagem de evals atualizada no `README.md`;
-- os dois espelhos sincronizados por `scripts/sync_skills.py`.
-
-Os evals existentes ficam intocados: manter USD e BRL é o que prova que a régua independe de geografia, e trocá-los perderia essa propriedade.
+Os três evals anteriores ficaram **byte-idênticos** (o diff do `evals.json` é +7/−0): manter USD e BRL é o que prova que a régua independe de geografia. `test_grade_evals` 33 → 35; 78 → 79 evals (40 standard), com a contagem do `README.md` atualizada e os dois espelhos sincronizados.
 
 ### B19 — Arquitetura híbrida Claude Code + Codex (GUT 80)
 

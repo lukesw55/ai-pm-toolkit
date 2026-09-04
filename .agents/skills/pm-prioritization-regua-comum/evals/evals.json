@@ -21,6 +21,13 @@
       "category": "negative-control",
       "prompt": "PM traz um item para fechar o score: Abrangência 1 de 5 (atende uma conta), mas ARR 5 de 5 porque protege uma renovação de R$ 2,4 milhões com cláusula contratual de SLA; exceção já registrada no log (owner: VP de Produto; justificativa: 'cláusula de SLA em contrato vigente'; OKR: proteger ARR base); confiança 0,9; HIPO Neutro; esforço 2 de 5. Pede o score final e a posição no quadrante.",
       "expected_output": "Aplica a exceção como legítima: risco contratual de ARR é um dos três casos permitidos e está registrado com owner, justificativa e OKR, então a trava de Abrangência não segura este item. Calcula o impacto (ARR 5 com confiança 0,9 e HIPO Neutro), posiciona o item no quadrante de alto impacto e baixo esforço e devolve a posição no PI. Reconhece a evidência apresentada (renovação de R$ 2,4 milhões, cláusula de SLA, log completo) e não inventa uma ressalva como adiar para o próximo PI, reconsiderar a exceção ou esperar o jurídico."
+    },
+    {
+      "id": 4,
+      "name": "score-with-non-revenue-ruler-configuration",
+      "category": "standard",
+      "prompt": "Our ruler is configured for an internal platform, not a revenue product: D1 Business impact serves operational cost avoidance, measured in support hours per quarter, with the materiality limit set at 200 hours; D3 Strategic & risk serves WCAG 2.2 AA conformance, a contractual obligation for the public-sector tenants that hold 60% of our seats. Score two items. (a) Bulk CSV import for case records: 6 of 9 internal teams asked for it, saves an estimated 340 support hours per quarter, no accessibility angle. (b) Keyboard navigation for the case grid: one team asked, and last month's audit flagged it as a WCAG 2.2 AA blocker in the renewal questionnaire. Give the Régua Comum scores, the lock decision and the order.",
+      "expected_output": "Scores both against the configured ruler instead of falling back to revenue. (a) D1 4, because 340 support hours clears the 200-hour materiality limit; D2 Abrangência 4, since 6 of 9 teams asked and the import is reusable; D3 1, no accessibility angle. Raw 3.00, so medium impact once confidence is applied, and the lock is clear. (b) D1 1; D2 1-2, one team asked; D3 5, a contractual WCAG blocker. The Abrangência lock would hold it, but the documented obligation is a valid exception, logged with owner, one-sentence rationale and the OKR it protects. Names no ARR and invents no threshold beyond the configured 200 hours."
     }
   ]
 }
