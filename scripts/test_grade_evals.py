@@ -624,6 +624,47 @@ fixture(
 )
 
 
+# -- B20: the ruler scores a configuration where D1 is not revenue -------------
+fixture(
+    "regua-scores-the-configured-non-revenue-ruler",
+    "pm-prioritization-regua-comum",
+    "score-with-non-revenue-ruler-configuration",
+    """
+    Scoring against the configuration in force, where D1 Business impact serves
+    operational cost avoidance in support hours and D3 Strategic & risk serves
+    WCAG 2.2 AA conformance.
+
+    (a) Bulk CSV import. D1 4: 340 support hours a quarter clears the 200-hour
+    materiality limit written into the ruler configuration. D2 Abrangência 4:
+    6 of 9 teams asked and the import ships as a reusable capability, not a
+    per-team script. D3 1: no accessibility angle. Raw 3.00, medium impact once
+    confidence is applied, and the Abrangência lock is clear at D2 4.
+
+    (b) Keyboard navigation for the case grid. D1 1. D2 Abrangência 2, since one
+    team asked. D3 5: the audit named it a WCAG 2.2 AA blocker in the renewal
+    questionnaire, and that is a contractual obligation. The lock would hold this
+    at low Abrangência, so the exception is logged: owner, the one-sentence
+    rationale, and the conformance OKR it protects.
+
+    Order: (b) first, because the obligation has a renewal date attached, then (a)
+    as the larger reusable saving.
+    """,
+    1.0, 1.0,
+)
+fixture(
+    "regua-falls-back-to-arr-on-a-non-revenue-ruler",
+    "pm-prioritization-regua-comum",
+    "score-with-non-revenue-ruler-configuration",
+    """
+    Neither item has a direct ARR impact, so D1 is 1 for both. The import is an
+    internal efficiency ask and the keyboard work is a one-off request, so both
+    come out low impact and go to the backlog. Revisit if a customer ties
+    recurring revenue to either of them.
+    """,
+    0.0, 0.34,
+)
+
+
 def run() -> int:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="test-grade-evals-") as td:
