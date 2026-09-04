@@ -33,6 +33,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B16 | Fecho de sessão write-after-act (memória atualizada ao encerrar) | Memória | pesquisa | 2 | 2 | 3 | 12 | feito |
 | B17 | Agents Copilot: pins ausentes, tools insuficientes, required-reading divergente | Agents | agente | 2 | 2 | 2 | 8 | feito |
 | B18 | `pm-prioritization-regua-comum`: genericizar âncoras e unificar idioma | Skills | agente | 2 | 2 | 2 | 8 | feito |
+| B20 | Régua Comum sem eval fora do domínio ARR/CRA (genericidade não provada por eval) | Skills | verificado | 2 | 2 | 2 | 8 |
 
 ## Detalhe por item
 
@@ -132,7 +133,23 @@ Também unificado o contrato de leitura: um único `## Required reading` nos dez
 
 ### B18 — Régua comum não genericizada (GUT 8)
 
-**Feito.** O defeito era estrutural, não decorativo: CRA era o nome da terceira dimensão (`references/rubric.md`), estava na cláusula de exceção da própria trava (`references/workshop.md`), na `description` da skill e na linha da régua no `SKILL.md` raiz. As três dimensões passam a ser `D1 Business impact`, `D2 Abrangência` (sem mudança) e `D3 Strategic & risk`; o que D1 e D3 servem virou configuração explícita, com bloco `RULER CONFIGURATION` no `templates.md` e seção `Configure the ruler` no `SKILL.md`, incluindo o limite de materialidade fixado a partir da própria base de receita e nunca inventado na sessão. CRA, SBOM, VEX, fTPM e os tiers Developer→Professional sobrevivem em dois blocos rotulados como uma instanciação (seção de exemplo no fim do `rubric.md` e preâmbulo do `examples.md`), mais a lista de frases-gatilho do frontmatter, que é superfície de roteamento e não estrutura. `Abrangência lock` é o nome canônico único: caíram o `TRAVA DE ALAVANCAGEM` do `templates.md` e as três "Trava alavancagem" do `examples.md`. Camada normativa inteira em inglês, com português só em Régua Comum, Abrangência e no acrônimo HIPO; vírgula decimal convertida em ponto. Os evals 2 e 3 continuam em PT-BR e intocados, e o eval 1 mantém o `~$300k ARR` no prompt: as duas moedas provam que a régua independe de geografia. Mudaram só o `expected_output` do eval 1 e duas asserções do bloco dele em `grade_evals.py`, com `revenue` e `risk` soltos deliberadamente fora dos padrões para não afrouxar o bloco; duas fixtures permanentes novas fixam isso (1.00 contra 0.14). Raio real menor que o previsto: `README.md` e `skills/WORKFLOW.md` não citam as dimensões e não foram tocados.
+**Feito.** O defeito era estrutural, não decorativo: CRA era o nome da terceira dimensão (`references/rubric.md`), estava na cláusula de exceção da própria trava (`references/workshop.md`), na `description` da skill e na linha da régua no `SKILL.md` raiz. As três dimensões passam a ser `D1 Business impact`, `D2 Abrangência` (sem mudança) e `D3 Strategic & risk`; o que D1 e D3 servem virou configuração explícita, com bloco `RULER CONFIGURATION` no `templates.md` e seção `Configure the ruler` no `SKILL.md`, incluindo o limite de materialidade fixado a partir da própria base de receita e nunca inventado na sessão. CRA, SBOM, VEX, fTPM e os tiers Developer→Professional sobrevivem em dois blocos rotulados como uma instanciação (seção de exemplo no fim do `rubric.md` e preâmbulo do `examples.md`), mais a lista de frases-gatilho do frontmatter, que é superfície de roteamento e não estrutura. `Abrangência lock` é o nome canônico único: caíram o `TRAVA DE ALAVANCAGEM` do `templates.md` e as três "Trava alavancagem" do `examples.md`. Camada normativa inteira em inglês, com português só em Régua Comum, Abrangência e no acrônimo HIPO; vírgula decimal convertida em ponto. Os evals 2 e 3 continuam em PT-BR e intocados, e o eval 1 mantém o `~$300k ARR` no prompt: as duas moedas provam que a régua independe de geografia. Mudaram só o `expected_output` do eval 1 e duas asserções do bloco dele em `grade_evals.py`, com `revenue` e `risk` soltos deliberadamente fora dos padrões para não afrouxar o bloco; duas fixtures permanentes novas fixam isso (1.00 contra 0.14). Raio real menor que o previsto: `README.md` e `skills/WORKFLOW.md` não citam as dimensões e não foram tocados. **Gap remanescente, registrado como B20:** os três evals da régua instanciam D1 como ARR, então a genericidade está provada por estrutura e documentação, não por eval.
+
+### B20 — Régua Comum sem eval fora do domínio ARR/CRA (GUT 8)
+
+**Aberto.** O B18 genericizou a estrutura da régua: D1 virou `Business impact` e D3 `Strategic & risk`, ambos configuráveis, e os anchors do domínio de origem foram para blocos rotulados como uma instanciação. O que ele não fez foi exercitar essa configurabilidade: os três evals da skill instanciam D1 como ARR (`~$300k ARR`, `R$ 900 mil`, `R$ 2,4 milhões`), então nenhum prova que a régua opera sob outra configuração. A genericidade está sustentada por estrutura e documentação, não por eval.
+
+Escopo, a executar numa PR separada cortada de `main`:
+
+- id por `max(id)+1` lido em tempo de execução, sem renumerar; categoria `standard`;
+- cenário com **D1 ligado a custo operacional, eficiência ou outro resultado não baseado em receita**;
+- **D3 ligado a uma obrigação não-CRA** — acessibilidade, privacidade ou soberania de dados;
+- bloco em `ASSERTIONS` com paridade exata, imposta por `check_eval_coverage`;
+- fixtures permanentes good e bad em `test_grade_evals.py`, com prova discriminativa nas bandas do B11 (good ≥ 0,80, bad ≤ 0,34, gap ≥ 0,50);
+- contagem de evals atualizada no `README.md`;
+- os dois espelhos sincronizados por `scripts/sync_skills.py`.
+
+Os evals existentes ficam intocados: manter USD e BRL é o que prova que a régua independe de geografia, e trocá-los perderia essa propriedade.
 
 ### B19 — Arquitetura híbrida Claude Code + Codex (GUT 80)
 
