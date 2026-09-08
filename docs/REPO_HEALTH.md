@@ -11,6 +11,7 @@ bash -n hooks/*.sh
 python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
 python3 scripts/test_hooks.py
+python3 scripts/test_hook_contract.py
 python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
 python3 scripts/test_validate_repo.py
@@ -50,6 +51,12 @@ python3 scripts/stage_context.py
 Expected result: `memory.py doctor` passes and `stage_context.py` emits a stage block with Inputs / Process / Output-gate.
 
 ## Hook portability
+
+`hooks/contract.json` declares required routes in each harness. The validator
+checks the configured handler order and destinations against that contract.
+Malformed write envelopes and gate process failures block in the Codex adapter.
+Shared marker scanners retain their documented error policies; these checks
+do not establish factual truth or cover writes through arbitrary shell commands.
 
 The content-sentinel hooks support both Linux and macOS hashing:
 

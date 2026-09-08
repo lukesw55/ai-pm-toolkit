@@ -177,3 +177,17 @@ Executar o desenho (passos 1 e 2) antes do B1: o fix do prefixo MCP muda de form
 - Sycophancy: [arXiv — Sycophancy in LLMs: Causes and Mitigations](https://arxiv.org/pdf/2411.15287), [arXiv — Ask don't tell: Reducing sycophancy](https://arxiv.org/html/2602.23971v2), [arXiv — ELEPHANT: social sycophancy](https://arxiv.org/pdf/2505.13995)
 - Frameworks de discovery: [ProdPad — 16 Product Management Frameworks](https://www.prodpad.com/blog/product-management-frameworks/), [Productboard — Double Diamond Framework Guide](https://www.productboard.com/blog/double-diamond-framework-product-management/), [Great Question — Continuous discovery habits](https://greatquestion.co/blog/continuous-discovery-habits)
 - Codex (híbrido): [Codex — Customization (AGENTS.md, skills, hooks)](https://developers.openai.com/codex/concepts/customization), [Codex — Advanced configuration (hooks.json, PreToolUse)](https://developers.openai.com/codex/config-advanced), [Codex CLI](https://developers.openai.com/codex/cli)
+
+## Batches 5–7 — approved 2026-09-08
+
+Order: B21 → B23 → B24 → B22 → B28 → B25 → B26 → B27 → B30. One PR per item; each records validation and a repo changelog entry.
+
+- B21: Hook route contract, typed envelopes and blocking adapter failures. Status: pending.
+- B23: Typed frontmatter and equivalent optional-parser behavior. Status: pending.
+- B24: Python 3.10+ preflight and CI matrix with stable validate check. Status: pending.
+- B22: Confined context paths, consistent validation and idempotent bootstrap. Status: pending.
+- B28: Positive/negative grader fixtures and isolated validator tests. Status: pending.
+- B25: Real 56-run pilot in Claude Code and Codex with isolated baselines. Status: pending.
+- B26: PR-sourced history and binding decisions. Status: pending.
+- B27: Per-project app/design/tasks and explicit non-destructive migration. Status: pending.
+- B30: Document actual guarantees, memory layers and harness differences. Status: pending.

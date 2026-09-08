@@ -366,31 +366,92 @@ def check_workflow_contract(errors: list[str]) -> None:
                 err(errors, f"skills/WORKFLOW.md: {stage} missing {key}")
 
 
-def _check_hook_wiring(path: Path, events_without_matcher: set[str], errors: list[str]) -> None:
-    """Shared shape checks for a harness's hook-wiring file (Claude Code's
-    .claude/settings.json or Codex's .codex/hooks.json): valid JSON, no
-    matcher on events that don't support one, sane timeouts, and every
-    referenced hooks/*.sh or .codex/adapters/*.py command target exists."""
+def _check_hook_wiring(path: Path, events_without_matcher: set[str], errors: list[str]) -> dict | None:
+    before = len(errors)
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except Exception as exc:
+    except (OSError, ValueError) as exc:
         err(errors, f"{rel(path)}: invalid JSON: {exc}")
-        return
-    hooks = data.get("hooks", {})
-    for event, blocks in hooks.items():
-        if event in events_without_matcher:
-            for idx, block in enumerate(blocks):
-                if "matcher" in block:
-                    err(errors, f"{rel(path)}: {event}[{idx}] must not use matcher")
+        return None
+    if not isinstance(data, dict) or not isinstance(data.get("hooks"), dict):
+        err(errors, f"{rel(path)}: expected an object containing a hooks mapping")
+        return None
+    for event, blocks in data["hooks"].items():
+        if not isinstance(blocks, list):
+            err(errors, f"{rel(path)}: {event} must be a list")
+            continue
         for idx, block in enumerate(blocks):
-            for hook in block.get("hooks", []):
-                timeout = hook.get("timeout")
-                if isinstance(timeout, (int, float)) and timeout > 120:
-                    err(errors, f"{rel(path)}: timeout {timeout} on {event}[{idx}] looks like milliseconds; use seconds")
-                command = hook.get("command", "")
-                target = re.search(r"(hooks/[\w.-]+\.sh|\.codex/adapters/[\w.-]+\.py)", command)
-                if target and not (ROOT / target.group(0)).exists():
-                    err(errors, f"{rel(path)}: missing hook command target {target.group(0)}")
+            where = f"{rel(path)}: {event}[{idx}]"
+            if not isinstance(block, dict) or not isinstance(block.get("hooks"), list):
+                err(errors, f"{where} must contain a hooks list")
+                continue
+            if "matcher" in block:
+                matcher = block["matcher"]
+                if event in events_without_matcher:
+                    err(errors, f"{where} must not use matcher")
+                if not isinstance(matcher, str):
+                    err(errors, f"{where} matcher must be a string")
+                elif matcher not in ("", "*"):
+                    try:
+                        re.compile(matcher)
+                    except re.error as exc:
+                        err(errors, f"{where} invalid matcher: {exc}")
+            for num, hook in enumerate(block["hooks"]):
+                label = f"{where}.hooks[{num}]"
+                if not isinstance(hook, dict):
+                    err(errors, f"{label} must be an object")
+                    continue
+                if hook.get("type") != "command":
+                    err(errors, f"{label}: repo policy requires type command")
+                timeout = hook.get("timeout", 5)
+                if type(timeout) not in (int, float) or not 0 < timeout <= 120:
+                    err(errors, f"{label}: timeout must be positive seconds, at most 120")
+                command = hook.get("command")
+                if not isinstance(command, str) or not command.strip():
+                    err(errors, f"{label}: command must be a non-empty string")
+                    continue
+                targets = re.findall(r"(?:hooks|scripts|\.codex/adapters)/[\w.-]+\.(?:sh|py)", command)
+                if not targets:
+                    err(errors, f"{label}: no repository command target")
+                for target in targets:
+                    if not (ROOT / target).is_file():
+                        err(errors, f"{label}: missing hook command target {target}")
+    return data if len(errors) == before else None
+
+
+def matching_handlers(data: dict, event: str, tool: str) -> list[str]:
+    commands = []
+    for block in data["hooks"].get(event, []):
+        matcher = block.get("matcher", "")
+        if matcher in ("", "*") or re.search(matcher, tool):
+            commands.extend(h["command"] for h in block["hooks"])
+    return commands
+
+
+def check_hook_contract(errors: list[str]) -> None:
+    path = HOOKS / "contract.json"
+    try:
+        contract = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(contract, dict) or contract.get("version") != 1 or not isinstance(contract.get("harnesses"), dict):
+            raise ValueError("expected version 1 and harnesses mapping")
+        for harness in ("claude", "codex"):
+            spec = contract["harnesses"][harness]
+            expected_config = ".claude/settings.json" if harness == "claude" else ".codex/hooks.json"
+            if spec["config"] != expected_config or not isinstance(spec["routes"], list):
+                raise ValueError(f"invalid {harness} specification")
+            absent_matcher = CLAUDE_EVENTS_WITHOUT_MATCHER if harness == "claude" else CODEX_EVENTS_WITHOUT_MATCHER
+            data = _check_hook_wiring(ROOT / spec["config"], absent_matcher, errors)
+            if data is None:
+                continue
+            for route in spec["routes"]:
+                if not all(isinstance(route.get(k), str) for k in ("event", "tool")) or not isinstance(route.get("handlers"), list) or not all(isinstance(h, str) for h in route["handlers"]):
+                    raise ValueError(f"invalid {harness} route")
+                commands = matching_handlers(data, route["event"], route["tool"])
+                targets = [t for command in commands for t in re.findall(r"(?:hooks|scripts|\.codex/adapters)/[\w.-]+\.(?:sh|py)", command)]
+                if targets != route["handlers"]:
+                    err(errors, f"{spec['config']}: {route['event']} {route['tool']!r}: expected {route['handlers']}, got {targets}")
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        err(errors, f"{rel(path)}: invalid hook contract: {exc}")
 
 
 def check_settings(errors: list[str], warnings: list[str]) -> None:
@@ -434,9 +495,9 @@ def check_hooks_neutral(errors: list[str]) -> None:
 def _publish_matcher(path: Path) -> str | None:
     """Find the PreToolUse matcher on the block that wires humanize-gate.sh,
     in either adapter file."""
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
+    problems = []
+    data = _check_hook_wiring(path, set(), problems)
+    if data is None:
         return None
     for block in data.get("hooks", {}).get("PreToolUse", []):
         if any("humanize-gate.sh" in h.get("command", "") for h in block.get("hooks", [])):
@@ -768,8 +829,7 @@ def main() -> int:
     check_markdown_links(errors)
     check_backtick_paths(errors)
     check_workflow_contract(errors)
-    check_settings(errors, warnings)
-    check_codex_hooks(errors, warnings)
+    check_hook_contract(errors)
     check_hook_syntax(errors, warnings)
     check_hooks_neutral(errors)
     check_publish_scope(errors)

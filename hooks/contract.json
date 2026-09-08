@@ -1,0 +1,508 @@
+{
+  "version": 1,
+  "exceptions": [
+    "Codex project-isolation warning is not wired.",
+    "Inference marker scanning is not fact verification; shared scripts retain their documented error policy."
+  ],
+  "harnesses": {
+    "claude": {
+      "config": ".claude/settings.json",
+      "routes": [
+        {
+          "event": "SessionStart",
+          "tool": "startup",
+          "handlers": [
+            "hooks/memory-context.sh"
+          ]
+        },
+        {
+          "event": "UserPromptSubmit",
+          "tool": "",
+          "handlers": [
+            "scripts/stage_context.py"
+          ]
+        },
+        {
+          "event": "Stop",
+          "tool": "",
+          "handlers": [
+            "hooks/scope-bloat-gate.sh",
+            "hooks/memory-reminder.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "Read",
+          "handlers": [
+            "hooks/check-project-isolation.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "Write",
+          "handlers": [
+            "hooks/check-project-isolation.sh",
+            "hooks/anti-slop-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "Edit",
+          "handlers": [
+            "hooks/check-project-isolation.sh",
+            "hooks/anti-slop-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "NotebookEdit",
+          "handlers": [
+            "hooks/check-project-isolation.sh",
+            "hooks/anti-slop-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__updateConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__editJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__addCommentToJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createConfluenceFooterComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createConfluenceInlineComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__updateConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__editJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__addCommentToJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createConfluenceFooterComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createConfluenceInlineComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_send_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_send_message_draft",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_schedule_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_create_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_update_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_send_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_send_message_draft",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_schedule_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_create_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_update_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "Bash",
+          "handlers": []
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__unrelated__read",
+          "handlers": []
+        }
+      ]
+    },
+    "codex": {
+      "config": ".codex/hooks.json",
+      "routes": [
+        {
+          "event": "SessionStart",
+          "tool": "startup",
+          "handlers": [
+            "hooks/memory-context.sh"
+          ]
+        },
+        {
+          "event": "UserPromptSubmit",
+          "tool": "",
+          "handlers": [
+            "scripts/stage_context.py"
+          ]
+        },
+        {
+          "event": "Stop",
+          "tool": "",
+          "handlers": [
+            "hooks/scope-bloat-gate.sh",
+            "hooks/memory-reminder.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "apply_patch",
+          "handlers": [
+            ".codex/adapters/pretooluse.py"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__updateConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__editJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__addCommentToJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createConfluenceFooterComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Atlassian_Rovo__createConfluenceInlineComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__updateConfluencePage",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__editJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__addCommentToJiraIssue",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createConfluenceFooterComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Atlassian_Rovo__createConfluenceInlineComment",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_send_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_send_message_draft",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_schedule_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_create_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__Slack__slack_update_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_send_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_send_message_draft",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_schedule_message",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_create_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__claude_ai_Slack__slack_update_canvas",
+          "handlers": [
+            "hooks/humanize-gate.sh",
+            "hooks/inference-discipline-gate.sh"
+          ]
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "Bash",
+          "handlers": []
+        },
+        {
+          "event": "PreToolUse",
+          "tool": "mcp__unrelated__read",
+          "handlers": []
+        }
+      ]
+    }
+  }
+}
