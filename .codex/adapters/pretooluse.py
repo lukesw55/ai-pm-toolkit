@@ -118,9 +118,12 @@ def run_gates(payload: dict) -> tuple[int, str]:
     that blocks, 0 if both pass."""
     stdin_bytes = json.dumps(payload).encode()
     for gate in GATES:
-        res = subprocess.run(["bash", str(gate)], input=stdin_bytes, capture_output=True)
+        try:
+            res = subprocess.run(["bash", str(gate)], input=stdin_bytes, capture_output=True, timeout=3)
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return 2, f"Cannot run {gate.name}: {exc}\n"
         if res.returncode != 0:
-            return res.returncode, res.stderr.decode(errors="replace")
+            return 2, res.stderr.decode(errors="replace") or f"{gate.name} exited {res.returncode}\n"
     return 0, ""
 
 
@@ -145,8 +148,24 @@ def main() -> int:
         print(f"pretooluse adapter: could not parse Codex PreToolUse JSON: {exc}", file=sys.stderr)
         return 2
 
-    tool_name = envelope.get("tool_name", "")
-    tool_input = envelope.get("tool_input", {})
+    if not isinstance(envelope, dict) or not isinstance(envelope.get("tool_name"), str) or not envelope["tool_name"]:
+        print("pretooluse adapter: expected an object with a non-empty tool_name", file=sys.stderr)
+        return 2
+    tool_name = envelope["tool_name"]
+    if tool_name not in ("apply_patch", "Write", "Edit", "NotebookEdit"):
+        return 0
+    tool_input = envelope.get("tool_input")
+    if not isinstance(tool_input, dict):
+        print("pretooluse adapter: tool_input must be an object for writes", file=sys.stderr)
+        return 2
+
+    required = {"apply_patch": ("command",), "Write": ("file_path", "content"),
+                "Edit": ("file_path", "old_string", "new_string"),
+                "NotebookEdit": ("notebook_path", "new_source")}[tool_name]
+    for key in required:
+        if not isinstance(tool_input.get(key), str):
+            print(f"pretooluse adapter: {key} must be a string", file=sys.stderr)
+            return 2
 
     if tool_name in ("Write", "Edit", "NotebookEdit"):
         # Already Claude-shaped (documented as possible in some Codex
@@ -155,13 +174,6 @@ def main() -> int:
         if code != 0:
             sys.stderr.write(stderr)
         return code
-
-    if tool_name != "apply_patch":
-        # Not a write-shaped tool this adapter knows how to gate — allow
-        # (the matcher in .codex/hooks.json should not route anything else
-        # here; this is a defensive default, not a silent bypass of a
-        # write we failed to recognize).
-        return 0
 
     patch_text = tool_input.get("command", "")
     try:

@@ -38,6 +38,9 @@ jobs:
       - name: Synthetic gate + adapter smoke suite
         run: python3 scripts/test_hooks.py
 
+      - name: Hook routing and malformed input regressions
+        run: python3 scripts/test_hook_contract.py
+
       - name: Grader assertion fixture tests
         run: python3 scripts/test_grade_evals.py
 

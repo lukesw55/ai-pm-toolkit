@@ -10,7 +10,7 @@
 [![Blocking hooks](https://img.shields.io/badge/blocking%20hooks-4-critical)](hooks/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/lukesw55/ai-pm-toolkit/pulls)
 
-This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** AI slop, unverified claims, and unhumanized prose before they land anywhere. The skills are benchmarked against a no-skill baseline, so you can see what each one actually buys you.
+This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** AI slop, unverified claims, and unhumanized prose before they land anywhere. The repository provides eval cases and a grader for recorded with-skill and no-skill runs. No live benchmark results are published yet.
 
 It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks, and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
 
