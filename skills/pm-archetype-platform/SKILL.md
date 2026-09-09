@@ -10,7 +10,7 @@ description: >-
   end-user delight. Trigger on "API contract", "deprecation policy", "breaking
   change", "como deprecar X?", "quem consome esse endpoint?" — full
   trigger-phrase list in the skill body. Applies most strongly to the public
-  API gateway, device SDKs, and shared libraries that many services depend on.
+  API gateway, client SDKs, and shared libraries that many services depend on.
 ---
 
 # PM Archetype — Platform / API / infrastructure products
@@ -33,7 +33,7 @@ The product or feature is consumed by code, not clicked by an end-user:
 - CLI / DevTools / build infrastructure
 - platform capability that other features depend on (auth, identity, storage, telemetry)
 
-This archetype most often applies to the public API gateway, the device-side SDKs, the shared messaging/event library, and identity-provider extensions that other services depend on.
+This archetype most often applies to the public API gateway, the client SDKs, the shared messaging/event library, and identity-provider extensions that other services depend on.
 
 ### Trigger phrases
 

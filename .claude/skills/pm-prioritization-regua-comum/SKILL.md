@@ -7,7 +7,7 @@ description: >
   what goes into the next PI, or tell product evolution apart from one-account
   customization. Triggers on "priorizar", "régua comum", "impacto x esforço",
   "o que fazer primeiro", "vale a pena fazer isso?", "isso é customização?",
-  "score this backlog", "prioritization workshop", "ARR / Abrangência / CRA",
+  "score this backlog", "prioritization workshop", "Business / Abrangência / Strategic risk",
   "confiança", "HIPO". Scores three impact dimensions (Business impact,
   Abrangência, Strategic & risk), applies confidence and HIPO weighters,
   enforces the Abrangência lock against customization, rates effort, and plots

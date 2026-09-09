@@ -40,7 +40,7 @@ The product or feature is sold to or operated by organisations, and any of the f
 - change management (phased rollout for large orgs, training, communications)
 - integration (API surface, webhooks, partner connectors, data warehouse exports)
 
-For a B2B SaaS product this archetype applies to most of the product surface — multi-tenant fleets, large industrial customers, signed updates, audit obligations.
+For a B2B SaaS product this archetype applies to most of the product surface — multi-tenant workspaces, large professional-services firms, approval workflows, audit obligations.
 
 ### Trigger phrases
 
@@ -60,7 +60,7 @@ For a B2B SaaS product this archetype applies to most of the product surface —
 - `../pm-phase-develop/references/technical-fluency.md` — identity, SSO, data residency, encryption concepts
 - `../pm-phase-deliver/references/launch-readiness.md` — enterprise launches are slower, more staged
 - `../pm-transversal-stakeholder/` — enterprise = many stakeholders by design
-- your security/compliance lead — when the product surfaces fall under regulatory obligations (e.g. EU CRA for device-cloud features)
+- your security/compliance lead — when the product surfaces fall under regulatory obligations (e.g. data-retention obligations for document workflows)
 
 ## Workflow
 
@@ -68,7 +68,7 @@ For a B2B SaaS product this archetype applies to most of the product surface —
 2. **Characterise the org profile** — size, regulatory context, existing stack, appetite for change.
 3. **Map the feature across stakeholders** — how each group experiences it; what each needs.
 4. **Design the permission / governance model first** — RBAC matrix, audit log shape, admin-override paths.
-5. **Specify compliance implications** — legal + security review needed; data-handling concerns; CRA / SOC 2 / GDPR mapping.
+5. **Specify compliance implications** — legal + security review needed; data-handling concerns; SOC 2 / GDPR mapping.
 6. **Plan the rollout** — staged per customer segment; admin-controlled activation; migration pathway.
 7. **Architecture check** — loop in your engineering architecture partner (identity + data models are hard to change later).
 8. **Failure-mode analysis** — loop in your QA lead (enterprise failures are visible and contractual).
@@ -126,7 +126,7 @@ technical, compliance, commercial, change-management
 - Build phase: `pm-phase-develop` (PRD with permission model + audit log shape + migration wizard).
 - Launch: `pm-phase-deliver` with extra-staged rollout and per-account activation.
 - Transversals: `pm-transversal-stakeholder` (admin/IT/security alignment, exec sign-off), `pm-transversal-docs` (DPA-friendly Confluence pages, audit-event catalogue).
-- Engineering pairings: your engineering architecture partner (identity and data-model decisions), your QA lead (audit log coverage, deprovisioning checks), your security/compliance lead (CRA evidence trail).
+- Engineering pairings: your engineering architecture partner (identity and data-model decisions), your QA lead (audit log coverage, deprovisioning checks), your security/compliance lead (audit evidence trail).
 - Copilot mirror: [.github/agents/pm-enterprise.agent.md](../../../.github/agents/pm-enterprise.agent.md).
 
 ## Success criteria

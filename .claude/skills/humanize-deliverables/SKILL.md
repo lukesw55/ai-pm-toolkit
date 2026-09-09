@@ -105,7 +105,7 @@ Different destinations want different shapes; the gate respects that.
 ## What the gate does NOT do
 
 - **Does not humanize the user's own writing** — only prose Claude is producing for the user to forward, paste, or publish. If the user pastes text and asks to "review" or "polish", invoke `humanizer` directly; this gate is for outbound deliverables.
-- **Does not strip technical precision.** If a phrase looks AI-flavoured but carries load-bearing meaning (a regulated term, an SLA wording, a CRA-compliance phrase), keep it.
+- **Does not strip technical precision.** If a phrase looks AI-flavoured but carries load-bearing meaning (a regulated term, an SLA wording, a contractual data-retention clause), keep it.
 - **Does not expand the text.** Humanizing makes prose shorter or the same length, never longer.
 - **Does not re-format structure.** Headings, tables, bullet hierarchy stay; only the prose voice changes.
 

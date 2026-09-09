@@ -8,12 +8,12 @@ A worked example showing how this skill turns scattered evidence into a one-page
 >
 > Notes (paraphrased):
 >
-> - INT-01 (auto-tier-1, 60 dev fleet): "We onboarded fast, but after 3 months we kind of forgot about it. Nobody pushed updates last quarter."
-> - INT-02 (industrial automation, 200 devices): "Our CSM left, the new one never reached out. We don't know which features are new."
-> - INT-03 (medical, 30 devices): "We use it for compliance only. The team that adopted it moved to another project."
-> - INT-04 (smart-energy, 1.2k devices): "We renewed because the alternative was painful. But honestly, we use 20% of what we pay for."
-> - INT-05 (small OEM, 8 devices): "I love it but I'm a one-person team — no time to explore."
-> - INT-06 (legacy enterprise, 600 devices): "Ours stalled at the platform team. Devs never adopted the new console."
+> - INT-01 (editorial agency, 60 seats): "We onboarded fast, but after 3 months we kind of forgot about it. Nobody shared new templates last quarter."
+> - INT-02 (consultancy, 200 seats): "Our CSM left, the new one never reached out. We don't know which features are new."
+> - INT-03 (accounting firm, 30 seats): "We use it for compliance only. The team that adopted it moved to another project."
+> - INT-04 (education service, 1.2k seats): "We renewed because the alternative was painful. But honestly, we use 20% of what we pay for."
+> - INT-05 (small design studio, 8 seats): "I love it but I'm a one-person team — no time to explore."
+> - INT-06 (publishing group, 600 seats): "Ours stalled at the operations team. Editors never adopted the new workspace."
 >
 > Dashboard signal: weekly active accounts grow steadily for ~85 days, then flatline; ~40% of paid accounts have <1 active session/month after day 120.
 
@@ -46,10 +46,10 @@ Six interviews and the active-account dashboard point to the same pattern. Custo
 
 The interviews are blunter:
 
-- INT-01 onboarded fast and "kind of forgot about it" — nobody pushed updates last quarter
+- INT-01 onboarded fast and "kind of forgot about it" — nobody shared new templates last quarter
 - INT-02 lost their CSM and the new one never re-engaged
 - INT-04 renewed because switching was painful, but reports using ~20% of what they pay for
-- INT-06 stalled at the platform team; devs never adopted the new console
+- INT-06 stalled at the operations team; editors never adopted the new workspace
 
 This isn't a feature-gap story. It's a relationship-drift story. Every account that plateaued still considers the product "the right tool" — they just lost the thread.
 

@@ -50,7 +50,7 @@ The two skills chain: this one validates the numbers and produces clean inputs; 
 
 - Do not invent statistics, fields, files, or row counts — if you did not see it, say so.
 - Never overwrite raw data; write to `data/processed/`, `reports/`, `models/`, or an approved path.
-- Do not expose PII (CPF, email, device UUIDs, customer IDs) in logs, prints, screenshots, commits, or chat — a churn-analysis project may hold CRM PII at a local path; aggregate or scrub before any output leaves `data/processed/`.
+- Do not expose PII (CPF, email, user UUIDs, customer IDs) in logs, prints, screenshots, commits, or chat — a churn-analysis project may hold CRM PII at a local path; aggregate or scrub before any output leaves `data/processed/`.
 - No accuracy-only metric for imbalanced classes; no tuning on test set; no fitting preprocessing on full data before split.
 - Do not confuse statistical with practical significance, nor correlation with causation.
 - Do not deliver an analysis without a Limitations section.

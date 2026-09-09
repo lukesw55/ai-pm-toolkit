@@ -34,7 +34,7 @@ The three dimensions are structural: every instantiation of the ruler has them. 
 | Score | Criterion | Signals / examples |
 |---|---|---|
 | 5 | Central to the configured strategic, regulatory or security value proposition, or mitigates critical strategic risk | Audit-ready evidence for a regulation the base is subject to; a security primitive the positioning depends on |
-| 4 | Clearly reinforces the security / compliance-readiness narrative | Per-asset traceability of known vulnerabilities; pinned versus open tracking |
+| 4 | Clearly reinforces the security / compliance-readiness narrative | Traceability of access-review decisions; ownership and resolution of audit findings |
 | 3 | Touches security/compliance without being central | Access governance (SSO/SCIM) read as control |
 | 2 | Weak connection to security or strategy | A UX improvement with no security angle |
 | 1 | No strategic, regulatory or security relevance | A purely cosmetic tweak |
@@ -96,11 +96,11 @@ Rule of thumb: **all Low = Low; some Medium and no Highs = Medium; any High = Hi
 - **Avoid** (low/medium) — usually not worth it.
 - **Do not prioritize** (low/high) — say no, clearly.
 
-## Example instantiation — embedded/IoT platform under the EU CRA
+## Example instantiation — a fictional document-collaboration service
 
-One configuration of the ruler, kept here as an example. These anchors belong to that domain, not to the model: another company configures D1 and D3 against its own OKRs and writes its own anchors.
+A fictional configuration of the ruler, kept here as an example. These anchors belong to that domain, not to the model: another company configures D1 and D3 against its own OKRs and writes its own anchors.
 
-- **D1 Business impact** serves ARR. Score 5 anchors: enterprise IAM (SSO/SCIM) that unblocks deals; a paid tier of the Vulnerability Manager. Score 4 anchors: upgrade from Developer to Professional; tier enforcement (free to paid).
-- **D3 Strategic & risk** serves EU CRA readiness. Score 5 anchors: SBOM/VEX and audit-ready reports; encrypted partition and fTPM. Score 4 anchors: per-device CVE traceability; pinned versus open tracking.
-- **Safe language in this domain:** describe the offering as *CRA readiness, CRA enablement, CRA evidence, CRA operational support, compliance readiness*. Do not claim the product "certifies CRA compliance".
+- **D1 Business impact** serves ARR. Score 5 anchors: enterprise IAM (SSO/SCIM) that unblocks deals; a paid Audit Reports add-on. Score 4 anchors: upgrade from Basic to Team; tier enforcement (free to paid).
+- **D3 Strategic & risk** serves contractual audit readiness. Score 5 anchors: exportable access-review reports; approval-history retention required by customer contracts. Score 4 anchors: traceability of access decisions; ownership and resolution of audit findings.
+- **Safe language in this domain:** describe the offering as *audit preparation, evidence export, operational support*. Do not claim the product certifies that a customer has met all contractual obligations.
 - **Materiality limit for D1** in this instantiation: a deal or renewal above the account tier the commercial team defined as material. The number lives in the ruler configuration, not in this file.
