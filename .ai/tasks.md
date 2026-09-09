@@ -33,3 +33,7 @@
 - [ ] Validate with tests or direct checks
 - [ ] Log the decision and experiment result
 - [ ] Update changelog, memory, and remaining backlog
+
+## Toolkit maintenance
+
+- [x] Audit tracked content for company and sector associations; replace domain-specific examples with fictional document-collaboration scenarios and validate generated mirrors (2026-09-09).

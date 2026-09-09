@@ -2,22 +2,22 @@
 
 Three examples across three quadrants, showing the weighters in action — including HIPO at its maximum **failing** to rescue a customization (Example B).
 
-> **One instantiation, not universal anchors.** These examples come from an embedded/IoT platform whose ruler is configured with **D1 Business impact serving ARR** and **D3 Strategic & risk serving EU CRA readiness** (see the example instantiation at the bottom of `rubric.md`). The scores illustrate how the method behaves; the domain anchors are that company's configuration, not part of the model. Score notes are written as `D1 Business (ARR)` and `D3 Strategic (CRA)` so structure and configuration stay visible.
+> **One instantiation, not universal anchors.** These fictional examples use a document-collaboration service whose ruler is configured with **D1 Business impact serving ARR** and **D3 Strategic & risk serving contractual audit readiness** (see the example instantiation at the bottom of `rubric.md`). The scores illustrate how the method behaves; the domain anchors are the fictional service's configuration, not part of the model. Score notes are written as `D1 Business (ARR)` and `D3 Strategic (audit)` so structure and configuration stay visible.
 
-## Example A — Exportable vulnerability report for audit
-*(SBOM/VEX/CVE audit-ready, tied to the Vulnerability Manager)*
+## Example A — Exportable access-review report for audit
+*(access decisions and approval history, tied to the Audit Reports add-on)*
 
 | Field | Assessment |
 |---|---|
 | Origin | Security/Compliance + Marketing + Discovery |
-| Problem | Customers need exportable, audit-ready evidence of CVEs/SBOM/VEX to demonstrate diligence (CRA readiness) |
-| Scores | D1 Business (ARR) = **4** · D2 Abrangência = **5** · D3 Strategic (CRA) = **5** |
+| Problem | Customers need exportable, audit-ready evidence of access reviews and approval decisions to meet contractual audit obligations |
+| Scores | D1 Business (ARR) = **4** · D2 Abrangência = **5** · D3 Strategic (audit) = **5** |
 | Raw impact | (4+5+5)/3 = **4.67** |
-| Confidence | **High** (1.00) — regulation + multiple sources |
+| Confidence | **High** (1.00) — documented audit obligation + multiple sources |
 | HIPO | **Neutral** (1.00) — the evidence stands on its own |
 | Final impact | 4.67 × 1.00 × 1.00 = **4.67 → High** |
 | Abrangência lock | Clear (D2=5) |
-| Effort | **Medium** — reuses existing SBOM/VEX/CVE data; the work is formatting + validation |
+| Effort | **Medium** — reuses existing access-review and approval-history data; the work is formatting + validation |
 | Quadrant | High + Medium = **Plan (PI)** |
 | Decision | Plan for the next PI; a central compliance-evidence capability the whole base reuses |
 
@@ -28,7 +28,7 @@ Three examples across three quadrants, showing the weighters in action — inclu
 |---|---|
 | Origin | Sales (one prospect) |
 | Problem | Export format tailored to the prospect's ERP; sales says it unblocks a small deal |
-| Scores | D1 Business (ARR) = **2** · D2 Abrangência = **1** · D3 Strategic (CRA) = **1** |
+| Scores | D1 Business (ARR) = **2** · D2 Abrangência = **1** · D3 Strategic (audit) = **1** |
 | Raw impact | (2+1+1)/3 = **1.33** |
 | Confidence | **Medium** (0.85) — a real prospect request, but a single source |
 | HIPO | **Prioritize** (1.15) — *a sales leader is pushing to land the logo* (logged) |
@@ -45,7 +45,7 @@ Three examples across three quadrants, showing the weighters in action — inclu
 |---|---|
 | Origin | Discovery + Pipeline (several enterprise prospects) |
 | Problem | Enterprise prospects require SSO (authentication) and SCIM (provisioning) to adopt the product at scale |
-| Scores | D1 Business (ARR) = **5** · D2 Abrangência = **5** · D3 Strategic (CRA) = **4** |
+| Scores | D1 Business (ARR) = **5** · D2 Abrangência = **5** · D3 Strategic (audit) = **4** |
 | Raw impact | (5+5+4)/3 = **4.67** |
 | Confidence | **Medium** (0.85) — discovery done, but segment/revenue not yet confirmed |
 | HIPO | **Neutral** (1.00) |

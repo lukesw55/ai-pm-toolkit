@@ -696,7 +696,7 @@ ASSERTIONS = {
         "score-backlog-with-regua-comum": [
             ("Scores the business-impact dimension", hasr(r"\bd1\b|business impact|commercial impact|\barr\b")),
             ("Scores Abrangência dimension", hasr(r"abrang")),
-            ("Scores the strategic & risk dimension", hasr(r"\bd3\b|strateg|regulat|\bcra\b")),
+            ("Scores the strategic & risk dimension", hasr(r"\bd3\b|strateg|regulat")),
             ("Applies confidence weighting", hasr(r"confian|confidence")),
             ("Flags the single-account ask against the Abrangência lock", hasr(r"customiz|single account|uma conta|lock")),
             ("Rates effort and plots the matrix", hasr(r"effort|esforço")),
@@ -711,14 +711,14 @@ ASSERTIONS = {
             ("Reconhece o ARR sem se render a ele", hasr(r"900|\barr\b")),
         ],
         # B20 standard: the ruler runs on a configuration where D1 is not revenue
-        # and D3 is not CRA. The last assertion is the point of the eval: an answer
+        # and D3 serves accessibility. The last assertion is the point of the eval: an answer
         # that reaches for ARR has scored the origin domain, not the configured one.
         "score-with-non-revenue-ruler-configuration": [
             ("Scores D1 as the configured non-revenue outcome", hasr(r"support hours|cost avoidance|operational cost")),
             ("Uses the configured materiality limit instead of inventing one", hasr(r"\b200\b|materialit")),
             ("Scores the Abrangência dimension", hasr(r"abrang")),
             ("Cites the quantified evidence from the prompt", hasr(r"6 of 9|6/9|\b340\b|60%")),
-            ("Scores the non-CRA obligation on D3", hasr(r"wcag|accessib|acessib")),
+            ("Scores the configured accessibility obligation on D3", hasr(r"wcag|accessib|acessib")),
             ("Applies the Abrangência lock to the one-team item", hasr(r"\block\b|trava")),
             ("Logs the exception instead of waiving it", hasr(r"exception|exceç|logged|owner|okr")),
             ("Does not fall back to revenue as D1", lambda t: not re.search(r"\barr\b|recurring revenue|revenue impact|receita recorrente", t)),

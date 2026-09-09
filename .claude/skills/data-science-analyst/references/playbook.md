@@ -32,7 +32,7 @@ Before analysing:
 | Joins | cardinality preserved? | row explosion |
 | Target | distribution healthy? | extreme imbalance |
 | Leakage | features known only later? | target encoded into future fields |
-| PII | sensitive columns present? | email, phone, address, device UUID |
+| PII | sensitive columns present? | email, phone, address, user UUID |
 
 ## 3. Cleaning workflow
 

@@ -128,13 +128,13 @@ These are veiled inference. Do not emit:
 
 ## Product-status claims in outbound drafts (the variant-status rule)
 
-Added after a real failure: a Slack draft stated SBOM / vulnerability scanning were "supported" on a specific hardware variant based on platform-level docs. The platform claim was true; the variant claim was false (builds for that variant were not in the SBOM/scanning pipeline). The owning engineer corrected it publicly in a sales-visible channel, and the claim could have driven purchase orders for a product state that does not exist.
+Illustrative scenario: a draft says automated document retention is available on a specific subscription plan because platform-level docs describe it. Those docs do not establish availability on that plan. Before sending the draft, check plan-specific documentation or ask the feature owner; otherwise a customer could buy a plan that lacks the promised capability.
 
 Non-negotiable rules:
 
-1. **Platform evidence never proves variant status.** "The platform does X" is not evidence that "X works on this specific hardware variant". A supported/planned/TBD answer about a named product variant requires evidence naming that variant: a docs page listing it, a ticket scoping it, a test result, or the owning engineer's statement. Without that, the status is **TBD**, written as TBD in the draft.
+1. **Platform evidence never proves variant status.** "The platform does X" is not evidence that "X works on this specific subscription plan". A supported/planned/TBD answer about a named product variant requires evidence naming that variant: a docs page listing it, a ticket scoping it, a test result, or the owning engineer's statement. Without that, the status is **TBD**, written as TBD in the draft.
 2. **A draft pasted in chat is an outbound artefact.** The hard gates (Write/Edit scan, MCP publish scan) cannot see text the user copies out of the chat, so resolution happens at draft time: every status word (supported / available / works / planned) in a draft block must be individually anchored, and any unresolved inference surfaces in the draft text itself as "to confirm with [owner]" — never silently rounded up to "supported".
-3. **Sales-sensitive amplifier.** If the draft can influence a purchase, quote, or customer expectation (sales channels, opportunity threads, CRA/compliance topics), downgrade unverified claims to TBD and name the owner who can confirm. Optimistic rounding in these threads converts directly into commercial liability.
+3. **Sales-sensitive amplifier.** If the draft can influence a purchase, quote, or customer expectation (sales channels, opportunity threads, contractual/compliance topics), downgrade unverified claims to TBD and name the owner who can confirm. Optimistic rounding in these threads converts directly into commercial liability.
 4. **Subagent digests are evidence only for what they verified.** A digest line flagged `[INFER]` or "not confirmed" stays an inference after summarisation. Re-labelling happens by verification, not by paraphrase.
 
 ## Interaction with other skills

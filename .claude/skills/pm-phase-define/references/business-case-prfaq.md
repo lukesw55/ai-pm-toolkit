@@ -21,7 +21,7 @@ Senior PMs increasingly need to justify material bets, not just explain features
 ## Press release (written as if the launch already happened)
 
 ### Headline
-[Customer + benefit + category] — e.g. "Acme launches Remote Fleet Update, cutting device OTA rollouts from days to hours for embedded-systems teams."
+[Customer + benefit + category] — e.g. "Acme launches Document Review, cutting approval cycles from days to hours for editorial teams."
 
 ### Subheadline
 One sentence — benefit + who benefits.
