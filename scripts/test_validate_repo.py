@@ -157,6 +157,9 @@ def run_agent_case(frontmatter: str, body: str, without_pyyaml: bool = False) ->
 
 def main() -> int:
     failures = 0
+    modes = (False, True) if vr.yaml is not None else (True,)
+    if vr.yaml is None:
+        print("SKIP PyYAML cases: optional dependency is unavailable")
     for name, payload, needle in CASES:
         try:
             errors = run_case(payload)
@@ -171,7 +174,7 @@ def main() -> int:
             for e in errors:
                 print(f"      {e}")
     for name, frontmatter, body, needle in AGENT_CASES:
-        for without_pyyaml in (False, True):
+        for without_pyyaml in modes:
             mode = "no-pyyaml" if without_pyyaml else "pyyaml"
             want = needle[without_pyyaml] if isinstance(needle, tuple) else needle
             try:
@@ -193,7 +196,7 @@ def main() -> int:
 
     # The folded description must be parsed, not merely accepted. Checking only
     # for the absence of a finding is what let ">-" pass as a description.
-    for without_pyyaml in (False, True):
+    for without_pyyaml in modes:
         mode = "no-pyyaml" if without_pyyaml else "pyyaml"
         with tempfile.TemporaryDirectory(prefix="test-validate-fm-") as td:
             path = Path(td) / "SKILL.md"
@@ -207,7 +210,7 @@ def main() -> int:
                 data = vr.parse_frontmatter(path, errors)
             finally:
                 vr.rel, vr.yaml = saved
-        got = data.get("description")
+        got = data.get("description") if data is not None else None
         ok = not errors and got == CANONICAL_DESCRIPTION
         print(f"{'PASS' if ok else 'FAIL'}  frontmatter[{mode}]: folded description parsed by value: {got!r}")
         if not ok:
@@ -215,7 +218,7 @@ def main() -> int:
             for e in errors:
                 print(f"      {e}")
 
-    total = len(CASES) + len(AGENT_CASES) * 2 + 2
+    total = len(CASES) + (len(AGENT_CASES) + 1) * len(modes)
     if failures:
         print(f"\ntest_validate_repo: {failures}/{total} case(s) failed")
         return 1

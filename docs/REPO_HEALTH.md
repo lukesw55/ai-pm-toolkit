@@ -15,6 +15,7 @@ python3 scripts/test_hook_contract.py
 python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
 python3 scripts/test_validate_repo.py
+python3 scripts/test_frontmatter.py
 python3 scripts/grade_evals.py
 ```
 
@@ -41,6 +42,14 @@ python3 scripts/grade_evals.py
 `scripts/test_validate_repo.py` feeds the eval coverage check valid JSON with unexpected shapes (a list or object where a category, id or name string is expected; a non-list `evals`; a non-object top level) and asserts a validation finding comes back rather than a traceback. It does the same for the agent check against synthetic `.agent.md` fixtures, running **every case twice, with and without PyYAML**, and requiring the same verdict in both. Two cases must produce **no** finding, because `server/tool` and `server/*` are legitimate MCP tools and a closed allowlist of built-in aliases would reject valid configuration. One case checks a parsed *value* rather than the absence of a finding: a folded `description: >-` must come back as its text, since the fallback used to record the `>-` marker itself and pass.
 
 ## Bootstrap smoke test
+
+Validated frontmatter fields use a common portable subset in both modes:
+plain/quoted scalars, booleans, decimal numbers, nulls, inline lists and text
+blocks. Skills require non-empty string names and descriptions. Unsupported
+validated values and duplicate keys produce findings; dependent skill checks
+receive an explicit invalid result. Other metadata is not interpreted by the
+portable parser. When PyYAML is unavailable, tests report its cases as skipped,
+not as successful cross-parser verification.
 
 ```bash
 python3 scripts/init_context.py "Validation Demo"
