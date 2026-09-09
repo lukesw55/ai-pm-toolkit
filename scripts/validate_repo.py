@@ -123,27 +123,64 @@ def unquote(value: str) -> str:
     return value
 
 
-def parse_inline_list(value: str):
-    """`[a, b]` -> ["a", "b"], matching PyYAML on the forms this repo uses.
+def parse_scalar(value: str):
+    if value.startswith('"'):
+        try:
+            parsed = json.loads(value)
+            return parsed if isinstance(parsed, str) else Unparsed(value)
+        except ValueError:
+            return Unparsed(value)
+    if value.startswith("'"):
+        if len(value) < 2 or not value.endswith("'") or "'" in value[1:-1].replace("''", ""):
+            return Unparsed(value)
+        return value[1:-1].replace("''", "'")
+    if value.lower() in ("true", "false", "yes", "no", "on", "off"):
+        return value.lower() in ("true", "yes", "on")
+    if value.lower() in ("null", "~", ""):
+        return None
+    if re.fullmatch(r"[-+]?[0-9]+", value):
+        return int(value)
+    if re.fullmatch(r"[-+]?[0-9]+\.[0-9]+", value):
+        return float(value)
+    if value.startswith(("[", "{", "&", "*", "!", "|", ">")) or ": " in value or " #" in value:
+        return Unparsed(value)
+    return value
 
-    A trailing comma is dropped, because YAML reads `[a, ]` as ["a"]. An empty
-    item anywhere else, or an item opened with a quote it never closes, is
-    Unparsed — both raise in PyYAML too, so the two modes agree.
-    """
+
+def parse_inline_list(value: str):
     inner = value[1:-1].strip()
     if not inner:
         return []
-    items = [item.strip() for item in inner.split(",")]
-    if items and items[-1] == "":
-        items.pop()
-    out = []
-    for item in items:
-        if not item:
-            return Unparsed(value)
-        if item[0] in "\"'" and (len(item) < 2 or item[-1] != item[0]):
-            return Unparsed(value)
-        out.append(unquote(item))
-    return out
+    tokens, current, quote, escaped = [], [], None, False
+    for char in inner:
+        if escaped:
+            current.append(char)
+            escaped = False
+        elif quote == '"' and char == chr(92):
+            current.append(char)
+            escaped = True
+        elif char == quote:
+            current.append(char)
+            quote = None
+        elif quote:
+            current.append(char)
+        elif char in ("'", '"'):
+            quote = char
+            current.append(char)
+        elif char == ',':
+            tokens.append(''.join(current).strip())
+            current = []
+        else:
+            current.append(char)
+    if quote:
+        return Unparsed(value)
+    tokens.append(''.join(current).strip())
+    if tokens[-1] == '':
+        tokens.pop()
+    if any(not token for token in tokens):
+        return Unparsed(value)
+    parsed = [parse_scalar(token) for token in tokens]
+    return Unparsed(value) if any(isinstance(item, Unparsed) for item in parsed) else parsed
 
 
 def fold_block_scalar(indicator: str, lines: list[str]) -> str:
@@ -183,6 +220,10 @@ def fallback_frontmatter(raw: str) -> dict:
             i += 1
             continue
         key, value = match.group(1), match.group(2).strip()
+        if key in data:
+            data[key] = Unparsed("duplicate key")
+            i += 1
+            continue
         i += 1
         if re.fullmatch(r"[>|][-+]?", value):
             body = []
@@ -198,10 +239,8 @@ def fallback_frontmatter(raw: str) -> dict:
             data[key] = Unparsed("nested block") if any(l.strip() for l in nested) else ""
         elif value.startswith("[") and value.endswith("]"):
             data[key] = parse_inline_list(value)
-        elif value.lower() in ("true", "false"):
-            data[key] = value.lower() == "true"
         else:
-            data[key] = unquote(value)
+            data[key] = parse_scalar(value)
     return data
 
 
@@ -228,6 +267,11 @@ def load_frontmatter(path: Path, errors: list[str]) -> tuple[dict | None, str]:
     if not isinstance(data, dict):
         err(errors, f"{rel(path)}: frontmatter must be a mapping, got {type(data).__name__}")
         return None, body
+    # Validated fields use one portable grammar even when PyYAML is installed.
+    portable = fallback_frontmatter(match.group(1))
+    for key in ("name", "description", "tools", "agents", "user-invocable", "model"):
+        if key in portable:
+            data[key] = portable[key]
     return data, body
 
 
@@ -247,17 +291,18 @@ def unsupported(errors: list[str], path: Path, key: str, value) -> bool:
     return False
 
 
-def parse_frontmatter(path: Path, errors: list[str]) -> dict:
+def parse_frontmatter(path: Path, errors: list[str]) -> dict | None:
+    before = len(errors)
     data, _ = load_frontmatter(path, errors)
     if data is None:
-        return {}
+        return None
     for key in ("name", "description"):
         value = data.get(key)
         if unsupported(errors, path, key, value):
             continue
-        if not value:
-            err(errors, f"{rel(path)}: frontmatter missing {key}")
-    return data
+        if not isinstance(value, str) or not value.strip():
+            err(errors, f"{rel(path)}: frontmatter {key} must be a non-empty string")
+    return data if len(errors) == before else None
 
 
 def check_skill_frontmatter(errors: list[str]) -> None:
