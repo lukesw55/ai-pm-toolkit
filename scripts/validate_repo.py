@@ -3,7 +3,8 @@
 validate_repo.py — fast structural validator for the ai-pm-toolkit repo.
 
 Checks:
-- SKILL.md YAML frontmatter (canonical skills/ only — mirrors are generated).
+- SKILL.md YAML frontmatter (canonical skills/ only — mirrors are generated); a
+  skill's name must equal its directory.
 - Local markdown links (canonical + repo docs; mirrors excluded — they are
   byte copies, so a broken link there is the same broken link in canonical).
 - Backtick-quoted file paths (`a/b.md`), resolved from the citing file's own
@@ -307,7 +308,11 @@ def parse_frontmatter(path: Path, errors: list[str]) -> dict | None:
 
 def check_skill_frontmatter(errors: list[str]) -> None:
     for path in [ROOT / "SKILL.md", *SKILLS.glob("*/SKILL.md")]:
-        parse_frontmatter(path, errors)
+        data = parse_frontmatter(path, errors)
+        # The directory is the identity the mirrors, the eval manifests and the
+        # grader key on; check_eval_coverage already holds skill_name to it.
+        if data is not None and path.parent != ROOT and data.get("name") != path.parent.name:
+            err(errors, f"{rel(path)}: frontmatter name {data.get('name')!r} does not match directory {path.parent.name!r}")
 
 
 def check_markdown_links(errors: list[str]) -> None:
@@ -464,11 +469,32 @@ def _check_hook_wiring(path: Path, events_without_matcher: set[str], errors: lis
     return data if len(errors) == before else None
 
 
-def matching_handlers(data: dict, event: str, tool: str) -> list[str]:
+# A matcher made only of these characters is an exact string, or a list of
+# exact strings split on | or , (Claude Code's documented rule); anything else
+# is evaluated as an unanchored regular expression.
+MATCHER_LITERAL = re.compile(r"^[A-Za-z0-9_\- ,|]*$")
+
+
+def matcher_covers(matcher, tool: str, harness: str = "claude") -> bool:
+    """Claude uses exact-name lists or regex; Codex documents regex matchers.
+
+    See https://code.claude.com/docs/en/hooks#matcher-patterns and
+    https://learn.chatgpt.com/docs/hooks#matcher-patterns.
+    Python regex evaluates the portable patterns used by this repository.
+    """
+    if harness not in ("claude", "codex"):
+        raise ValueError(f"unknown matcher harness: {harness}")
+    if matcher in (None, "", "*"):
+        return True
+    if harness == "claude" and MATCHER_LITERAL.fullmatch(matcher):
+        return tool in {part.strip() for part in re.split(r"[|,]", matcher) if part.strip()}
+    return re.search(matcher, tool) is not None
+
+
+def matching_handlers(data: dict, event: str, tool: str, harness: str = "claude") -> list[str]:
     commands = []
     for block in data["hooks"].get(event, []):
-        matcher = block.get("matcher", "")
-        if matcher in ("", "*") or re.search(matcher, tool):
+        if matcher_covers(block.get("matcher", ""), tool, harness):
             commands.extend(h["command"] for h in block["hooks"])
     return commands
 
@@ -491,24 +517,12 @@ def check_hook_contract(errors: list[str]) -> None:
             for route in spec["routes"]:
                 if not all(isinstance(route.get(k), str) for k in ("event", "tool")) or not isinstance(route.get("handlers"), list) or not all(isinstance(h, str) for h in route["handlers"]):
                     raise ValueError(f"invalid {harness} route")
-                commands = matching_handlers(data, route["event"], route["tool"])
+                commands = matching_handlers(data, route["event"], route["tool"], harness)
                 targets = [t for command in commands for t in re.findall(r"(?:hooks|scripts|\.codex/adapters)/[\w.-]+\.(?:sh|py)", command)]
                 if targets != route["handlers"]:
                     err(errors, f"{spec['config']}: {route['event']} {route['tool']!r}: expected {route['handlers']}, got {targets}")
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
         err(errors, f"{rel(path)}: invalid hook contract: {exc}")
-
-
-def check_settings(errors: list[str], warnings: list[str]) -> None:
-    _check_hook_wiring(ROOT / ".claude" / "settings.json", CLAUDE_EVENTS_WITHOUT_MATCHER, errors)
-
-
-def check_codex_hooks(errors: list[str], warnings: list[str]) -> None:
-    path = ROOT / ".codex" / "hooks.json"
-    if not path.exists():
-        err(errors, f"{rel(path)}: missing — every hook wired for Claude Code needs a Codex adapter entry (D4 parity)")
-        return
-    _check_hook_wiring(path, CODEX_EVENTS_WITHOUT_MATCHER, errors)
 
 
 def check_mirror_drift(errors: list[str]) -> None:
@@ -592,7 +606,7 @@ def check_publish_scope(errors: list[str]) -> None:
     for adapter in [ROOT / ".claude" / "settings.json", ROOT / ".codex" / "hooks.json"]:
         matcher = _publish_matcher(adapter)
         if not matcher:
-            continue  # check_settings / check_codex_hooks already flag a missing/malformed adapter
+            continue  # check_hook_contract already flags a missing or malformed adapter
         for suffix in sorted(_matcher_tool_suffixes(matcher)):
             if suffix not in gate_arms:
                 err(errors, f"{rel(adapter)}: publish matcher covers '{suffix}' but hooks/inference-discipline-gate.sh has no matching case arm")

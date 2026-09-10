@@ -28,6 +28,8 @@ python3 scripts/grade_evals.py
 - Local markdown links and backtick-quoted file paths (canonical + repo docs; the `.claude/skills/` and `.agents/skills/` mirrors are byte copies, checked separately by drift).
 - `skills/WORKFLOW.md` parsing into the canonical eight-stage contract.
 - `.claude/settings.json` and `.codex/hooks.json` hook shape, unsupported matchers, timeout units, and that every referenced command target exists.
+- Hook wiring contract: every route in `hooks/contract.json` (event, tool, ordered handlers, per harness) resolves to exactly those handlers in the adapter, using separate matcher semantics: Claude Code accepts exact-name lists or regex; Codex uses regex, without Claude's comma-separated-list rule; malformed adapter JSON produces findings, never a traceback.
+- Progressive-loading maps: every support file under a mapped skill is named in the skill's `progressive-loading.md` map.
 - Hook shell syntax, and that shared `hooks/*.sh` scripts carry no harness-specific paths (`CLAUDE_PROJECT_DIR`, `.claude/`, `.codex/`, `.agents/`) — enforcement logic must work under both harnesses identically.
 - Mirror drift: `.claude/skills/` and `.agents/skills/` match `skills/` exactly (`scripts/sync_skills.py --check`).
 - Memory bootstrap compatibility between `init_context.py`, `memory.py doctor`, and `stage_context.py`.
@@ -44,7 +46,7 @@ python3 scripts/grade_evals.py
 
 `scripts/test_validate_repo.py` feeds the eval coverage check valid JSON with unexpected shapes (a list or object where a category, id or name string is expected; a non-list `evals`; a non-object top level) and asserts a validation finding comes back rather than a traceback. It does the same for the agent check against synthetic `.agent.md` fixtures, running **every case twice, with and without PyYAML**, and requiring the same verdict in both. Two cases must produce **no** finding, because `server/tool` and `server/*` are legitimate MCP tools and a closed allowlist of built-in aliases would reject valid configuration. One case checks a parsed *value* rather than the absence of a finding: a folded `description: >-` must come back as its text, since the fallback used to record the `>-` marker itself and pass.
 
-## Bootstrap smoke test
+## Frontmatter parsing
 
 Validated frontmatter fields use a common portable subset in both modes:
 plain/quoted scalars, booleans, decimal numbers, nulls, inline lists and text
@@ -52,7 +54,9 @@ blocks. Skills require non-empty string names and descriptions. Unsupported
 validated values and duplicate keys produce findings; dependent skill checks
 receive an explicit invalid result. Other metadata is not interpreted by the
 portable parser. When PyYAML is unavailable, tests report its cases as skipped,
-not as successful cross-parser verification.
+not as successful cross-parser verification. A skill's `name` must equal its directory.
+
+## Bootstrap smoke test
 
 ```bash
 python3 scripts/init_context.py "Validation Demo"

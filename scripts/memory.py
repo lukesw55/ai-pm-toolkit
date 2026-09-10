@@ -5,6 +5,7 @@ and model-assisted consolidation (distill).
 
 Usage:
     python3 scripts/memory.py log <slug>|repo "<entry text>" [--title "..."]
+        (without --title, the entry's first line becomes the title)
     python3 scripts/memory.py park <slug>
     python3 scripts/memory.py activate <slug> [--stage <stage>] [--name "Project Name"]
     python3 scripts/memory.py distill <slug>                        # report files over caps
@@ -297,6 +298,17 @@ def project_dir(slug):
     return d
 
 
+def default_title(entry: str) -> str:
+    """First non-empty line of the entry, cut at 60 characters. Entries logged
+    without --title used to share one title, which left the archive index with
+    identical lines and nothing to grep for."""
+    for line in entry.splitlines():
+        text = line.strip().lstrip("#-* ").strip()
+        if text:
+            return text if len(text) <= 60 else text[:57].rstrip() + "..."
+    return "session log"
+
+
 def cmd_log(args):
     if args.slug == "repo":
         changelog = ROOT_CHANGELOG
@@ -304,7 +316,7 @@ def cmd_log(args):
         changelog = project_dir(args.slug) / "changelog.md"
     guard(changelog)
     today = date.today().isoformat()
-    title = args.title or "session log"
+    title = args.title or default_title(args.entry)
     entry = f"## {today}: {title}\n\n{args.entry.rstrip()}\n\n"
     if changelog.exists():
         text = changelog.read_text(encoding="utf-8")

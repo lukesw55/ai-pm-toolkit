@@ -54,7 +54,7 @@ Default **Lean** (compact, decision-oriented). **Standard** when nuance matters.
 Shared product logic lives once, at the top level — neither harness is the "real" copy the other degrades from:
 
 - `skills/` — the canonical skill tree (SKILL.md + references + evals per skill), plus `WORKFLOW.md` and `DOCTRINE.md`. The only place skills are hand-edited.
-- `hooks/` — the canonical enforcement scripts, harness-neutral (no `CLAUDE_PROJECT_DIR` dependency; self-locating).
+- `hooks/` — the canonical enforcement scripts, harness-neutral (no `CLAUDE_PROJECT_DIR` dependency; self-locating). `hooks/contract.json` is data, not a script: the route manifest `validate_repo.py` checks both adapters against, so it names them; the neutrality check covers `hooks/*.sh` only.
 - `.ai/` — shared state: memory and gate sentinels.
 - `.claude/settings.json` and `.codex/hooks.json` — thin adapters wiring each harness's lifecycle events to the same `hooks/` scripts. `.claude/skills/` and `.agents/skills/` are generated, committed mirrors of `skills/`, produced by `python3 scripts/sync_skills.py` — never hand-edited. Run `sync_skills.py --check` after editing anything under `skills/` to confirm the mirrors still match; `validate_repo.py` catches drift too.
 - `.codex/adapters/pretooluse.py` is the one Codex-specific execution adapter: it normalizes Codex's `apply_patch` tool calls into the shape the shared write gates already consume. Every other hook script runs identically on both harnesses.
