@@ -64,7 +64,7 @@ Anti-patterns: treating stakeholders as a single undifferentiated group, engagin
 
 ## Workflow
 
-1. **Load context** — the decision at stake, the phase it's in, and existing `.ai/memory/projects/<slug>/decisions.md` entries.
+1. **Load context** — the decision at stake, the phase it's in, and existing `.ai/memory/projects/<slug>/decisions.md` entries. When present, `.ai/memory/org/goals.md` is what the exec lens reads first.
 2. **Classify the ask** — decision rights, exec reporting, or stakeholder map?
 3. **Name the driver and approver explicitly** — no "TBD", no "we'll figure it out".
 4. **Frame one-way vs two-way door** — the rigor required scales with reversibility.

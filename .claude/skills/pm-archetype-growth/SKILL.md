@@ -47,6 +47,7 @@ Do not invoke for non-growth launch readouts — release notes, generic post-lau
 - `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior experiment logs are load-bearing**; without them the team re-tests dead ideas
 - live PostHog data (via the PostHog MCP tools, e.g. `query-run`) when sizing the bet — never propose without baseline
+- shared org context in `.ai/memory/org/` when present (`personas.md`, `competitors.md`, `goals.md`); open the file the task needs, not all four
 
 ## References this skill chains to
 

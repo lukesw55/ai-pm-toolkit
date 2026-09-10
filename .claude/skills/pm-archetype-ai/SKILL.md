@@ -46,6 +46,7 @@ Skip this skill when the AI piece is purely backend optimisation users never see
 
 - `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior eval results are load-bearing**; if the team has shipped anything AI-shaped before, the eval log determines what's possible now
+- shared org context in `.ai/memory/org/` when present (`personas.md`, `competitors.md`, `goals.md`); open the file the task needs, not all four
 
 ## References this skill chains to
 

@@ -50,6 +50,7 @@ For a B2B SaaS product this archetype applies to most of the product surface —
 
 - `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior compliance decisions are especially important**; precedents bind future work
+- shared org context in `.ai/memory/org/` when present (`personas.md`, `competitors.md`, `goals.md`); open the file the task needs, not all four
 
 ## References this skill chains to
 

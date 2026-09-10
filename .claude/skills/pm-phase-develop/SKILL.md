@@ -109,7 +109,7 @@ Anti-patterns: cargo-cult jargon, promising incoherent solutions, ignoring NFRs,
 
 ## Workflow
 
-1. **Load context** — `.ai/memory/active-context.md`, PRD/spec if present, priorities from `pm-phase-define`, tracking plan if any.
+1. **Load context** — `.ai/memory/active-context.md`, PRD/spec if present, priorities from `pm-phase-define`, tracking plan if any. When present, `.ai/memory/org/personas.md` names the archetype the PRD serves.
 2. **Classify the ask** — PRD, slicing, dependency/risk, orchestration, instrumentation, or tech fluency?
 3. **Anchor on the wedge** — restate the problem + success criteria + non-goals from Define. If missing, loop back.
 4. **Draft the smallest useful artefact** — PRD that fits on ~3 pages, not 20; tracking plan that tracks the 5 events that matter, not 50.

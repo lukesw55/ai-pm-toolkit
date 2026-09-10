@@ -88,7 +88,7 @@ Anti-patterns: "I watched the video and vibed with it", summarising before codin
 
 ## Workflow
 
-1. **Load the raw data** — transcripts, recordings, dashboards, exports. If media is provided, confirm transcript is available or request one; use Read on provided text files.
+1. **Load the raw data** — transcripts, recordings, dashboards, exports. If media is provided, confirm transcript is available or request one; use Read on provided text files. When present, `.ai/memory/org/personas.md` supplies the segment labels the coding scheme should reuse.
 2. **Classify the ask** — quali, quant, triangulation, or media-first?
 3. **Sampling discipline** — for quali, check sample size and segment coverage. For quant, check cohort definitions and exclusion rules.
 4. **Code then synthesise** — for quali, resist the urge to summarise before coding. For quant, define the hypothesis before slicing.

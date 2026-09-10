@@ -8,6 +8,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-08 session log
 - 2026-09-09 Neutral examples audit
 - 2026-09-10 Versioned integration history
+- 2026-09-10 Remaining backlog implementation
 
 ## 2026-09-08: session log
 
@@ -47,4 +48,8 @@ Backfill from verified GitHub PR metadata; detailed change mapping and source li
 - PR #16: 2026-09-08T17:17:24Z, main `14fb603`.
 - PR #17: 2026-09-09T01:15:48Z, main `bd321d0`.
 - PR #18: 2026-09-09T17:45:37Z, main `88d2e6b`.
+
+## 2026-09-10: Remaining backlog implementation
+
+Implemented B24, B22, B28, B26, B27 and B30 in one consolidated change. Added B25 recorder and protocol; the real 60-output pilot remains pending because authenticated Claude Code and Codex runners are unavailable. B21 and B23 recorded as already integrated. Validation results are recorded in the PR; binding decisions are in docs/DECISIONS.md.
 
