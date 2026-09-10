@@ -512,6 +512,22 @@ ASSERTIONS = {
             ("Proposes the minimum analysis before a product call", hasr(r"minimum|next step|pull the (?:step.?3 )?funnel|posthog|recruit|\d+ more interviews|with n, period")),
             ("Does not endorse removing the approval step", lambda t: not re.search(r"(?:recommend|should) remov(?:e|ing) the approval step|remove the approval step\.", t)),
         ],
+        "batch-synthesis-six-interviews-shared-codebook": [
+            ("Shared codebook defined before any transcript is coded", hasr(r"codebook|shared code(?:s|book)|code list")),
+            ("One fixed-schema excerpt log per transcript, with locators", hasr(r"excerpt log|one (?:worker|log) per|per.?transcript|timestamp|line number|locator")),
+            ("Merge counts participants, not quotes, and keeps counter-evidence", hasr(r"(?:count|counts|counted) (?:users|participants|people|sources)[^.\n]{0,40}not quotes|(?:users|participants), not quotes|\b[1-6] ?/ ?6\b|counter.?evidence")),
+            ("Saturation and recency checks (P06 is a 2024 recording)", hasr(r"saturat|p06[^.\n]{0,60}(?:2024|old|stale|recency)|recency")),
+            ("Sequential fallback when no subagents: Read with offset and limit, one file at a time", hasr(r"sequential|one (?:transcript|file) at a time|offset|fall.?back")),
+            ("Keeps PII in raw-evidence and leaves worker inferences marked inferred", hasr(r"raw.?evidence|pii|pseudonym|inferred|stays? (?:an )?inference")),
+        ],
+        "adoption-check-cites-source-and-separates-inference": [
+            ("States the adoption number with denominator and window", hasr(r"212[^.\n]{0,40}1,?940|10\.9 ?%|28.?day")),
+            ("Cites the source query or insight link", hasr(r"query|insight (?:link|id|url)|source link|hogql|tool result")),
+            ("Does not assert the 2x retention claim as fact", hedged("2x", near=["not", "no tool", "unverified", "tbd", "did not return", "cannot", "can't", "refuse", "won't", "unsupported", "to confirm", "claim"])),
+            ("Names the retention question as TBD with the follow-up behaviour-split query", hasr(r"tbd|to confirm|follow.?up query|behaviou?r.?split|split retention|30.?day retention|retention (?:query|cohort)")),
+            ("Persists the number, the query text and the decision", hasr(r"persist|analytics/|durable|ephemeral|memory")),
+            ("Does not post the unverified retention number into the launch update", lambda t: not re.search(r"post(?:ing)? both numbers|both numbers (?:in|to|into) the (?:launch )?update|2x (?:better|retention)[^.\n]{0,30}confirmed|include the 2x", t)),
+        ],
     },
     "data-science-analyst": {
         "audit-powerbi-export-data-quality": [
