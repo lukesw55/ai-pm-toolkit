@@ -217,7 +217,7 @@ For richer templates (analytical report, EDA report, model card, experiment repo
 
 ---
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default in chat) is top findings + impact + next step; Standard (default for finals) is the full report with method + evidence + confidence; Caveman is top 3 in 2 lines each. Match the user's language (PT-BR or EN) per turn.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default in chat) is top findings + impact + next step; Standard (default for finals) is the full report with method + evidence + confidence; Caveman is top 3 in 2 lines each. Match the user's language (PT-BR or EN) per turn.
 
 ---
 

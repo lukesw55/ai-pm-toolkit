@@ -100,7 +100,7 @@ The layering in `CLAUDE.md` maps onto these files. Nothing in the cold layer is 
 
 | Layer | Files | Read when |
 |---|---|---|
-| Hot | `active-context.md` (pointer, ≤2 KB) | injected at session start by `stage_context.py` |
+| Hot | `active-context.md` (pointer, ≤2 KB) plus `index.md` | injected at session start by `hooks/memory-context.sh` |
 | Warm | `projects/<slug>/state.md`, `session-kickoff.md`, `decisions.md`, `profile.md`, the 3 newest `changelog.md` entries | working on that project |
 | Cold | `changelog-archive.md`, `state-archive.md`, `decisions-archive.md`, `raw-evidence/`, transcripts | grep-first: the archive index (`memory.py index <slug>`) or `grep -n` for a term or date, then only the matching block |
 
@@ -172,3 +172,22 @@ Summarize for speed, but preserve a pointer to the underlying evidence.
 
 The target is not "short memory."
 The target is **retrievable memory**.
+
+## Project context and toolkit history
+
+Resolve the active slug from `.ai/memory/active-context.md`. Read the active project's
+`app.md`, `design.md` and `tasks.md` under `.ai/memory/projects/<slug>/`, alongside its
+warm memory. Unfilled template fields are unknown, not verified facts. New projects
+receive these files from the tracked templates. Re-running `init_context.py` fills
+missing files without resetting stage, state or parked projects.
+
+For an existing workspace, explicitly run `python3 scripts/init_context.py --migrate-legacy <project-name>`
+to copy legacy repo-level app/design/tasks into missing project files. It keeps the
+sources and never replaces a destination. Review existing destinations manually
+when both versions contain work. Park the current project before initializing another.
+
+Toolkit changes belong in the versioned changelog through `python3 scripts/memory.py log repo "<change and validation>"`.
+Project activity belongs in the project's changelog. Binding toolkit decisions live
+in `docs/DECISIONS.md`; historical PR integrations are recorded in `docs/PR_HISTORY.md`.
+PRs should record validation on the reviewed head. A self-review is not independent
+approval; if GitHub rejects self-approval, disclose that and retain the checks as evidence.

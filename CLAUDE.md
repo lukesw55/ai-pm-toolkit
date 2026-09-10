@@ -105,7 +105,7 @@ If the user asks for implementation too early, slow down just enough to define t
 
 Memory is layered. Never read it wholesale.
 
-- **Hot**: the pointer (`active-context.md`) plus the active project, injected at session start.
+- **Hot**: the pointer (`active-context.md`) plus `index.md`, injected at session start; project state is read separately.
 - **Warm**: that project's kickoff, state, decisions, and the most recent changelog entries, read only when working on it.
 - **Cold**: archives, raw evidence, transcripts. Never read wholesale: retrieve grep-first through the archive index (`memory.py index <slug>`), then open only the block that matched.
 
@@ -130,3 +130,13 @@ Work is done only when the relevant items are complete: the problem is clearly f
 ## Communication modes
 
 Default to **Lean** (compact, decision-oriented). Use **Standard** when nuance matters (full analysis, architecture decisions, stakeholder docs). Use **Caveman** when the user asks for brevity or token efficiency: minimal words, no filler, technical accuracy and actionability preserved.
+
+## Project context and toolkit history
+
+Read app/design/tasks from `.ai/memory/projects/<slug>/`, using the active pointer.
+Unfilled fields are unknown. Bootstrap and non-destructive legacy migration are
+specified in `docs/memory/MEMORY_SYSTEM.md`. Toolkit changes must be logged with
+`python3 scripts/memory.py log repo "<change and validation>"`; project activity
+uses its project slug. Binding decisions: `docs/DECISIONS.md`. Integration history:
+`docs/PR_HISTORY.md`. Record validation against the exact PR head; self-review is
+not independent approval.

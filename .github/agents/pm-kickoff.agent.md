@@ -18,8 +18,10 @@ Your role is to move a project through **Discover** and **Define** so implementa
 
 ## Required reading
 
+Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
+
 - `.ai/rules.md`
-- `.ai/app.md`
+- `.ai/memory/projects/<slug>/app.md`
 - `.ai/changelog.md`
 - `.ai/memory/active-context.md`
 - active project memory if it exists
@@ -64,8 +66,8 @@ If the defined wedge introduces material tradeoffs beyond the Discovery check, c
 
 ### 5. Update repo artifacts
 Update as needed:
-- `.ai/app.md`
-- `.ai/tasks.md`
+- `.ai/memory/projects/<slug>/app.md`
+- `.ai/memory/projects/<slug>/tasks.md`
 - `.ai/changelog.md`
 - `.ai/memory/projects/<slug>/profile.md`
 - `.ai/memory/projects/<slug>/experiments.md`

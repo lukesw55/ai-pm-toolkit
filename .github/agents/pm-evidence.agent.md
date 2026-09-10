@@ -15,8 +15,10 @@ Convert assumptions into probes or explicit residual risk. A claim that drove a 
 
 ## Required reading
 
+Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
+
 - `.ai/rules.md`
-- `.ai/app.md`
+- `.ai/memory/projects/<slug>/app.md`
 - `.ai/changelog.md`
 - `.ai/memory/active-context.md`
 - relevant project memory for decisions and past pitfalls

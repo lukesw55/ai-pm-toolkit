@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-stage_context.py — Surface the current workflow stage to Claude Code.
+stage_context.py — Surface the current workflow stage to the active harness.
 
 Called by the UserPromptSubmit hook wired in .claude/settings.json (Claude
 Code) and .codex/hooks.json (Codex). Reads
 `.ai/memory/active-context.md` for the "Current stage" field and writes a short
-context block to stdout. Claude Code injects stdout from this hook into the
+context block to stdout. The harness injects stdout from this hook into the
 conversation before the user prompt is processed, so every turn starts
 stage-aware.
 
@@ -119,7 +119,7 @@ def build_stage_block(stage: str, contract: dict[str, dict[str, str]]) -> list[s
 
     layer4 = (
         "warm set (session-kickoff.md, state.md, decisions.md, +3 newest "
-        "changelog) per CLAUDE.md memory rules"
+        "changelog) per docs/memory/MEMORY_SYSTEM.md"
     )
     if idx and idx > 1:
         layer4 += "; plus previous stage artefact"

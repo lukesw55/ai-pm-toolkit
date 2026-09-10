@@ -2,26 +2,49 @@ name: validate
 
 on:
   push:
+    branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  validate:
+  tests:
+    name: Python ${{ matrix.python-version }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install optional dependencies
-        run: pip install pyyaml
+        run: python3 -m pip install "pyyaml==6.0.2"
+
+      - name: Environment preflight
+        run: bash scripts/check_requirements.sh
+
+      - name: Context and preflight regressions
+        run: python3 scripts/test_context_scripts.py
+
+      - name: Recorded eval protocol regressions
+        run: python3 scripts/test_record_eval_run.py
 
       - name: Compile check all scripts
         run: python3 -m py_compile scripts/*.py
 
       - name: Hook shell syntax
-        run: bash -n hooks/*.sh
+        run: for hook in hooks/*.sh; do bash -n "$hook" || exit; done
 
       - name: Mirror drift check
         run: python3 scripts/sync_skills.py --check
@@ -60,3 +83,15 @@ jobs:
         run: |
           python3 scripts/init_context.py "CI Bootstrap Demo"
           python3 scripts/memory.py doctor
+
+  validate:
+    name: validate
+    if: always()
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Require every supported Python version
+        env:
+          RESULT: ${{ needs.tests.result }}
+        run: test "$RESULT" = success

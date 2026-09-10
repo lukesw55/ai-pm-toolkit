@@ -152,7 +152,7 @@ Anti-patterns: status without recommendation, hidden trade-offs, burying the ask
 - Transversais: `pm-transversal-stakeholder` for DACI/exec reporting, `pm-transversal-docs` for Confluence/Jira publication.
 - Archetype lenses adapt the framing to the product type during the Define phase.
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is the 1-page choice + rationale + non-goals; Standard is the full memo for leadership; Caveman is a 5-line bet / metric / size / risk / next.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is the 1-page choice + rationale + non-goals; Standard is the full memo for leadership; Caveman is a 5-line bet / metric / size / risk / next.
 
 ## Success criteria
 

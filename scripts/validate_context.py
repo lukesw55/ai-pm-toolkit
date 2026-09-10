@@ -14,22 +14,13 @@ Required fields:
 See .ai/memory/active-context.example.md for the schema contract.
 """
 
+from context_paths import pointer_slug, project_path
+from advance_stage import STAGES, STAGE_ALIASES
+
 import re
 import sys
 from pathlib import Path
 
-# Keep in sync with scripts/advance_stage.py.
-STAGES = [
-    "discovery-prioritization",
-    "impact-brief",
-    "discovery",
-    "one-pager",
-    "product-prioritization",
-    "prd",
-    "tech-kickoff",
-    "delivery",
-]
-STAGE_ALIASES = {"discover": "discovery"}
 
 
 def field(text: str, name: str) -> str | None:
@@ -60,6 +51,14 @@ def main() -> int:
     print(f"  Slug: {slug or 'MISSING'}")
     if not slug:
         problems.append("Slug field missing (check-project-isolation.sh can't scope edits)")
+
+    try:
+        active = pointer_slug(text)
+        if active is None:
+            raise ValueError("no active project")
+        project_path(repo_root / ".ai" / "memory" / "projects", active)
+    except ValueError as exc:
+        problems.append(str(exc))
 
     stage_raw = field(text, "Current stage")
     stage = STAGE_ALIASES.get(stage_raw.lower(), stage_raw.lower()) if stage_raw else None

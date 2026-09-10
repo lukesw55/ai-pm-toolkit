@@ -15,9 +15,11 @@ Build the **right next thing** with the **smallest maintainable diff**.
 
 ## Required reading
 
+Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
+
 - `.ai/rules.md`
 - `.ai/changelog.md`
-- `.ai/app.md`
+- `.ai/memory/projects/<slug>/app.md`
 - `.ai/memory/active-context.md`
 - active project memory if present
 
@@ -84,10 +86,10 @@ Implement in small steps, test, verify, and update durable memory.
     - Call **pm-memory** to update decisions, experiments, and context.
 
 13. **Wrap up**
-    - Update `.ai/tasks.md`
+    - Update `.ai/memory/projects/<slug>/tasks.md`
     - Update `.ai/changelog.md`
     - Update project memory files
-    - Note any new product truths in `.ai/app.md`
+    - Note any new product truths in `.ai/memory/projects/<slug>/app.md`
     - Advance the workflow stage if appropriate: `python3 scripts/advance_stage.py <stage>` (see `skills/WORKFLOW.md`)
 
 ## Communication modes

@@ -14,6 +14,8 @@ manual pointer edits). Time is wall-clock between activate and the next
 park/activate — it measures "context held", including idle hours.
 """
 
+from context_paths import pointer_slug
+
 import json
 import re
 import sys
@@ -29,7 +31,11 @@ EVENTS = ROOT / ".ai" / "memory" / "context-events.jsonl"
 def read_pointer():
     if not POINTER.exists():
         sys.exit("context_watch.py: active-context.md missing")
-    text = POINTER.read_text()
+    text = POINTER.read_text(encoding="utf-8")
+    try:
+        pointer_slug(text)
+    except ValueError as exc:
+        sys.exit(f"context_watch.py: {exc}")
     m = re.search(r"(?m)^## ACTIVE: `([a-z0-9\-]+)` \(set (\d{4}-\d{2}-\d{2})\)", text)
     if not m:
         return None, None, None
@@ -40,7 +46,21 @@ def read_pointer():
 def load_events():
     if not EVENTS.exists():
         return []
-    return [json.loads(line) for line in EVENTS.read_text().splitlines() if line.strip()]
+    events = []
+    for line in EVENTS.read_text(encoding="utf-8").splitlines():
+        try:
+            event = json.loads(line)
+            if not isinstance(event, dict) or not isinstance(event.get("ts"), str):
+                continue
+            stamp = datetime.fromisoformat(event["ts"])
+            if stamp.tzinfo is None or not (event.get("slug") is None or isinstance(event.get("slug"), str)):
+                continue
+            if events and stamp < datetime.fromisoformat(events[-1]["ts"]):
+                continue
+            events.append(event)
+        except (ValueError, TypeError):
+            continue
+    return events
 
 
 def append_event(slug, ts=None):

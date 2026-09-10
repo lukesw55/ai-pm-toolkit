@@ -1,4 +1,4 @@
-# Claude Code reply slop catalogue (C1–C10)
+# Agent reply slop catalogue (C1–C10)
 
 Load when reviewing or producing chat replies longer than two sentences. The 10 patterns below are what makes a reply feel "assembled by a model trying to look helpful" rather than "written by a competent collaborator answering the question."
 

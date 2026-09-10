@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
+from context_paths import project_path, pointer_slug
+
 import re
 import sys
 from pathlib import Path
@@ -38,12 +41,17 @@ def append_if_missing(path: Path, line: str) -> None:
 
 
 def main() -> int:
-    if len(sys.argv) < 2:
-        print("Usage: python3 scripts/init_context.py <project-name>")
+    parser = argparse.ArgumentParser(description="Initialize a project without overwriting its state.")
+    parser.add_argument("--migrate-legacy", action="store_true", help="copy legacy app/design/tasks into missing project files; keep sources")
+    parser.add_argument("name", nargs="+")
+    args = parser.parse_args()
+    title = " ".join(args.name).strip()
+    try:
+        slug = slugify(title)
+        project_dir = project_path(PROJECTS, slug)
+    except ValueError as exc:
+        print(f"init_context.py: {exc}", file=sys.stderr)
         return 1
-
-    title = " ".join(sys.argv[1:]).strip()
-    slug = slugify(title)
 
     # Guard the hot pointer: memory.py activate refuses to switch while a
     # project is ACTIVE, and init must not clobber what activate protects —
@@ -51,19 +59,21 @@ def main() -> int:
     active_context = MEMORY / "active-context.md"
     if active_context.exists():
         pointer = active_context.read_text(encoding="utf-8", errors="replace")
-        match = re.search(r"^## ACTIVE: `([^`]+)`", pointer, re.M)
-        if match and match.group(1) != slug:
-            print(
-                f"Refusing to overwrite active-context.md: '{match.group(1)}' is still active.\n"
-                f"Run: python3 scripts/memory.py park {match.group(1)}  # then retry init",
-                file=sys.stderr,
-            )
+        try:
+            current = pointer_slug(pointer)
+        except ValueError as exc:
+            print(f"init_context.py: {exc}", file=sys.stderr)
+            return 1
+        if current and current != slug:
+            print(f"Refusing to overwrite active-context.md: '{current}' is still active; park it first", file=sys.stderr)
             return 2
 
-    project_dir = PROJECTS / slug
     project_dir.mkdir(parents=True, exist_ok=True)
 
     files = {
+        "app.md": "app.md",
+        "design.md": "design.md",
+        "tasks.md": "tasks.md",
         "profile.md": "context-profile.md",
         "decisions.md": "decision-log.md",
         "experiments.md": "experiment-log.md",
@@ -73,11 +83,24 @@ def main() -> int:
         "session-kickoff.md": "session-kickoff.md",
     }
 
+    # Validate all destinations before creating files, including symlink targets.
+    try:
+        for output_name in (*files, "changelog.md"):
+            project_path(PROJECTS, slug, output_name)
+    except ValueError as exc:
+        print(f"init_context.py: {exc}", file=sys.stderr)
+        return 1
     for output_name, template_name in files.items():
         output_path = project_dir / output_name
         if not output_path.exists():
+            legacy = ROOT / ".ai" / output_name
+            content = render_template(template_name, slug, title)
+            if args.migrate_legacy and output_name in ("app.md", "design.md", "tasks.md") and legacy.is_file():
+                legacy_content = legacy.read_text(encoding="utf-8")
+                if not legacy_content.startswith(("# Legacy ", "# Toolkit tasks")):
+                    content = legacy_content
             output_path.write_text(
-                render_template(template_name, slug, title),
+                content,
                 encoding="utf-8",
             )
 
@@ -87,27 +110,32 @@ def main() -> int:
     if not changelog.exists():
         changelog.write_text(f"# {title}\n\n", encoding="utf-8")
 
-    active_context.write_text(
-        "\n".join(
-            [
-                "# Active Context",
-                "",
-                "> Pointer only (cap 2 KB). Full state per project: `projects/<slug>/state.md`. History: `projects/<slug>/changelog.md` (+ `changelog-archive.md`). Never paste session history here; use `scripts/memory.py park|activate|log`.",
-                "",
-                f"## ACTIVE: `{slug}` (set {date.today().isoformat()})",
-                "",
-                f"- **Project**: {title}",
-                f"- **Slug**: `{slug}`",
-                "- **Current stage**: discovery",
-                f"- Read FIRST on resume: `projects/{slug}/state.md`, then `projects/{slug}/session-kickoff.md`",
-                "- Next: Fill in the project profile, capture discovery notes, and define the first testable wedge.",
-                "",
-                "## Parked / closed (1 line each; detail in `projects/<slug>/state.md`)",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
+    if not active_context.exists():
+        active_context.write_text(
+            "\n".join(
+                [
+                    "# Active Context",
+                    "",
+                    "> Pointer only (cap 2 KB). Full state per project: `projects/<slug>/state.md`. History: `projects/<slug>/changelog.md` (+ `changelog-archive.md`). Never paste session history here; use `scripts/memory.py park|activate|log`.",
+                    "",
+                    f"## ACTIVE: `{slug}` (set {date.today().isoformat()})",
+                    "",
+                    f"- **Project**: {title}",
+                    f"- **Slug**: `{slug}`",
+                    "- **Current stage**: discovery",
+                    f"- Read FIRST on resume: `projects/{slug}/state.md`, then `projects/{slug}/session-kickoff.md`",
+                    "- Next: Fill in the project profile, capture discovery notes, and define the first testable wedge.",
+                    "",
+                    "## Parked / closed (1 line each; detail in `projects/<slug>/state.md`)",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+    elif pointer_slug(active_context.read_text(encoding="utf-8")) is None:
+        from memory import cmd_activate
+        cmd_activate(argparse.Namespace(slug=slug, stage=None, name=title))
 
     index = MEMORY / "index.md"
     append_if_missing(index, f"- `{slug}` — {title} (`.ai/memory/projects/{slug}/`)")

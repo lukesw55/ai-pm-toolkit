@@ -15,8 +15,10 @@ Preserve durable signal without turning memory into noise.
 
 ## Required reading
 
+Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
+
 - `.ai/rules.md`
-- `.ai/app.md`
+- `.ai/memory/projects/<slug>/app.md`
 - `.ai/memory/active-context.md`
 - the active project's memory: `state.md`, `decisions.md`, and the newest changelog entries
 

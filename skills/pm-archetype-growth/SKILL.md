@@ -44,7 +44,7 @@ Do not invoke for non-growth launch readouts — release notes, generic post-lau
 
 ## Required reading before output
 
-- `.ai/rules.md`, `.ai/app.md`, `.ai/memory/active-context.md`
+- `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior experiment logs are load-bearing**; without them the team re-tests dead ideas
 - live PostHog data (via the PostHog MCP tools, e.g. `query-run`) when sizing the bet — never propose without baseline
 

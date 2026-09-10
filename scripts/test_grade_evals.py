@@ -665,6 +665,12 @@ fixture(
 )
 
 
+# Permanent B28 pairs are synthetic grader regressions, never model benchmarks.
+for pair in json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8")):
+    fixture(pair["eval"] + "-good", pair["skill"], pair["eval"], pair["good"], 0.80, 1.0)
+    fixture(pair["eval"] + "-bad", pair["skill"], pair["eval"], pair["bad"], 0.0, 0.30)
+
+
 def run() -> int:
     failures: list[str] = []
     with tempfile.TemporaryDirectory(prefix="test-grade-evals-") as td:
@@ -684,6 +690,12 @@ def run() -> int:
                     f"{'PASS' if e['passed'] else 'FAIL'} {e['text']}" for e in grading["expectations"]
                 )
                 failures.append(f"{name}: pass_rate {rate:.2f} outside [{min_rate}, {max_rate}] — {detail}")
+
+    for pair in json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8")):
+        checks = ge.ASSERTIONS[pair["skill"]][pair["eval"]]
+        rates = [sum(bool(fn(pair[k].lower())) for _, fn in checks) / len(checks) for k in ("good", "bad")]
+        if rates[0] - rates[1] < 0.50:
+            failures.append(f"discrimination gap below 0.50: {pair['eval']}: {rates}")
 
     # Sanity check, derived from FIXTURES rather than a hand-kept list: every
     # (skill, eval_name) a fixture exercises must exist both as an ASSERTIONS

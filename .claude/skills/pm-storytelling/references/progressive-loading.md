@@ -10,3 +10,4 @@ Use `SKILL.md` for mode detection, narrative spine, and output contract.
 | `references/deck-storyline.md` | Per-slide assertion-evidence contract, QBR slide budget, optional render handoff | Deliverable is a deck: QBR, exec review, stage-7 kickoff, pitch |
 | `rubrics/QUALITY_RUBRIC.md` | 1–5 scorecard plus the binary outbound voice gate | Phase 7, before the final response |
 | `references/progressive-loading.md` | Loading map and routing notes | Source material is large or crosses PM/story/humanizer boundaries |
+| `examples/sample_one_pager_opener.md` | Fictional evidence-based opener | Calibrating the narrative against a worked example |

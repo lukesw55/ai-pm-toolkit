@@ -78,7 +78,7 @@ AGENT_TOOL_COMPATIBLE = {
 # malformed rather than a namespace this validator does not know.
 AGENT_MCP_TOOL = re.compile(r"^[A-Za-z0-9._-]+/([A-Za-z0-9._-]+|\*)$")
 AGENT_READING_HEADING = "## Required reading"
-AGENT_CORE_READING = (".ai/rules.md", ".ai/app.md", ".ai/memory/active-context.md")
+AGENT_CORE_READING = (".ai/rules.md", ".ai/memory/projects/<slug>/app.md", ".ai/memory/active-context.md")
 # Project memory has to be named on its own: the core set already contains the
 # string "memory" via active-context.md, so a substring test would never fire.
 AGENT_PROJECT_MEMORY = re.compile(r"project memory|project's memory|\.ai/memory/projects/", re.I)
@@ -710,6 +710,20 @@ def check_eval_coverage(errors: list[str]) -> None:
         err(errors, f"scripts/grade_evals.py: ASSERTIONS[{skill!r}][{name!r}] has no matching eval in evals.json (orphan block)")
 
 
+
+def check_progressive_loading(errors: list[str]) -> None:
+    """Every support file in a mapped skill must be discoverable by its path."""
+    support = {"references", "scripts", "templates", "rubrics", "frameworks", "examples", "assets"}
+    for mapping in sorted(SKILLS.glob("*/references/progressive-loading.md")):
+        root = mapping.parents[1]
+        text = mapping.read_text(encoding="utf-8")
+        for path in sorted(root.rglob("*")):
+            relative = path.relative_to(root)
+            if (path.is_file() and relative.parts[0] in support
+                    and "__pycache__" not in relative.parts and path.suffix != ".pyc"
+                    and relative.as_posix() not in text):
+                err(errors, f"{rel(mapping)}: missing support path {relative.as_posix()}")
+
 def check_memory_bootstrap(errors: list[str]) -> None:
     # Local session state (an active project under .ai/memory/, sentinel
     # flags under .ai/gates/) must not leak into the fresh-clone bootstrap
@@ -855,7 +869,10 @@ def check_agents(errors: list[str]) -> None:
         for required in AGENT_CORE_READING:
             if required not in section:
                 err(errors, f"{name}: required reading omits `{required}`")
-        if not AGENT_PROJECT_MEMORY.search(section):
+        memory_section = section
+        for required in AGENT_CORE_READING:
+            memory_section = memory_section.replace(required, "")
+        if not AGENT_PROJECT_MEMORY.search(memory_section):
             err(errors, f"{name}: required reading names no project memory (say 'project memory' or cite `.ai/memory/projects/`)")
 
     table = (ROOT / "AGENTS.md").read_text(encoding="utf-8", errors="replace")
@@ -881,6 +898,7 @@ def main() -> int:
     check_mirror_drift(errors)
     check_eval_coverage(errors)
     check_agents(errors)
+    check_progressive_loading(errors)
     check_memory_bootstrap(errors)
 
     for item in warnings:

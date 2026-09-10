@@ -5,10 +5,8 @@ test_validate_repo.py — regression cases for two validate_repo.py checks.
 check_eval_coverage: valid JSON with an unexpected schema must produce a
 validation finding, never a traceback. Each case writes one fake skill
 (SKILL.md + evals/evals.json) into a temporary directory, points the check at
-it, and asserts the call returns normally with at least one error naming the
-offending field. The real scripts/grade_evals.py is imported for the parity
-half of the check, so every case also reports the fake eval as having no
-assertion block; that is expected and not what is being tested here.
+it, and asserts the exact findings. The assertion manifest and coverage floor
+are scoped to the one-eval fixture; production policy is not changed.
 
 check_agents: each case writes one fake .agent.md plus a matching AGENTS.md
 row into a temporary directory and asserts the expected finding. Every case
@@ -32,13 +30,15 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
+from unittest.mock import patch
+import grade_evals
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import validate_repo as vr  # noqa: E402
 
-GOOD_EVAL = {"id": 1, "name": "one", "category": "standard", "prompt": "p", "expected_output": "e"}
+GOOD_EVAL = {"id": 1, "name": "one", "category": "doctrine-adversarial", "prompt": "p", "expected_output": "e"}
 
 # (case name, manifest payload, substring the finding must contain)
 CASES: list[tuple[str, object, str]] = [
@@ -53,6 +53,21 @@ CASES: list[tuple[str, object, str]] = [
 ]
 
 
+_PREFIX = "fake-skill/evals/evals.json: "
+_NO_ADV = _PREFIX + "no adversarial eval (need one of ['doctrine-adversarial', 'skill-functional-adversarial'])"
+_ORPHAN = "scripts/grade_evals.py: ASSERTIONS['fake-skill']['one'] has no matching eval in evals.json (orphan block)"
+EXPECTED_FINDINGS = {
+    "category is a list": {_PREFIX + "eval 'one' category must be a string, got list", _NO_ADV},
+    "category is an object": {_PREFIX + "eval 'one' category must be a string, got dict", _NO_ADV},
+    "category is a wrong string": {_PREFIX + "eval 'one' has invalid category 'adversarial'; must be one of ['doctrine-adversarial', 'negative-control', 'skill-functional-adversarial', 'standard']", _NO_ADV},
+    "id is a list": {_PREFIX + "eval 'one' id must be an integer, got []"},
+    "name is a list": {_PREFIX + "eval id 1 has an empty or non-string name", _ORPHAN},
+    "eval is not an object": {_PREFIX + "each eval must be an object, got str", _NO_ADV, _ORPHAN},
+    "evals is not a list": {_PREFIX + "'evals' must be a list", _ORPHAN},
+    "top-level is not an object": {_PREFIX + "top-level JSON value must be an object", _ORPHAN},
+}
+
+
 def run_case(payload: object) -> list[str]:
     with tempfile.TemporaryDirectory(prefix="test-validate-repo-") as td:
         skill = Path(td) / "fake-skill"
@@ -64,7 +79,8 @@ def run_case(payload: object) -> list[str]:
         vr.rel = lambda p: str(Path(p).relative_to(td))  # the fixture lives outside the repo root
         try:
             errors: list[str] = []
-            vr.check_eval_coverage(errors)
+            with patch.object(grade_evals, "ASSERTIONS", {"fake-skill": {"one": [("fixture", lambda text: True)]}}), patch.object(vr, "MIN_EVALS_PER_SKILL", 1):
+                vr.check_eval_coverage(errors)
             return errors
         finally:
             vr.SKILLS, vr.rel = saved_skills, saved_rel
@@ -77,7 +93,7 @@ You are **fake-agent**.
 ## Required reading
 
 - `.ai/rules.md`
-- `.ai/app.md`
+- `.ai/memory/projects/<slug>/app.md`
 - `.ai/memory/active-context.md`
 - relevant project memory
 """
@@ -167,8 +183,8 @@ def main() -> int:
             failures += 1
             print(f"FAIL  {name}: raised {type(exc).__name__}: {exc}")
             continue
-        hit = any(needle in e for e in errors)
-        print(f"{'PASS' if hit else 'FAIL'}  {name}: {len(errors)} finding(s), expected one containing {needle!r}")
+        hit = set(errors) == EXPECTED_FINDINGS[name] and len(errors) == len(EXPECTED_FINDINGS[name])
+        print(f"{'PASS' if hit else 'FAIL'}  {name}: {len(errors)} finding(s), exact expected finding set")
         if not hit:
             failures += 1
             for e in errors:

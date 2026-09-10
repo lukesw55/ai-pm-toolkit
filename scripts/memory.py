@@ -27,6 +27,8 @@ PII paths (raw-evidence/, people/, **/data) are refused in code
 (PII_DENY): never rotated, distilled, logged, or parked.
 """
 
+from context_paths import SLUG_RE, PII_DENY, project_path, pointer_slug
+
 import argparse
 import hashlib
 import json
@@ -76,7 +78,6 @@ INDEX_HEADER = INDEX_MARKER + ", file order; grep here before opening a block):"
 # Any path segment on this list, relative to the repo root, is PII territory:
 # the scripts refuse to read, write, rotate, or fold it. The guarantee used to
 # hold only because every target was a hard-coded filename; now it is checked.
-PII_DENY = ("raw-evidence", "people", "data")
 
 ROTATION_NOTE = "> Active log keeps the most recent entries; older entries in `{name}`.\n\n"
 UNDATED = "0000-00-00"
@@ -104,6 +105,15 @@ def is_pii(path: Path) -> bool:
 
 
 def guard(path: Path) -> Path:
+    try:
+        relative = path.absolute().relative_to(PROJECTS.absolute())
+    except ValueError:
+        relative = None
+    if relative and relative.parts:
+        try:
+            project_path(PROJECTS, relative.parts[0], *relative.parts[1:])
+        except ValueError as exc:
+            fail(str(exc))
     if is_pii(path):
         fail(f"refusing to touch PII path {display(path)} (denylist: {', '.join(PII_DENY)})")
     return path
@@ -230,6 +240,7 @@ def rebuild_archive(archive: Path, header: str, appended) -> bool:
         return False
     tmp = archive.with_name(archive.name + ".tmp")
     try:
+        guard(tmp)
         tmp.write_text(new, encoding="utf-8")
         staged = tmp.read_text(encoding="utf-8")
     except OSError as exc:
@@ -276,7 +287,10 @@ def rotate(changelog: Path, keep=CHANGELOG_KEEP, quiet=False):
 
 
 def project_dir(slug):
-    d = PROJECTS / slug
+    try:
+        d = project_path(PROJECTS, slug)
+    except ValueError as exc:
+        fail(str(exc))
     guard(d)
     if not d.is_dir():
         fail(f"unknown project slug '{slug}' (no {d.relative_to(ROOT)}/)")
@@ -288,6 +302,7 @@ def cmd_log(args):
         changelog = ROOT_CHANGELOG
     else:
         changelog = project_dir(args.slug) / "changelog.md"
+    guard(changelog)
     today = date.today().isoformat()
     title = args.title or "session log"
     entry = f"## {today}: {title}\n\n{args.entry.rstrip()}\n\n"
@@ -310,8 +325,10 @@ def read_pointer():
 
 
 def active_slug(text):
-    m = re.search(r"(?m)^## ACTIVE: `([a-z0-9\-]+)`", text)
-    return m.group(1) if m else None
+    try:
+        return pointer_slug(text)
+    except ValueError as exc:
+        fail(str(exc))
 
 
 def active_block(text):
@@ -347,8 +364,8 @@ def cmd_park(args):
     # 3. rewrite pointer: ACTIVE -> none, add parked line on top of the list
     text = text.replace(block, f"## ACTIVE: (none)\n\n- Parked `{slug}` {today}. Pick next with `memory.py activate <slug>`.\n\n")
     text = re.sub(
-        r"(?m)^(## Parked / closed.*\n\n)",
-        rf"\1- `{slug}`: {stage}; parked {today}; see `projects/{slug}/state.md`\n",
+        r"(?m)^(## Parked / closed[^\n]*\n)\n?",
+        rf"\1\n- `{slug}`: {stage}; parked {today}; see `projects/{slug}/state.md`\n",
         text,
     )
     POINTER.write_text(text, encoding="utf-8")
@@ -359,6 +376,7 @@ def cmd_park(args):
 
 
 def cmd_activate(args):
+    project_dir(args.slug)
     text = read_pointer()
     current = active_slug(text)
     if current == args.slug:
@@ -438,7 +456,7 @@ def render_template(path: Path, **keys) -> str:
 
 
 def load_manifest(pkg: Path):
-    manifest = pkg / "manifest.json"
+    manifest = guard(pkg / "manifest.json")
     if not manifest.exists():
         return None
     return json.loads(manifest.read_text(encoding="utf-8"))
@@ -470,6 +488,8 @@ def distill_report(slug, d):
 def distill_prepare(slug, d, file_stem):
     pkg = d / DISTILL_DIR
     guard(pkg)
+    for name in ("blocks.md", "synthesis.md", "manifest.json"):
+        guard(pkg / name)
     if file_stem is None:
         over = [stem for stem, (src, _a, _t, _o) in DISTILL_FILES.items()
                 if (d / src).exists() and (d / src).stat().st_size > DISTILL_CAPS[src]]
@@ -488,7 +508,7 @@ def distill_prepare(slug, d, file_stem):
 
     pending = load_manifest(pkg)
     if pending and not pending.get("applied") and pending.get("source_sha") == sha256(
-        (d / pending["source"]).read_text(encoding="utf-8") if (d / pending["source"]).exists() else ""
+        guard(d / pending["source"]).read_text(encoding="utf-8") if (d / pending["source"]).exists() else ""
     ):
         fail(f"pending package in {display(pkg)} still matches its source; run --apply or delete it first")
 
@@ -533,6 +553,10 @@ def distill_prepare(slug, d, file_stem):
 
 def distill_apply(slug, d, pkg_arg):
     pkg = guard(Path(pkg_arg) if pkg_arg else d / DISTILL_DIR)
+    if not pkg.resolve().is_relative_to(d.resolve()):
+        fail("distill package must remain inside its project directory")
+    for name in ("blocks.md", "synthesis.md", "manifest.json"):
+        guard(pkg / name)
     manifest = load_manifest(pkg)
     if manifest is None:
         fail(f"no package at {display(pkg)}; run --prepare first")
@@ -699,6 +723,17 @@ def cmd_doctor(_args):
 
     for proj in sorted(p for p in PROJECTS.glob("*") if p.is_dir()) if PROJECTS.is_dir() else []:
         rel = proj.relative_to(ROOT)
+        try:
+            project_path(PROJECTS, proj.name)
+            for name in (*DISTILL_CAPS, *(v[1] for v in DISTILL_FILES.values()),
+                         DISTILL_DIR + "/manifest.json"):
+                project_path(PROJECTS, proj.name, name)
+        except ValueError as exc:
+            if is_pii(proj):
+                warns.append(f"{rel}/: PII path, skipped")
+            else:
+                errors.append(f"{rel}: {exc}")
+            continue
         if is_pii(proj):
             warns.append(f"{rel}/: PII path, skipped (never rotated or distilled)")
             continue

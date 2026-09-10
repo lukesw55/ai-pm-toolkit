@@ -34,7 +34,7 @@ Read these in order before substantial work:
 1. `CLAUDE.md` (Claude Code) or `AGENTS.md` (Codex)
 2. `.ai/rules.md`
 3. `.ai/changelog.md`
-4. `.ai/app.md`
+4. `.ai/memory/projects/<slug>/app.md`
 5. `.ai/memory/active-context.md`
 6. active project memory under `.ai/memory/projects/<slug>/`
 
@@ -205,7 +205,7 @@ After work:
 - update active project memory
 - append key decision and rationale
 - append experiment result if one occurred
-- update `.ai/tasks.md`
+- update `.ai/memory/projects/<slug>/tasks.md`
 - update `.ai/changelog.md`
 - a Stop hook (`hooks/memory-reminder.sh`) reminds you when files changed after your last `memory.py log`; it never blocks
 
