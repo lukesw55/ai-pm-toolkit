@@ -19,6 +19,11 @@ __pycache__/
 !.ai/memory/_templates/**
 !.ai/memory/README.md
 !.ai/memory/active-context.example.md
+# The shared org layer (.ai/memory/org/: company, personas, competitors, goals) is
+# created by `init_context.py --org` and stays ignored upstream because a fork's
+# real content is confidential. A fork that versions it adds these two lines:
+# !.ai/memory/org/
+# !.ai/memory/org/**
 
 # Skill eval run artefacts (regenerated per run; kept local). Live only in
 # the canonical tree — sync_skills.py excludes workspace/ from both mirrors,

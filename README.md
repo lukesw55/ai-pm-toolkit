@@ -147,11 +147,12 @@ The point is falsifiability: a skill that does not beat the baseline on its own 
 |---|---|---|
 | Hot | a capped pointer (`active-context.md`) plus `index.md` | injected at session start |
 | Warm | the project's state, kickoff, decisions, recent changelog | only when working on that project |
+| Shared org | `org/`: company, personas as archetypes, competitors, cycle goals | when the task needs company context; one file at a time, never injected by hooks |
 | Cold | archives, raw evidence, transcripts | never wholesale; grep-first via the archive index, then one block |
 
 Writing memory goes through [`scripts/memory.py`](scripts/memory.py) (`log`, `park`, `activate`, `distill`, `index`, `doctor`). It rotates old changelog entries into archives, keeps an index block at the top of each archive so the cold layer stays searchable, and holds the pointer under its 2 KB cap.
 
-PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py` refuses them in code (`PII_DENY`). The shipped tree contains only templates, so a fresh clone bootstraps its own memory with one command.
+PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py` refuses them in code (`PII_DENY`). The shipped tree contains only templates, so a fresh clone bootstraps its own memory with one command. The shared org layer is bootstrapped with `python3 scripts/init_context.py --org`; upstream keeps it ignored and a fork versions its real content.
 
 ## The agents
 
@@ -191,7 +192,7 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 
 | Script | Purpose |
 |---|---|
-| `init_context.py` | bootstrap a project: memory files, warm layer, and the active pointer (refuses to clobber an active project) |
+| `init_context.py` | bootstrap a project: memory files, warm layer, and the active pointer (refuses to clobber an active project); `--org` creates the shared org layer |
 | `memory.py` | memory policy engine: `log`, `park`, `activate`, `distill`, `index`, `doctor` |
 | `stage_context.py` | inject the current workflow stage into every turn (`UserPromptSubmit` hook) |
 | `advance_stage.py` | move the pipeline to the next stage |

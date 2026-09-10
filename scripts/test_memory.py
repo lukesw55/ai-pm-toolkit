@@ -49,6 +49,10 @@ class Sandbox:
         return subprocess.run([sys.executable, str(self.root / "scripts" / "init_context.py"), name],
                               capture_output=True, text=True, cwd=self.root)
 
+    def init_org(self) -> subprocess.CompletedProcess:
+        return subprocess.run([sys.executable, str(self.root / "scripts" / "init_context.py"), "--org"],
+                              capture_output=True, text=True, cwd=self.root)
+
     def project(self, slug: str) -> Path:
         return self.projects / slug
 
@@ -400,6 +404,24 @@ def main() -> int:
               ix.returncode == 1 and "PII" in ix.stderr, ix.stderr.strip())
         check("doctor skips the PII project with a WARN and still exits 0",
               dc.returncode == 0 and "PII path" in dc.stdout, dc.stdout.strip())
+
+        # 15. shared org layer and insights.md: caps warn only when the files exist and are over
+        dc0 = sb.run("doctor")
+        check("doctor is silent about an absent org layer", dc0.returncode == 0 and "org/" not in dc0.stdout, dc0.stdout.strip())
+        r = sb.init_org()
+        org_files = ("company.md", "personas.md", "competitors.md", "goals.md")
+        check("init_context.py --org creates the four org files without a project name",
+              r.returncode == 0 and all((sb.mem / "org" / n).is_file() for n in org_files), r.stderr.strip())
+        dc1 = sb.run("doctor")
+        check("doctor stays silent while org files sit under their cap", dc1.returncode == 0 and "org/" not in dc1.stdout, dc1.stdout.strip())
+        big = "x" * 13000
+        (sb.mem / "org" / "personas.md").write_text(big, encoding="utf-8")
+        sb.write(slug, "insights.md", big)
+        dc2 = sb.run("doctor")
+        check("doctor warns on an oversized org file and an oversized insights.md and still exits 0",
+              dc2.returncode == 0 and "org/personas.md" in dc2.stdout and f"{slug}/insights.md" in dc2.stdout, dc2.stdout.strip())
+        dr = sb.run("distill", slug)
+        check("distill reports insights.md as prose over its cap", dr.returncode == 2 and "insights.md" in dr.stdout, dr.stdout.strip())
 
     failures = [r for r in RESULTS if not r[1]]
     if failures:

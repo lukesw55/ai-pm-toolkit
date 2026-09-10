@@ -119,7 +119,8 @@ def build_stage_block(stage: str, contract: dict[str, dict[str, str]]) -> list[s
 
     layer4 = (
         "warm set (session-kickoff.md, state.md, decisions.md, +3 newest "
-        "changelog) per docs/memory/MEMORY_SYSTEM.md"
+        "changelog) per docs/memory/MEMORY_SYSTEM.md; org context "
+        "(.ai/memory/org/) when the task needs personas, competitors or goals"
     )
     if idx and idx > 1:
         layer4 += "; plus previous stage artefact"

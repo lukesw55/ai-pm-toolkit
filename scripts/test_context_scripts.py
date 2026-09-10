@@ -73,9 +73,10 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(self.run_script('init_context.py','Alpha').returncode,0)
         self.assertIn('**Current stage**: prd',self.pointer.read_text())
         self.assertIn('`beta`:',self.pointer.read_text())
+        import init_context
         for slug in ('alpha','beta'):
-            for name in ('app.md','design.md','tasks.md'):
-                self.assertTrue((self.projects/slug/name).is_file())
+            for name in init_context.PROJECT_FILES:
+                self.assertTrue((self.projects/slug/name).is_file(),name)
 
     def test_explicit_migration(self):
         legacy=self.root/'.ai/app.md';legacy.write_text('Legacy evidence')
@@ -85,6 +86,40 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(self.run_script('init_context.py','--migrate-legacy','Alpha').returncode,0)
         self.assertEqual((self.projects/'alpha/app.md').read_text(),'Legacy evidence')
         self.assertEqual(legacy.read_text(),'Legacy evidence')
+
+    def test_org_layer(self):
+        import context_paths
+        result=self.run_script('init_context.py','--org')
+        self.assertEqual(result.returncode,0,result.stderr)
+        org=self.root/'.ai/memory/org'
+        for name in context_paths.ORG_FILES:
+            self.assertNotIn('{{',(org/name).read_text())
+        before=self.pointer.read_bytes()
+        (org/'goals.md').write_text('real goals')
+        self.assertEqual(self.run_script('init_context.py','--org').returncode,0)
+        self.assertEqual((org/'goals.md').read_text(),'real goals')
+        self.assertEqual(self.pointer.read_bytes(),before)
+        self.assertEqual(self.run_script('memory.py','doctor').returncode,0)
+        self.assertEqual(self.run_script('init_context.py').returncode,2)
+
+    def test_org_slug_reserved(self):
+        self.assertEqual(self.run_script('memory.py','park','alpha').returncode,0)
+        result=self.run_script('init_context.py','Org')
+        self.assertEqual(result.returncode,1);self.assertNotIn('Traceback',result.stderr);self.assertIn('reserved',result.stderr)
+        self.assertFalse((self.projects/'org').exists())
+        for args in [('log','org','x'),('activate','org'),('index','org')]:
+            result=self.run_script('memory.py',*args)
+            self.assertNotEqual(result.returncode,0,args);self.assertNotIn('Traceback',result.stderr)
+
+    def test_missing_template_is_a_finding(self):
+        (self.root/'.ai/memory/_templates/org/goals.md').unlink()
+        result=self.run_script('init_context.py','--org')
+        self.assertEqual(result.returncode,1);self.assertIn('missing template',result.stderr);self.assertNotIn('Traceback',result.stderr)
+        (self.root/'.ai/memory/_templates/insights.md').unlink()
+        self.assertEqual(self.run_script('memory.py','park','alpha').returncode,0)
+        result=self.run_script('init_context.py','Gamma')
+        self.assertEqual(result.returncode,1);self.assertIn('missing template',result.stderr);self.assertNotIn('Traceback',result.stderr)
+        self.assertFalse((self.projects/'gamma').exists())
 
     def test_stages(self):
         import advance_stage, validate_context

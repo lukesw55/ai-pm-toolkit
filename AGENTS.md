@@ -39,7 +39,7 @@ Do not skip phases when uncertainty is high: Discover when facts are thin, Defin
 
 ## Memory rules
 
-Layered, never read wholesale: Hot (the `active-context.md` pointer + `index.md`, injected at session start; project state is read separately), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it), Cold (archives, raw evidence, transcripts — never read wholesale, retrieved grep-first through the archive index and then one block). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
+Layered, never read wholesale: Hot (the `active-context.md` pointer + `index.md`, injected at session start; project state is read separately), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it, plus the shared org layer `.ai/memory/org/` when the task needs company context, personas, competitors or goals), Cold (archives, raw evidence, transcripts — never read wholesale, retrieved grep-first through the archive index and then one block). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
 
 ## Decision rules, stop conditions, definition of done
 
@@ -78,6 +78,7 @@ Shared product logic lives once, at the top level — neither harness is the "re
 | `.ai/memory/inbox.md` | Optional manual scratch for raw notes; no script creates, reads, or rotates it |
 | `.ai/memory/projects/` | Durable project memory |
 | `.ai/memory/people/` | Optional, manual-only PII notes (gitignored); never created or touched by scripts — stakeholder maps default to `projects/<slug>/stakeholders.md` |
+| `.ai/memory/org/` | Shared org layer (company, personas as archetypes, competitors, cycle goals); `init_context.py --org`; ignored upstream, versioned in a fork |
 | `.ai/memory/_templates/` | Reusable memory templates |
 
 ## Agents
