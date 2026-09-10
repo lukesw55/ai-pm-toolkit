@@ -20,6 +20,16 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO / "skills"
 
+# Human labels (scripts/label_eval_run.py) are the ground truth the assertions are
+# checked against. A run counts as an assertion pass at or above PASS_THRESHOLD and a
+# human verdict of "good" is the matching pass; a run where the two differ is a
+# disagreement. Above DRIFT_THRESHOLD of the labelled runs the grader has drifted
+# from the humans and its pass rates stop being trusted until the assertions are
+# recalibrated. The 0.10 line is the owner's choice, adapted from the judge
+# verification protocol in Dean Peters' evals-for-product-managers.
+PASS_THRESHOLD = 0.8
+DRIFT_THRESHOLD = 0.10
+
 # Assertions per (skill, eval_name) — each is (label, callable taking normalised text → bool)
 def has(p: str):
     return lambda t: p.lower() in t
@@ -912,10 +922,14 @@ def load_timing(path: Path):
         return None
 
 
-def grade_all(iteration_name="iteration-1"):
+def grade_all(iteration_name="iteration-1", labels=None, report=None):
+    """labels: output_sha256 -> human labels (label_eval_run.load_labels); report, when
+    given, receives labels_unmatched, the labels whose run is not on this machine."""
     from record_eval_run import eval_spec, validate_run
+    from label_eval_run import human_verdict
     results_by_skill = {}
     iteration_identity = None
+    matched = set()
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
         # Any skill with recorded runs is gradable — the old pm-* prefix
         # filter silently skipped anti-slop, humanizer, and friends.
@@ -953,6 +967,11 @@ def grade_all(iteration_name="iteration-1"):
                 grading = grade_run(out, skill, eval_name)
                 if grading is None:
                     continue
+                sha = metadata[0 if config == "with_skill" else 1]["output_sha256"]
+                grading["labels"] = list((labels or {}).get(sha, []))
+                grading["human_verdict"] = human_verdict(grading["labels"])
+                if grading["labels"]:
+                    matched.add(sha)
                 grading_path = eval_dir / config / "grading.json"
                 grading_path.write_text(json.dumps(grading, indent=2))
                 run = {
@@ -963,14 +982,52 @@ def grade_all(iteration_name="iteration-1"):
                     "grading": grading,
                     "timing": timing or {},
                     "output_path": str(out.relative_to(REPO)),
+                    "output_sha256": sha,
                 }
                 skill_runs.append(run)
         results_by_skill[skill] = skill_runs
+    unmatched = sorted(set(labels or {}) - matched)
+    for sha in unmatched:
+        print(f"WARN label for output {sha[:12]} has no recorded run in {iteration_name} on this machine", file=sys.stderr)
+    if report is not None:
+        report["labels_unmatched"] = len(unmatched)
     return results_by_skill
+
+
+def agreement(grading):
+    """True when the assertions and the human verdict agree, None without a label."""
+    verdict = grading.get("human_verdict")
+    if verdict is None:
+        return None
+    return (grading["pass_rate"] >= PASS_THRESHOLD) == (verdict == "good")
+
+
+def disagreement(entries):
+    """(labelled runs, disagreement rate, drift flag) over config entries carrying agrees."""
+    judged = [e["agrees"] for e in entries if e.get("agrees") is not None]
+    if not judged:
+        return 0, None, None
+    rate = judged.count(False) / len(judged)
+    return len(judged), rate, rate > DRIFT_THRESHOLD
+
+
+def config_entry(run):
+    return {
+        "pass_rate": run["grading"]["pass_rate"],
+        "passed": run["grading"]["passed"],
+        "total": run["grading"]["total"],
+        "tokens": run["timing"].get("total_tokens"),
+        "duration_ms": run["timing"].get("duration_ms"),
+        "word_count": run["grading"].get("word_count"),
+        "human_verdict": run["grading"].get("human_verdict"),
+        "agrees": agreement(run["grading"]),
+    }
 
 
 def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
     benchmark = {"skills": {}, "overall": {}}
+    all_entries = []
+    classification_counts = {}
     with_skill_rates = []
     baseline_rates = []
     with_skill_tokens = []
@@ -988,41 +1045,38 @@ def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
             bs = configs.get("without_skill")
             entry = {"eval_id": eval_id, "eval_name": eval_name}
             if ws:
-                entry["with_skill"] = {
-                    "pass_rate": ws["grading"]["pass_rate"],
-                    "passed": ws["grading"]["passed"],
-                    "total": ws["grading"]["total"],
-                    "tokens": ws["timing"].get("total_tokens"),
-                    "duration_ms": ws["timing"].get("duration_ms"),
-                    "word_count": ws["grading"].get("word_count"),
-                }
+                entry["with_skill"] = config_entry(ws)
                 with_skill_rates.append(ws["grading"]["pass_rate"])
                 if ws["timing"].get("total_tokens"):
                     with_skill_tokens.append(ws["timing"]["total_tokens"])
                 if ws["timing"].get("duration_ms"):
                     with_skill_durations.append(ws["timing"]["duration_ms"])
             if bs:
-                entry["without_skill"] = {
-                    "pass_rate": bs["grading"]["pass_rate"],
-                    "passed": bs["grading"]["passed"],
-                    "total": bs["grading"]["total"],
-                    "tokens": bs["timing"].get("total_tokens"),
-                    "duration_ms": bs["timing"].get("duration_ms"),
-                    "word_count": bs["grading"].get("word_count"),
-                }
+                entry["without_skill"] = config_entry(bs)
                 baseline_rates.append(bs["grading"]["pass_rate"])
                 if bs["timing"].get("total_tokens"):
                     baseline_tokens.append(bs["timing"]["total_tokens"])
                 if bs["timing"].get("duration_ms"):
                     baseline_durations.append(bs["timing"]["duration_ms"])
+            for run in (ws, bs):
+                if run:
+                    for record in run["grading"].get("labels", []):
+                        for handle in record.get("classification", []):
+                            classification_counts[handle] = classification_counts.get(handle, 0) + 1
             skill_entry["evals"].append(entry)
         # skill-level aggregates
         skill_ws = [e["with_skill"]["pass_rate"] for e in skill_entry["evals"] if "with_skill" in e]
         skill_bs = [e["without_skill"]["pass_rate"] for e in skill_entry["evals"] if "without_skill" in e]
+        skill_configs = [e[c] for e in skill_entry["evals"] for c in ("with_skill", "without_skill") if c in e]
+        all_entries.extend(skill_configs)
+        labeled, rate, drift = disagreement(skill_configs)
         skill_entry["summary"] = {
             "with_skill_pass_rate": statistics.mean(skill_ws) if skill_ws else None,
             "without_skill_pass_rate": statistics.mean(skill_bs) if skill_bs else None,
             "delta": (statistics.mean(skill_ws) - statistics.mean(skill_bs)) if skill_ws and skill_bs else None,
+            "labeled_runs": labeled,
+            "disagreement_rate": rate,
+            "grader_drift": drift,
         }
         benchmark["skills"][skill] = skill_entry
         # write per-skill benchmark.json
@@ -1040,12 +1094,21 @@ def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
         "baseline_avg_duration_s": (statistics.mean(baseline_durations) / 1000) if baseline_durations else None,
         "n_evals": len(with_skill_rates),
     }
+    labeled, rate, drift = disagreement(all_entries)
+    benchmark["overall"].update({"labeled_runs": labeled, "disagreement_rate": rate, "grader_drift": drift,
+                                 "classification_counts": dict(sorted(classification_counts.items()))})
     return benchmark
 
 
-def render_html(benchmark, results_by_skill, output_path: Path):
+def render_html(benchmark, results_by_skill, output_path: Path, iteration_name="iteration-1"):
     def pct(x):
         return f"{x*100:.0f}%" if x is not None else "—"
+
+    def human_cell(summary):
+        if not summary.get("labeled_runs"):
+            return "— (no labels)"
+        badge = " <span class='badge badge-fail'>drift</span>" if summary.get("grader_drift") else ""
+        return f"{pct(summary['disagreement_rate'])} disagreement over {summary['labeled_runs']} labelled run(s){badge}"
 
     def delta_cell(ws, bs):
         if ws is None or bs is None:
@@ -1073,7 +1136,7 @@ def render_html(benchmark, results_by_skill, output_path: Path):
         ".badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.8em;margin-right:0.4em}",
         ".badge-pass{background:#dafbe1;color:#1a7f37}.badge-fail{background:#ffe3e3;color:#cf222e}",
         "</style></head><body>",
-        "<h1>PM Toolkit — Eval Report — Iteration 1</h1>",
+        f"<h1>PM Toolkit — Eval Report — {escape(iteration_name)}</h1>",
         f"<p>Static report. {len(benchmark['skills'])} skill(s), {benchmark['overall'].get('n_evals') or 0} eval(s) × 2 configs "
         "(with_skill / baseline). Assertions are keyword-based programmatic checks (see scripts/grade_evals.py).</p>",
     ]
@@ -1090,6 +1153,10 @@ def render_html(benchmark, results_by_skill, output_path: Path):
     if ov.get("with_skill_avg_duration_s"):
         html_parts.append(f"<tr><td>Avg duration</td><td>{ov['with_skill_avg_duration_s']:.1f}s</td><td>{ov['baseline_avg_duration_s']:.1f}s</td><td>+{(ov['with_skill_avg_duration_s']-ov['baseline_avg_duration_s'])/ov['baseline_avg_duration_s']*100:.0f}%</td></tr>")
     html_parts.append(f"<tr><td>N evals</td><td colspan='3'>{ov['n_evals']}</td></tr>")
+    html_parts.append(f"<tr><td>Human disagreement</td><td colspan='3'>{human_cell(ov)}</td></tr>")
+    if ov.get("classification_counts"):
+        counts = ", ".join(f"{escape(k)} {v}" for k, v in ov["classification_counts"].items())
+        html_parts.append(f"<tr><td>Label handles</td><td colspan='3'>{counts}</td></tr>")
     html_parts.append("</table>")
     html_parts.append("</div>")
 
@@ -1097,10 +1164,10 @@ def render_html(benchmark, results_by_skill, output_path: Path):
     for skill_name, skill_entry in benchmark["skills"].items():
         html_parts.append(f"<h2>{escape(skill_name)}</h2>")
         s = skill_entry["summary"]
-        html_parts.append(f"<p><b>Skill-level pass rate:</b> with skill {pct(s['with_skill_pass_rate'])} vs baseline {pct(s['without_skill_pass_rate'])} &nbsp; {delta_cell(s['with_skill_pass_rate'], s['without_skill_pass_rate'])}</p>")
+        html_parts.append(f"<p><b>Skill-level pass rate:</b> with skill {pct(s['with_skill_pass_rate'])} vs baseline {pct(s['without_skill_pass_rate'])} &nbsp; {delta_cell(s['with_skill_pass_rate'], s['without_skill_pass_rate'])} &nbsp; <b>Human:</b> {human_cell(s)}</p>")
 
         html_parts.append("<table>")
-        html_parts.append("<tr><th>Eval</th><th>With skill</th><th>Baseline</th><th>Δ pass</th><th>Tokens (w/b)</th><th>Duration (w/b)</th></tr>")
+        html_parts.append("<tr><th>Eval</th><th>With skill</th><th>Baseline</th><th>Δ pass</th><th>Human (w/b)</th><th>Tokens (w/b)</th><th>Duration (w/b)</th></tr>")
         for e in skill_entry["evals"]:
             ws = e.get("with_skill", {})
             bs = e.get("without_skill", {})
@@ -1112,6 +1179,7 @@ def render_html(benchmark, results_by_skill, output_path: Path):
             html_parts.append(f"<td>{pct(ws_rate)} ({ws.get('passed','—')}/{ws.get('total','—')})</td>")
             html_parts.append(f"<td>{pct(bs_rate)} ({bs.get('passed','—')}/{bs.get('total','—')})</td>")
             html_parts.append(f"<td>{delta_cell(ws_rate, bs_rate)}</td>")
+            html_parts.append(f"<td>{escape(str(ws.get('human_verdict') or '—'))} / {escape(str(bs.get('human_verdict') or '—'))}</td>")
             html_parts.append(f"<td>{tok_line}</td>")
             html_parts.append(f"<td>{dur_line}</td></tr>")
         html_parts.append("</table>")
@@ -1144,7 +1212,9 @@ def render_html(benchmark, results_by_skill, output_path: Path):
                         content = out_path.read_text(encoding="utf-8", errors="replace")
                     except Exception:
                         content = "(could not read)"
-                    html_parts.append(f"<details><summary>{config} output ({r['grading']['word_count']} words)</summary>")
+                    verdict = r["grading"].get("human_verdict")
+                    verdict_note = f", human verdict {escape(verdict)}" if verdict else ""
+                    html_parts.append(f"<details><summary>{config} output ({r['grading']['word_count']} words{verdict_note})</summary>")
                     html_parts.append(f"<pre>{escape(content)}</pre>")
                     html_parts.append("</details>")
             html_parts.append("</div>")
@@ -1157,20 +1227,26 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Grade recorded, provenance-validated eval pairs.")
     parser.add_argument("--iteration", default="iteration-1")
+    parser.add_argument("--labels", type=Path, help="human labels file; default docs/benchmarks/<iteration>/labels.jsonl when it exists")
     args = parser.parse_args()
     if not re.fullmatch(r"iteration-[a-z0-9-]+", args.iteration):
         parser.error("invalid iteration name")
+    from label_eval_run import labels_path, load_labels
+    labels_file = args.labels or labels_path(REPO, args.iteration)
+    report = {}
     try:
-        results = grade_all(args.iteration)
+        labels = load_labels(labels_file, args.iteration) if labels_file.is_file() else None
+        results = grade_all(args.iteration, labels=labels, report=report)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         parser.exit(1, f"Invalid recorded eval: {exc}\n")
     benchmark = aggregate_benchmark(results, args.iteration)
+    benchmark["overall"]["labels_unmatched"] = report.get("labels_unmatched", 0)
     # Master benchmark file
     master_path = REPO / "benchmark_all.json"
     master_path.write_text(json.dumps(benchmark, indent=2))
     # Viewer
     viewer_path = REPO / "eval-report.html"
-    render_html(benchmark, results, viewer_path)
+    render_html(benchmark, results, viewer_path, args.iteration)
 
     ov = benchmark["overall"]
     if not ov.get("n_evals"):
@@ -1184,6 +1260,11 @@ def main():
     print(f"With-skill mean pass rate:    {ov['with_skill_pass_rate']*100:.1f}%")
     print(f"Baseline mean pass rate:      {ov['without_skill_pass_rate']*100:.1f}%")
     print(f"Delta:                        {(ov['with_skill_pass_rate']-ov['without_skill_pass_rate'])*100:+.1f}pp")
+    if ov.get("labeled_runs"):
+        flag = " (grader drift: recalibrate the assertions before trusting the pass rates)" if ov.get("grader_drift") else ""
+        print(f"Human disagreement:           {ov['disagreement_rate']*100:.0f}% over {ov['labeled_runs']} labelled run(s){flag}")
+    if ov.get("labels_unmatched"):
+        print(f"Labels without a run here:    {ov['labels_unmatched']}")
     print(f"Master benchmark: {master_path}")
     print(f"HTML viewer:      {viewer_path}")
 
