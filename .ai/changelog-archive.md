@@ -9,6 +9,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-09 Neutral examples audit
 - 2026-09-10 Versioned integration history
 - 2026-09-10 Remaining backlog implementation
+- 2026-09-10 session log
 
 ## 2026-09-08: session log
 
@@ -52,4 +53,8 @@ Backfill from verified GitHub PR metadata; detailed change mapping and source li
 ## 2026-09-10: Remaining backlog implementation
 
 Implemented B24, B22, B28, B26, B27 and B30 in one consolidated change. Added B25 recorder and protocol; the real 60-output pilot remains pending because authenticated Claude Code and Codex runners are unavailable. B21 and B23 recorded as already integrated. Validation results are recorded in the PR; binding decisions are in docs/DECISIONS.md.
+
+## 2026-09-10: session log
+
+B31: removed the stray identity check in grade_evals.render_html (lines 1092-1095 referenced grade_all locals and raised NameError on the first recorded run); added test_report_renders_recorded_pair in scripts/test_record_eval_run.py, which failed with NameError before the fix and passes after. Validation: full docs/REPO_HEALTH.md battery green.
 

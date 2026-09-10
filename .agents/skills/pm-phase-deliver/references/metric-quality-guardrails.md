@@ -160,6 +160,7 @@ Before any launch ships to 100%:
 - [ ] roll-back criteria + process written
 - [ ] metric dictionary entries current
 - [ ] owner named for each guardrail
+- [ ] AI features: golden-set pass rate at or above its limit and zero rows in a blocking hazard class (`pm-archetype-ai/references/eval-design.md`)
 
 No launch reaches GA without these.
 

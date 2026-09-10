@@ -754,6 +754,14 @@ ASSERTIONS = {
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
             ("Does not extend the canary or demand more cases first", lambda t: not re.search(r"extend the canary|another (?:week|month|quarter) of canary|run the canary longer|more (?:eval )?cases (?:before|first)|wait for another", t)),
         ],
+        "design-golden-set-and-block-rule-for-summariser": [
+            ("Hazard list names concrete failure modes (hallucinated commitment, missing citation)", hasr(r"hallucinat|invented (?:refund|commitment|promise|citation)|missing citation|unsupported (?:number|claim)")),
+            ("Limits block carries numeric thresholds", hasr(r"(?:≥|>=|at least|minimum of|no more than|at most) ?\d{1,3} ?%|\d{1,3} ?% (?:good|pass)|zero (?:hallucinat|invented)")),
+            ("Block rule sits above the pass rate", hasr(r"(?:single|one|any) (?:invented|hallucinated|fabricated)[^.\n]{0,60}block|blocks? (?:the )?release regardless|regardless of (?:the )?(?:pass.?rate|score)")),
+            ("Golden set of about 20 rows includes at least one real failure", lambda t: bool(re.search(r"golden.?set|20[ -](?:row|case)", t)) and bool(re.search(r"real (?:failure|incident|trace)|refund incident|at least one (?:real )?fail", t))),
+            ("Validation runs the real incident; verification re-grades ~30 cases blind with a ~10% disagreement limit", hasr(r"\b30\b[^.\n]{0,80}(?:blind|two (?:humans|reviewers|graders|people))|10 ?%[^.\n]{0,60}(?:disagree|drift)|disagree[^.\n]{0,40}10 ?%")),
+            ("Synthetic data is practice; real traces decide the release", hasr(r"synthetic[^.\n]{0,80}(?:practice|rehearsal|not (?:for |a )?release)|real traces? (?:decide|gate|drive|determine)")),
+        ],
     },
     "pm-archetype-enterprise": {
         "rbac-and-audit-for-shared-dashboards": [

@@ -154,5 +154,11 @@
     "eval": "skip-gate-for-raw-machine-output",
     "good": "The humanizer pass does not apply: raw machine output JSON is on the skip list. Keep the JSON unchanged, exact bytes. If the hard hook blocks slack_send_message, use hooks/humanize-mark.sh to mark those bytes and resend; no prose summary or rewrite is needed.",
     "bad": "However, hold the post. I'll rewrite the JSON and add a summary first."
+  },
+  {
+    "skill": "pm-archetype-ai",
+    "eval": "design-golden-set-and-block-rule-for-summariser",
+    "good": "Scenario sheet: the task is a one-paragraph summary an agent acts on without opening the ticket; good-answer rules: every action item traces to a ticket line, no commitment the ticket does not contain, same language as the ticket, refund and SLA amounts quoted verbatim. Hazard list, four lines: hallucinated commitment such as last month's invented refund; missing citation to the ticket line; wrong language; incomplete action items. Limits block: at least 80% of golden rows graded good; zero hallucinated commitments; citation present on 100% of summaries; at most 5% of outputs ask a question instead of summarising. Decision rule: ship at 80% good or better with zero invented commitments; a single invented commitment or citation blocks release regardless of the pass rate. Golden set: 20 rows, five per language, including the real refund incident labelled fail with its reason and three more real failures pulled from traces; labels are good, weak or fail plus a one-line reason, and the file is versioned with the prompt. Validation: run the refund incident through the rubric; if it passes, tighten the rules. Verification: two humans re-grade 30 judge-scored cases blind; disagreement above 10% means the judge drifted. Synthetic rows are practice; real traces decide the release.",
+    "bad": "Eval plan: grade 50 sample summaries on accuracy, helpfulness, tone, safety and a fifth dimension, style, and ship when the average score is above 4 out of 5. We will generate synthetic tickets to test with and agents can report problems after launch."
   }
 ]

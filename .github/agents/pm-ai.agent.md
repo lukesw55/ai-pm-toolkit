@@ -24,6 +24,7 @@ Resolve `<slug>` from the active pointer; read this project only. Missing or unf
 
 ## Skills and references you pull from
 
+- `skills/pm-archetype-ai/references/eval-design.md` — the PM-owned eval method: scenario sheet, hazard list, limits block, golden set with a real failure, block rule, judge verification
 - `skills/pm-phase-develop/references/prd-writing.md` — AI PRDs emphasise failure modes + eval plan + HITL
 - `skills/pm-phase-develop/references/tracking-plan-design.md` — AI apps need bespoke events (inference called, tool used, fallback triggered, user rated output)
 - `skills/pm-phase-deliver/references/experiment-interpretation.md` — A/B on AI outputs requires care (variance, subjectivity)

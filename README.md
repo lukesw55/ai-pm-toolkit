@@ -95,9 +95,9 @@ The orchestrator is a skill codenamed **Umberto** ([`SKILL.md`](SKILL.md)). It d
 | Quality gates (4) | `anti-slop`, `humanizer`, `humanize-deliverables`, `inference-discipline` | slop removal for code and structure; prose that reads like a person wrote it; a publish gate for outbound artefacts; the hallucination gate |
 | Tooling (1) | `repo-doctor` | read-only health check of this workspace |
 
-The archetype lenses are compositional single-file skills (one `SKILL.md` that composes the phase and transversal references and carries its own `evals/evals.json`), and each also ships as an agent in [`.github/agents/`](.github/agents/) for harnesses that speak that dialect. They stack on top of any phase skill when the product context is non-default.
+The archetype lenses are compositional skills: one `SKILL.md` that composes the phase and transversal references and carries its own `evals/evals.json`. A lens gains a `references/` folder only when a real need appears; today that is `pm-archetype-ai`, whose eval-design reference is the PM-owned method for product evals. Each lens also ships as an agent in [`.github/agents/`](.github/agents/) for harnesses that speak that dialect. They stack on top of any phase skill when the product context is non-default.
 
-Every skill ships a `SKILL.md` as its control plane. 15 of the 21 add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so the model loads the narrowest reference the task needs instead of a whole catalogue.
+Every skill ships a `SKILL.md` as its control plane. Most add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so the model loads the narrowest reference the task needs instead of a whole catalogue.
 
 Every skill also carries an `evals/evals.json` with at least three cases, one of them adversarial. `scripts/validate_repo.py` enforces that floor and the one-to-one parity with the grader, so a skill can be graded rather than trusted.
 
