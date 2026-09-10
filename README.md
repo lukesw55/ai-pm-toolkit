@@ -133,11 +133,11 @@ Each gate has an explicit, per-content override for legitimate exceptions, so th
 
 ## The toolkit grades itself
 
-Every skill ships an `evals/evals.json` with realistic task prompts across four categories (standard, doctrine-adversarial, skill-functional-adversarial, negative-control); the validator requires at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, and one-to-one parity with the grader's assertion blocks. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration.
+Every skill ships an `evals/evals.json` with realistic task prompts across four categories (standard, doctrine-adversarial, skill-functional-adversarial, negative-control); the validator requires at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, and one-to-one parity with the grader's assertion blocks. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration, plus the disagreement rate between the assertions and the human verdicts when labels exist.
 
-Today that floor holds at 79 cases across the 21 skills: 40 standard, 11 doctrine-adversarial, 13 skill-functional-adversarial, and 15 negative controls.
+As of 2026-09-10 the manifests hold 85 cases across the 21 skills: 43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial and 16 negative controls. The validator enforces the floor, not the total.
 
-Recording instructions and provenance requirements are in [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md). The two-harness pilot remains pending; synthetic fixtures test the grader, not skill effectiveness.
+Recording instructions, the pilot runner and the labelling step are in [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md). The two-harness pilot runs through `scripts/run_eval_pilot.py` on a machine where both CLIs are authenticated, human verdicts are tracked under `docs/benchmarks/`, and no measured result is published until the first iteration lands there. Synthetic fixtures test the grader, not skill effectiveness.
 
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 
@@ -199,10 +199,19 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `context_watch.py` | live CLI view of the active context and time spent per context |
 | `log_decision.py` | append a decision to the active project's decision log |
 | `validate_context.py` | schema check for `active-context.md` |
-| `grade_evals.py` | grade eval runs with-skill vs baseline; emit benchmark JSON + HTML report |
+| `grade_evals.py` | grade eval runs with-skill vs baseline; join human labels and report the disagreement rate; emit benchmark JSON + HTML report |
+| `record_eval_run.py` | record one externally produced eval output with provenance (model, source, commit, hashes); never generates output |
+| `run_eval_pilot.py` | drive a harness CLI through the pilot: payloads from the dependency manifest, fresh directory per run, seeded order, provenance sidecar |
+| `label_eval_run.py` | append a human verdict and classification to a recorded run, bound to the output hash |
 | `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap, Copilot agent schema and repo policy |
 | `test_hooks.py` | synthetic payloads through the shared gates, the Codex `apply_patch` adapter, and the soft session-close reminder |
 | `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low |
+| `test_record_eval_run.py` | the recorder's contract in a disposable repo, including the HTML report on a recorded pair |
+| `test_run_eval_pilot.py` | the pilot runner against a fake harness: recorded runs, provenance, seeded order, refusals |
+| `test_label_eval_run.py` | the label file, hash binding, and the grader's disagreement rate and drift flag |
+| `test_context_scripts.py` | context bootstrap, traversal and symlink refusal, the org layer, migration, stage switching |
+| `test_hook_contract.py` | hook routes against `hooks/contract.json` and malformed write envelopes |
+| `test_frontmatter.py` | portable frontmatter parsing with and without PyYAML |
 | `test_memory.py` | `memory.py` in a throwaway repo: caps, the distill fold, the archive index, the in-code PII denylist |
 | `test_validate_repo.py` | feeds the validator valid JSON and agent frontmatter in unexpected shapes and asserts a finding comes back, not a traceback |
 | `sync_skills.py` | regenerate `.claude/skills/` and `.agents/skills/` from the canonical `skills/` tree; `--check` for a read-only drift check |
@@ -220,16 +229,20 @@ python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
 python3 -S scripts/validate_repo.py
 python3 scripts/test_hooks.py
+python3 scripts/test_hook_contract.py
 python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
 python3 scripts/test_context_scripts.py
 python3 scripts/test_record_eval_run.py
+python3 scripts/test_run_eval_pilot.py
+python3 scripts/test_label_eval_run.py
 python3 scripts/test_validate_repo.py
+python3 scripts/test_frontmatter.py
 python3 scripts/grade_evals.py
 python3 scripts/memory.py doctor
 ```
 
-`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax and harness-neutrality, mirror drift, eval coverage and its parity with the grader, the memory bootstrap contract, and `.github/agents/` — the published schema plus a narrower repo policy the messages name as policy (tool aliases in canonical lowercase, no `model`, delegation targets that resolve, one shared required-reading section). The four `test_*.py` suites cover the runtime behaviour the validator cannot see: what the gates block, what the grader scores, what `memory.py` does to a real tree, and how the validator behaves on malformed input. It is zero-dependency except for optional PyYAML. Without PyYAML it parses the canonical frontmatter subset this repo uses — scalars, inline lists, booleans and block scalars — and tolerates nested mappings outside the validated fields without interpreting them; it is not a YAML parser, so a validated field in any other form becomes a finding rather than passing unread. CI runs the validator both ways. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
+`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax and harness-neutrality, mirror drift, eval coverage and its parity with the grader, the memory bootstrap contract, and `.github/agents/` — the published schema plus a narrower repo policy the messages name as policy (tool aliases in canonical lowercase, no `model`, delegation targets that resolve, one shared required-reading section). The `test_*.py` suites cover the runtime behaviour the validator cannot see: what the gates block, what the grader scores, what `memory.py` does to a real tree, how the validator behaves on malformed input, and what the pilot runner and the label step record. It is zero-dependency except for optional PyYAML. Without PyYAML it parses the canonical frontmatter subset this repo uses — scalars, inline lists, booleans and block scalars — and tolerates nested mappings outside the validated fields without interpreting them; it is not a YAML parser, so a validated field in any other form becomes a finding rather than passing unread. CI runs the validator both ways. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
 
 ## Repository layout
 
@@ -258,7 +271,7 @@ Shared product logic — skills, enforcement, doctrine — lives once, at the to
 ├── .codex/
 │   ├── hooks.json           # Codex adapter: hook wiring
 │   └── adapters/             # apply_patch normalization (the one Codex-only script)
-├── docs/                    # process, memory model, guardrails, comms modes, repo health
+├── docs/                    # process, memory model, guardrails, comms modes, repo health, benchmarks (pilot deps, labels, reports)
 ├── scripts/                 # memory, workflow, eval, sync, and validation tooling
 ├── .ai/                     # project-brief templates, memory skeleton, gate sentinel state
 └── .github/agents/          # 6 core agents + 4 PM archetypes (read skills/ directly)

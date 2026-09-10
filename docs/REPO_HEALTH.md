@@ -17,9 +17,12 @@ python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
 python3 scripts/test_context_scripts.py
 python3 scripts/test_record_eval_run.py
+python3 scripts/test_run_eval_pilot.py
+python3 scripts/test_label_eval_run.py
 python3 scripts/test_validate_repo.py
 python3 scripts/test_frontmatter.py
 python3 scripts/grade_evals.py
+python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-dry-run --model dry-run --dry-run --allow-dirty
 ```
 
 `validate_repo.py` covers:
@@ -43,6 +46,12 @@ python3 scripts/grade_evals.py
 `scripts/test_memory.py` runs `memory.py` and `init_context.py` in a throwaway repo skeleton: caps, the `distill --prepare/--apply` fold (verbatim archive, stale and oversized packages refused, undated blocks never folded), the cold-layer archive index (regenerated on append, rebuilt and listed by `memory.py index`, every heading shape, and the staged-then-verified swap that leaves the archive byte-for-byte intact when a rebuild fails before it), the in-code PII denylist, and the soft-cap warnings for the shared org layer and `insights.md`.
 
 `scripts/test_validate_repo.py` feeds the eval coverage check valid JSON with unexpected shapes (a list or object where a category, id or name string is expected; a non-list `evals`; a non-object top level) and asserts a validation finding comes back rather than a traceback. It does the same for the agent check against synthetic `.agent.md` fixtures, running **every case twice, with and without PyYAML**, and requiring the same verdict in both. Two cases must produce **no** finding, because `server/tool` and `server/*` are legitimate MCP tools and a closed allowlist of built-in aliases would reject valid configuration. One case checks a parsed *value* rather than the absence of a finding: a folded `description: >-` must come back as its text, since the fallback used to record the `>-` marker itself and pass.
+
+`scripts/test_record_eval_run.py` records a synthetic pair in a disposable repository and checks the recorder's contract: provenance fields, refusal to overwrite, tamper detection through the output hash, unpaired configurations and mixed iterations rejected, and the HTML report rendering from a recorded pair.
+
+`scripts/test_run_eval_pilot.py` drives `run_eval_pilot.py` with a fake harness (a Python script that answers on stdin, never a real CLI): every pilot run recorded with the harness-reported model and a provenance sidecar whose file hashes match, the with-skill payload ending in the manifest prompt, the seeded configuration order, refusal of empty output, of a mixed harness, of an uncommitted tree and of an already-recorded run, a dry run that writes nothing, the Codex event stream, and malformed envelopes.
+
+`scripts/test_label_eval_run.py` covers the human-label layer: append-only file with one label per labeler, refusal of a tampered or unknown run and of invalid verdicts or handles, the disagreement rate and `grader_drift` flag computed against controllable assertions, null fields when no labels exist, an orphan label that warns instead of failing, iteration mismatch, the majority and tie rules, and every classification handle documented in `docs/EVAL_PROTOCOL.md`.
 
 ## Bootstrap smoke test
 

@@ -34,6 +34,14 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B17 | Agents Copilot: pins ausentes, tools insuficientes, required-reading divergente | Agents | agente | 2 | 2 | 2 | 8 | feito |
 | B18 | `pm-prioritization-regua-comum`: genericizar âncoras e unificar idioma | Skills | agente | 2 | 2 | 2 | 8 | feito |
 | B20 | Régua Comum sem eval fora do domínio receita/regulação setorial (genericidade não provada por eval) | Skills | verificado | 2 | 2 | 2 | 8 | feito |
+| B31 | Corrigir `NameError` do `render_html`, runner do piloto nos dois harnesses e runbook | Bug + Evals | verificado | 4 | 4 | 3 | 48 | feito |
+| B35 | Camada org compartilhada (`.ai/memory/org/`) e `insights.md` por projeto | Memória | verificado + pesquisa | 3 | 3 | 4 | 36 | feito |
+| B32 | Camada de rótulos humanos e taxa de desacordo do grader | Evals | verificado + pesquisa | 3 | 3 | 3 | 27 | feito |
+| B33 | Reference de eval design (método de Dean Peters em texto próprio) em `pm-archetype-ai` | Conteúdo PM | pesquisa | 3 | 3 | 3 | 27 | feito |
+| B34 | Escada de prototipagem (tier por local e custo de engenharia) no estágio 6 | Framework | pesquisa | 2 | 3 | 3 | 18 | feito |
+| B36 | Painel de revisão multi-lente, não bloqueante, com regra "sem objeção é resposta válida" | Framework | pesquisa | 3 | 2 | 3 | 18 | feito |
+| B37 | Síntese em lote de entrevistas e receitas de tarefa via conectores MCP | Conteúdo PM | pesquisa | 3 | 2 | 3 | 18 | feito |
+| B38 | Candidatos de catálogo: positioning/GTM, build-vs-buy, win/loss | Conteúdo PM | pesquisa | 2 | 1 | 2 | 4 | candidato |
 
 ## Detalhe por item
 
@@ -161,12 +169,47 @@ Entregáveis, em ordem:
 
 Executar o desenho (passos 1 e 2) antes do B1: o fix do prefixo MCP muda de forma dependendo de onde os gates passam a viver.
 
+### B31 — `NameError` do `render_html`, runner do piloto e runbook (GUT 48)
+
+**Feito.** `scripts/grade_evals.py` carregava em `render_html()` uma cópia da checagem de identidade de `grade_all()` que referenciava `metadata`, `iteration_identity` e `eval_dir`, locais da outra função: `NameError` na primeira rodada real gravada, invisível ao `py_compile` e ao smoke zero-run do CI porque o loop por eval nunca executava sem runs. As quatro linhas saíram e `scripts/test_record_eval_run.py` ganhou `test_report_renders_recorded_pair`, que grava um par sintético, gradua e renderiza o HTML (falhava antes, passa depois). `scripts/run_eval_pilot.py` (novo, só stdlib) monta os payloads `without_skill` (prompt byte a byte) e `with_skill` (SKILL.md mais as references listadas em `docs/benchmarks/pilot-deps.json`, cada arquivo com seu sha256), roda o CLI do harness em diretório vazio fora do repo com o payload em stdin, embaralha a ordem das configs por eval a partir de uma seed impressa, interpreta o envelope JSON do Claude Code e o fluxo de eventos do Codex, recusa saída vazia, harness misto, árvore suja e run já gravado, grava via `record_eval_run.record()` e escreve `provenance.json` ao lado do `meta.json`. Flags do Claude Code confirmadas em `claude -p --help` 2.1.267 (`--safe-mode`, `--strict-mcp-config`, `--tools ""`); template do Codex a confirmar na máquina do piloto. `scripts/test_run_eval_pilot.py` (9 testes) dirige o runner com um harness falso. Runbook por harness em `docs/EVAL_PROTOCOL.md`. O piloto real continua sendo executado na máquina do dono, onde os dois CLIs estão autenticados.
+
+### B32 — Rótulos humanos e taxa de desacordo do grader (GUT 27)
+
+**Feito.** `scripts/label_eval_run.py` (novo) anexa vereditos humanos (`good`, `weak`, `fail`) com handles de classificação (`sycophancy`, `manufactured-objection`, `invented-fact`, `skipped-method`, `wrong-decision`, `incomplete`, `format-slop`, `scope-bloat`, `eval-defect`, `review-needed`) em `docs/benchmarks/<iteration>/labels.jsonl`, versionado porque `workspace/` é gitignored, vinculado ao output pelo sha256, um rótulo por labeler, nunca editado. `grade_evals.py` lê os rótulos por padrão (`--labels` sobrescreve), grava veredito e concordância por run, taxa de desacordo e `grader_drift` por skill e geral (`PASS_THRESHOLD` 0,8, `DRIFT_THRESHOLD` 0,10, adaptado do protocolo de verificação de juiz do Dean Peters), histograma de handles, contagem de rótulos sem run local (aviso, nunca erro) e as colunas humanas no HTML. `scripts/test_label_eval_run.py` (9 testes). Protocolo com seção "Label runs" e campos novos do relatório.
+
+### B33 — Reference de eval design em `pm-archetype-ai` (GUT 27)
+
+**Feito.** `skills/pm-archetype-ai/references/eval-design.md`: o método do PM para evals de produto (scenario sheet, hazard list de exatamente quatro, limits block de quatro números, golden set com pelo menos uma falha real, block rule acima do pass rate, validação contra o pior incidente, verificação do juiz com ~30 casos às cegas e ~10% de discordância, sintético treina e trace real decide), texto original adaptado de Dean Peters com URL e licença CC BY-NC-SA declaradas. Primeiro `progressive-loading.md` da skill; o parágrafo de lente single-file foi estreitado só neste arquivo (os outros três archetypes seguem single-file até mostrarem a mesma necessidade); passos 3 e 6 do workflow e o agent `pm-ai` apontam para a reference; checkbox no launch gate de `metric-quality-guardrails.md` e seção "Eval limits" no template de PRD. Eval 4 `design-golden-set-and-block-rule-for-summariser` (standard) com bloco de asserções e par de fixtures. README deixou de contar references à mão.
+
+### B34 — Escada de prototipagem no estágio 6 (GUT 18)
+
+**Feito.** `skills/pm-phase-develop/references/prototyping-ladder.md`: três tiers por onde o protótipo vive e quanto custa à engenharia (throwaway fora do codebase; protótipo de código em branch descartável do codebase real via agente de código, nunca mergeado como está; PR do PM revisado por engenharia só para copy, config, flags e UI pequena, nunca lógica central), templates de pedido de repo sandbox e de decision record, tabela de decisão, ligação com o gate do estágio 6 e com o kickoff. Sub-skill 7 e caminho de persistência no SKILL.md, linha no mapa de carregamento, linha do estágio 6 no `WORKFLOW.md` citando a reference e registrando o tier, string de fallback do `stage_context.py`, README e SKILL raiz. Eval 4 `choose-prototype-tier-for-billing-change` (standard) com asserções e fixtures.
+
+### B35 — Camada org compartilhada e `insights.md` (GUT 36)
+
+**Feito.** Decisão do dono: personas, concorrentes e metas vivem numa camada compartilhada `.ai/memory/org/` (`company.md`, `personas.md`, `competitors.md`, `goals.md`) lida sob demanda por todas as skills, nunca injetada por hook; o upstream entrega só os templates em `_templates/org/` e o bootstrap `init_context.py --org`, que nunca sobrescreve; o `.gitignore` do upstream continua ignorando `.ai/memory/*` e documenta as duas linhas de negação que um fork adiciona para versionar o conteúdo real. `org` é slug reservado (`context_paths.RESERVED_SLUGS`); `memory.py doctor` avisa acima de 12 KB por arquivo org e em `insights.md`; template ausente vira mensagem, não traceback; o validador de bootstrap roda `--org` no clone simulado e exclui `.ai/memory/org` do estado local. Template `insights.md` por projeto (temas ranqueados, só locators) e cânone de caminhos de pesquisa: brutos em `raw-evidence/<topic>/` (PII), logs em `research/<topic>/sessions/`, memo em `discovery/<topic>/synthesis.md`, temas em `insights.md`. Wiring de leitura nos quatro archetypes, sete skills e dez agents; enriquecimento no passo Persist de discover, define e deliver. Docs: MEMORY_SYSTEM (árvore corrigida, papéis, camadas, caps, retrieval, bootstrap), memory README, README, AGENTS, CLAUDE, REPO_HEALTH, repo-doctor. Testes: `test_context_scripts` (org, slug reservado, template ausente, conjunto de arquivos derivado de `PROJECT_FILES`) e `test_memory` (caps).
+
+### B36 — Painel de revisão multi-lente (GUT 18)
+
+**Feito.** `skills/pm-transversal-stakeholder/references/review-panel.md`: cinco lentes (comercial, customer success, marketing e posicionamento, exec e finanças, user advocate) com cards de quatro campos, a regra "sem objeção é saída válida; objeção fabricada é falha do comportamento 7 da doutrina", template de relatório, execução sequencial por padrão e um subagente por lente onde o harness oferece (Codex não verificado, registrado em `AGENTS.md`), consolidação no dissent protocol e no assumption map, nunca gate. Sub-skill 4, passo Persist e triggers no SKILL.md; linha no mapa; frase no parágrafo do shadow gate do `WORKFLOW.md`; blurbs no SKILL raiz e README. Evals 3 `surface-hidden-commercial-risk-in-one-pager` (skill-functional-adversarial) e 4 `panel-clears-solid-prd-without-invented-objection` (negative-control) com asserções e fixtures.
+
+### B37 — Síntese em lote e receitas de conector (GUT 18)
+
+**Feito.** `skills/pm-transversal-analysis/references/batch-interview-synthesis.md` (codebook compartilhado antes do fan-out, um log de excertos por transcrição, fan-out com fallback sequencial, merge por participantes com contra-evidência, saturação e recência, PII em `raw-evidence/`) e `references/connector-task-recipes.md` (contrato de receita mais retro de lançamento via Jira, adoção de feature via analytics e retenção por comportamento; números só de resultado de ferramenta, link para a fonte, persistência com o texto da query, TBD para o que nenhuma ferramenta devolveu). Sub-skills 5 e 6, passos de load e persist e bullet de MCP no SKILL.md; duas linhas no mapa; SKILL raiz e README; nota de degradação em `AGENTS.md`. Evals 3 `batch-synthesis-six-interviews-shared-codebook` (standard) e 4 `adoption-check-cites-source-and-separates-inference` (skill-functional-adversarial) com asserções e fixtures.
+
+### B38 — Candidatos de catálogo (GUT 4)
+
+**Candidato, não executado.** Do catálogo mySecond, três references encaixam no pipeline e ficaram para um próximo ciclo por decisão do dono: positioning e GTM (impact brief e launch), build-vs-buy (seleção de aposta) e win/loss (discovery competitiva). O resto do catálogo já está coberto por references mais profundas ou é genérico demais para um toolkit com evals.
+
 ## Frameworks avaliados e não aportados
 
 - **Shape Up (Basecamp)**: appetite/betting colide com a dupla priorização por régua comum já existente; adotaria vocabulário concorrente sem resolver gap real.
 - **Design Sprint (GV)**: ritual organizacional de 5 dias; nada para um toolkit de sessão individual encapsular além do que Discover/Develop já cobrem.
 - **Cadência de touchpoints semanais (Continuous Discovery)**: hábito de organização, não de toolkit; o custo de recrutar/agendar/sintetizar não é endereçável por skill. Só o OST e o assumption mapping entram (B12).
 - **Working Backwards / PRFAQ (Amazon)**: já coberto por `pm-phase-define/references/business-case-prfaq.md`; nenhum gap novo identificado.
+- **Rituais de refresh de contexto e plano diário (mySecond)**: cadência organizacional, não capacidade de toolkit; a camada org (B35) entra sem ritual, atualizada quando a evidência muda.
+- **Sub-agentes de persona como camada principal de qualidade (mySecond)**: sem controle negativo produzem objeção fabricada; o painel (B36) entra como complemento não bloqueante com a regra "sem objeção é válido" e um eval de controle.
+- **Contagem de skills como métrica (70+)**: breadth sem eval é o oposto da tese do repo; só os itens do B38 encaixam em estágio do pipeline.
 
 ## Fontes da pesquisa
 
@@ -177,6 +220,9 @@ Executar o desenho (passos 1 e 2) antes do B1: o fix do prefixo MCP muda de form
 - Sycophancy: [arXiv — Sycophancy in LLMs: Causes and Mitigations](https://arxiv.org/pdf/2411.15287), [arXiv — Ask don't tell: Reducing sycophancy](https://arxiv.org/html/2602.23971v2), [arXiv — ELEPHANT: social sycophancy](https://arxiv.org/pdf/2505.13995)
 - Frameworks de discovery: [ProdPad — 16 Product Management Frameworks](https://www.prodpad.com/blog/product-management-frameworks/), [Productboard — Double Diamond Framework Guide](https://www.productboard.com/blog/double-diamond-framework-product-management/), [Great Question — Continuous discovery habits](https://greatquestion.co/blog/continuous-discovery-habits)
 - Codex (híbrido): [Codex — Customization (AGENTS.md, skills, hooks)](https://developers.openai.com/codex/concepts/customization), [Codex — Advanced configuration (hooks.json, PreToolUse)](https://developers.openai.com/codex/config-advanced), [Codex CLI](https://developers.openai.com/codex/cli)
+- Evals para PMs: [Dean Peters — Evals for Product Managers](https://github.com/deanpeters/evals-for-product-managers) (CC BY-NC-SA 4.0; método adaptado em texto próprio no B33 e no B32)
+- Alavancagem com IA: [Colin Matthews — How top PMs increase their leverage with AI](https://www.lennysnewsletter.com/p/how-top-pms-increase-their-leverage) (escadas pessoal, de produto e de sistemas; base do B34 e do B37)
+- PM OS em Claude Code: [Ron Yang — Build Your PM Operating System on Claude Code](https://maven.com/ron-yang/claude-code-os-product-managers) e [mySecond — arquitetura do PM OS](https://mysecond.ai/learn/ai-pm-operating-system) (arquivos de contexto, sub-agentes revisores e fan-out; base do B35, B36 e B37)
 
 ## Execução consolidada do backlog (2026-09-10)
 
@@ -196,6 +242,23 @@ O pedido atual do dono autoriza execução contínua em uma única PR e substitu
 
 ### Pendência substantiva: B25
 
-Executar os 15 evals das três skills selecionadas, nas duas configurações e nos dois harnesses, conforme `docs/EVAL_PROTOCOL.md`. Esta sessão não oferece executáveis autenticados de Claude Code e Codex. Nenhuma fixture sintética foi registrada como saída real e nenhum resultado de qualidade das skills é reivindicado. Depois do piloto: publicar o sumário versionado com modelo, revisão, data, pass rates e deltas, atualizar README e só então encerrar B25.
+Executar os 15 evals das três skills selecionadas, nas duas configurações e nos dois harnesses, conforme `docs/EVAL_PROTOCOL.md`, agora via `scripts/run_eval_pilot.py` numa máquina onde `claude` e `codex` estão autenticados (decisão do dono em 2026-09-10; este ambiente tem o CLI do Claude Code e não tem o do Codex, e nada rodou aqui). Nenhuma fixture sintética foi registrada como saída real e nenhum resultado de qualidade das skills é reivindicado. Depois do piloto: rotular os 60 outputs com `scripts/label_eval_run.py`, publicar `docs/benchmarks/<iteration>/report.md` por harness com modelo, revisão, data, pass rates, deltas, taxa de desacordo e histograma de handles, atualizar o README e só então encerrar B25.
+
+## Execução do lote de referências (2026-09-10)
+
+Lote autorizado pelo dono a partir da avaliação das três referências (Ron Yang, Colin Matthews, Dean Peters), em uma branch e uma PR, um commit por item, bateria completa de `docs/REPO_HEALTH.md` antes de cada commit. Implementado significa verificado nesta branch; a integração depende do merge.
+
+| Item | Estado | Evidência e escopo |
+|---|---|---|
+| B31 | implementado | `render_html` corrigido com regressão; `run_eval_pilot.py`, `docs/benchmarks/pilot-deps.json`, 9 testes com harness falso; runbook por harness no protocolo |
+| B35 | implementado | templates `_templates/org/` e `insights.md`, `init_context.py --org`, slug `org` reservado, caps no doctor, cânone de caminhos, wiring em 4 archetypes, 7 skills e 10 agents, docs; testes de contexto e memória |
+| B33 | implementado | `eval-design.md` e mapa em `pm-archetype-ai`, agent e docs; eval 4 com fixtures |
+| B34 | implementado | `prototyping-ladder.md`, sub-skill 7, linha do estágio 6 no WORKFLOW; eval 4 com fixtures |
+| B36 | implementado | `review-panel.md`, sub-skill 4, frase no shadow gate, degradação Codex em AGENTS; evals 3 e 4 com fixtures |
+| B37 | implementado | `batch-interview-synthesis.md` e `connector-task-recipes.md`, sub-skills 5 e 6; evals 3 e 4 com fixtures |
+| B32 | implementado | `label_eval_run.py`, rótulos no grader com taxa de desacordo e `grader_drift`, 9 testes; seção "Label runs" no protocolo |
+| B38 | candidato | positioning/GTM, build-vs-buy, win/loss ficam para o próximo ciclo |
+
+Contagem ao fim do lote, recontada pelos manifestos: 85 evals (43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial, 16 negative-control), 32 pares sintéticos e 99 fixtures no grader, 138 arquivos em cada espelho.
 
 O histórico por PR está em `docs/PR_HISTORY.md`; as decisões estão em `docs/DECISIONS.md`. A confiança nos hooks do Codex continua dependendo da ação local `/hooks` do usuário. Configurações administrativas do GitHub e limpeza de branches são ações separadas do backlog de código.
