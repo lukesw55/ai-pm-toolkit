@@ -31,6 +31,8 @@ python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-dr
 - Local markdown links and backtick-quoted file paths (canonical + repo docs; the `.claude/skills/` and `.agents/skills/` mirrors are byte copies, checked separately by drift).
 - `skills/WORKFLOW.md` parsing into the canonical eight-stage contract.
 - `.claude/settings.json` and `.codex/hooks.json` hook shape, unsupported matchers, timeout units, and that every referenced command target exists.
+- Hook wiring contract: every route in `hooks/contract.json` (event, tool, ordered handlers, per harness) resolves to exactly those handlers in the adapter, using separate matcher semantics: Claude Code accepts exact-name lists or regex; Codex uses regex, without Claude's comma-separated-list rule; malformed adapter JSON produces findings, never a traceback.
+- Progressive-loading maps: every support file under a mapped skill is named in the skill's `progressive-loading.md` map.
 - Hook shell syntax, and that shared `hooks/*.sh` scripts carry no harness-specific paths (`CLAUDE_PROJECT_DIR`, `.claude/`, `.codex/`, `.agents/`) — enforcement logic must work under both harnesses identically.
 - Mirror drift: `.claude/skills/` and `.agents/skills/` match `skills/` exactly (`scripts/sync_skills.py --check`).
 - Memory bootstrap compatibility between `init_context.py` (a project and the `--org` shared layer), `memory.py doctor`, and `stage_context.py`.
@@ -53,7 +55,7 @@ python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-dr
 
 `scripts/test_label_eval_run.py` covers the human-label layer: append-only file with one label per labeler, refusal of a tampered or unknown run and of invalid verdicts or handles, the disagreement rate and `grader_drift` flag computed against controllable assertions, null fields when no labels exist, an orphan label that warns instead of failing, iteration mismatch, the majority and tie rules, and every classification handle documented in `docs/EVAL_PROTOCOL.md`.
 
-## Bootstrap smoke test
+## Frontmatter parsing
 
 Validated frontmatter fields use a common portable subset in both modes:
 plain/quoted scalars, booleans, decimal numbers, nulls, inline lists and text
@@ -61,7 +63,9 @@ blocks. Skills require non-empty string names and descriptions. Unsupported
 validated values and duplicate keys produce findings; dependent skill checks
 receive an explicit invalid result. Other metadata is not interpreted by the
 portable parser. When PyYAML is unavailable, tests report its cases as skipped,
-not as successful cross-parser verification.
+not as successful cross-parser verification. A skill's `name` must equal its directory.
+
+## Bootstrap smoke test
 
 ```bash
 python3 scripts/init_context.py "Validation Demo"

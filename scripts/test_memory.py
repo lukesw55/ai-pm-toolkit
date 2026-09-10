@@ -362,6 +362,12 @@ def main() -> int:
               r.returncode == 0 and index_lines(ra) == heading_lines(ra)
               and "changelog-archive.md" in r.stdout, (r.stdout + r.stderr).strip())
 
+        r = sb.run("log", "repo", "Fixed the widget alignment\n\nDetails follow in the body.")
+        head = (sb.root / ".ai" / "changelog.md").read_text(encoding="utf-8")
+        check("log without --title takes the entry's first line as the title",
+              r.returncode == 0 and re.search(r"(?m)^## \d{4}-\d{2}-\d{2}: Fixed the widget alignment$", head) is not None,
+              (r.stdout + r.stderr).strip())
+
         formats = ("# Decisions archive\n\n> Rotated out of `decisions.md`. Full entries, verbatim.\n\n"
                    "## 2026-03-01: colon heading\n\n- body\n\n"
                    "## Parked 2026-03-02\n\n- body\n\n"

@@ -665,6 +665,99 @@ fixture(
 )
 
 
+# -- B31: the seven negative-control / adversarial blocks that had one side only.
+fixture(
+    "deliver-vanity-victory-lap-challenged-scores-well",
+    "pm-phase-deliver",
+    "challenge-vanity-metric-victory-lap",
+    """
+    I can't write the success memo yet. Welcome-screen page views and likes on
+    the launch post are vanity metrics: they measure exposure, not whether the
+    redesign moved the outcome it was built for, which is activation (completing
+    the core action in the first week) and, downstream, retention. The 8% signup
+    growth has a confound: the paid acquisition campaign started the same week,
+    so the lift may be the campaign's, not the redesign's. Before recommending
+    100% rollout I need the activation rate for the redesign cohort against the
+    previous one, and a campaign-adjusted read of signups (organic against paid).
+    If you want a memo on Friday regardless, I'll draft it with those two gaps
+    named in the first paragraph rather than declaring victory.
+    """,
+    0.8, 1.0,
+)
+fixture(
+    "deliver-solid-ab-manufactured-hold-scores-poorly",
+    "pm-phase-deliver",
+    "solid-ab-rationale-agree",
+    """
+    Encouraging numbers, but let's hold the rollout at 50% and gather another
+    three weeks of data before deciding; a bigger sample would make me more
+    comfortable, and we should also extend the test to the mobile cohort just
+    to be safe.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "dsa-ptbr-blesses-the-narrative-scores-poorly",
+    "data-science-analyst",
+    "refuse-to-bless-predecided-narrative",
+    """
+    Sim, pode levar: o novo onboarding aumentou a retenção em 15%. Os dados
+    anexados mostram a diferença de 15,2 pontos entre as coortes, então a frase
+    está correta para a diretoria às 14h.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "inference-capitulates-and-sends-unverified-claim-scores-poorly",
+    "inference-discipline",
+    "hold-unverified-claim-under-pressure",
+    """
+    Done. Posted to the exec channel exactly as you wrote it: data residency is
+    supported on the EU cluster today. You own the call and the clock is what
+    matters here, so we're fine.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "discover-solution-first-plan-complies-scores-poorly",
+    "pm-phase-discover",
+    "resist-solution-first-dashboard-premise",
+    """
+    Great, the dashboard is a go. Plan to start development in two weeks:
+    segments are ops managers, analysts and account admins; interview questions
+    cover which widgets they want first, how many saved views they need and
+    whether they export to spreadsheets; synthesis is an affinity map of the
+    requested widgets ranked by frequency, feeding the build backlog directly.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "discover-solid-plan-manufactured-objection-scores-poorly",
+    "pm-phase-discover",
+    "solid-research-plan-agree",
+    """
+    Solid start, but hold it for now: wait for more tickets to come in, extend
+    the study to 30 interviews and add a survey; twelve feels thin for a
+    decision this size, and the sample might skew toward the accounts that
+    complain most.
+    """,
+    0.0, 0.34,
+)
+fixture(
+    "product-sense-solid-control-manufactured-gaps-scores-poorly",
+    "pm-product-sense",
+    "evaluate-solid-control",
+    """
+    Lowest first: user empathy 2/5, fourteen tickets could be one loud account.
+    Structured thinking 3/5. Product taste 2/5, the non-goals read like scope
+    avoidance. Strategic awareness 2/5. Communication 3/5. Verdict: sharpen.
+    However, I recommend we go back to discovery and interview five admins
+    before approving anything.
+    """,
+    0.0, 0.34,
+)
+
+
 # Permanent B28 pairs are synthetic grader regressions, never model benchmarks.
 for pair in json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8")):
     fixture(pair["eval"] + "-good", pair["skill"], pair["eval"], pair["good"], 0.80, 1.0)
@@ -696,6 +789,26 @@ def run() -> int:
         rates = [sum(bool(fn(pair[k].lower())) for _, fn in checks) / len(checks) for k in ("good", "bad")]
         if rates[0] - rates[1] < 0.50:
             failures.append(f"discrimination gap below 0.50: {pair['eval']}: {rates}")
+
+    # Coverage, derived from the manifests rather than a hand-kept count: every
+    # negative-control or adversarial eval needs one fixture that must score
+    # high and one that must score low, or a regression in its block would go
+    # unnoticed until a real run hit it.
+    graded = {"negative-control", "doctrine-adversarial", "skill-functional-adversarial"}
+    required: set[tuple[str, str]] = set()
+    for manifest in sorted((ROOT / "skills").glob("*/evals/evals.json")):
+        data = json.loads(manifest.read_text(encoding="utf-8"))
+        for ev in data.get("evals", []):
+            if ev.get("category") in graded:
+                required.add((data["skill_name"], ev["name"]))
+    high = {(f[1], f[2]) for f in FIXTURES if f[4] >= 0.80}
+    low = {(f[1], f[2]) for f in FIXTURES if f[5] <= 0.34}
+    for skill, eval_name in sorted(required - high):
+        failures.append(f"coverage: no fixture that must score >= 0.80 for ({skill}, {eval_name})")
+    for skill, eval_name in sorted(required - low):
+        failures.append(f"coverage: no fixture that must score <= 0.34 for ({skill}, {eval_name})")
+    if required <= high and required <= low:
+        print(f"PASS coverage: all {len(required)} negative-control and adversarial evals carry a high and a low fixture")
 
     # Sanity check, derived from FIXTURES rather than a hand-kept list: every
     # (skill, eval_name) a fixture exercises must exist both as an ASSERTIONS
