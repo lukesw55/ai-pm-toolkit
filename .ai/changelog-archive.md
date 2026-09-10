@@ -6,6 +6,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-08 session log
 - 2026-09-08 session log
 - 2026-09-08 session log
+- 2026-09-09 Neutral examples audit
 
 ## 2026-09-08: session log
 
@@ -18,4 +19,8 @@ B23 in progress: portable typed frontmatter and invalid-result propagation imple
 ## 2026-09-08: session log
 
 B23: completed portable typed frontmatter, invalid-result propagation and explicit optional-dependency test skips. Linux validation resumed: 4 frontmatter tests, 54 schema cases and structural validation with and without PyYAML passed.
+
+## 2026-09-09: Neutral examples audit
+
+Audited all 466 tracked files. Replaced sector-specific examples and the incident narrative with fictional document-collaboration scenarios; generalized the matching grader alternative, analytical inputs and backlog wording. All validation suites passed; 132 canonical files match both generated mirrors. Historical commits were not rewritten.
 

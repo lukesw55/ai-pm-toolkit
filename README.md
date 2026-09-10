@@ -198,12 +198,18 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `context_watch.py` | live CLI view of the active context and time spent per context |
 | `log_decision.py` | append a decision to the active project's decision log |
 | `validate_context.py` | schema check for `active-context.md` |
+| `context_paths.py` | shared slug validation and project path boundary used by every context writer |
 | `grade_evals.py` | grade eval runs with-skill vs baseline; emit benchmark JSON + HTML report |
+| `record_eval_run.py` | record one externally produced eval output with provenance (commit, hashes, harness, model, source) |
 | `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap, Copilot agent schema and repo policy |
 | `test_hooks.py` | synthetic payloads through the shared gates, the Codex `apply_patch` adapter, and the soft session-close reminder |
 | `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low |
 | `test_memory.py` | `memory.py` in a throwaway repo: caps, the distill fold, the archive index, the in-code PII denylist |
 | `test_validate_repo.py` | feeds the validator valid JSON and agent frontmatter in unexpected shapes and asserts a finding comes back, not a traceback |
+| `test_hook_contract.py` | malformed Codex envelopes block with exit 2; adapter routes match `hooks/contract.json`; the configured write commands really block a marker |
+| `test_frontmatter.py` | the portable frontmatter grammar gives the same values and verdicts with and without PyYAML |
+| `test_context_scripts.py` | slug traversal, symlink escapes, idempotent bootstrap, project switching, legacy migration and the preflight version check |
+| `test_record_eval_run.py` | the eval recorder refuses missing provenance, changed output and overwrites |
 | `sync_skills.py` | regenerate `.claude/skills/` and `.agents/skills/` from the canonical `skills/` tree; `--check` for a read-only drift check |
 | `check_requirements.sh` | environment preflight (bash, Python >=3.10, jq, git, sha256) |
 
@@ -219,16 +225,18 @@ python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
 python3 -S scripts/validate_repo.py
 python3 scripts/test_hooks.py
+python3 scripts/test_hook_contract.py
 python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
 python3 scripts/test_context_scripts.py
 python3 scripts/test_record_eval_run.py
 python3 scripts/test_validate_repo.py
+python3 scripts/test_frontmatter.py
 python3 scripts/grade_evals.py
 python3 scripts/memory.py doctor
 ```
 
-`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax and harness-neutrality, mirror drift, eval coverage and its parity with the grader, the memory bootstrap contract, and `.github/agents/` — the published schema plus a narrower repo policy the messages name as policy (tool aliases in canonical lowercase, no `model`, delegation targets that resolve, one shared required-reading section). The four `test_*.py` suites cover the runtime behaviour the validator cannot see: what the gates block, what the grader scores, what `memory.py` does to a real tree, and how the validator behaves on malformed input. It is zero-dependency except for optional PyYAML. Without PyYAML it parses the canonical frontmatter subset this repo uses — scalars, inline lists, booleans and block scalars — and tolerates nested mappings outside the validated fields without interpreting them; it is not a YAML parser, so a validated field in any other form becomes a finding rather than passing unread. CI runs the validator both ways. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
+`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax and harness-neutrality, mirror drift, eval coverage and its parity with the grader, the memory bootstrap contract, and `.github/agents/` — the published schema plus a narrower repo policy the messages name as policy (tool aliases in canonical lowercase, no `model`, delegation targets that resolve, one shared required-reading section). The `test_*.py` suites cover the runtime behaviour the validator cannot see: what the gates block and how each adapter routes them, what the grader scores, what `memory.py` and the context scripts do to a real tree, how a recorded eval run is validated, and how the validator behaves on malformed input. It is zero-dependency except for optional PyYAML. Without PyYAML it parses the canonical frontmatter subset this repo uses — scalars, inline lists, booleans and block scalars — and tolerates nested mappings outside the validated fields without interpreting them; it is not a YAML parser, so a validated field in any other form becomes a finding rather than passing unread. CI runs the validator both ways. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
 
 ## Repository layout
 

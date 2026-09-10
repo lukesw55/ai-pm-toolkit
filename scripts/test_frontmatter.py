@@ -52,5 +52,20 @@ class FrontmatterTests(unittest.TestCase):
             self.assertTrue(errors)
 
 
+    def test_skill_name_must_match_directory(self):
+        with tempfile.TemporaryDirectory() as td:
+            skills = Path(td)/'skills'
+            (skills/'alpha').mkdir(parents=True)
+            skill_md = skills/'alpha'/'SKILL.md'
+            for use_yaml in (True, False):
+                for name, want_finding in (('beta', True), ('alpha', False)):
+                    skill_md.write_text(f'---\nname: {name}\ndescription: valid\n---\nbody\n', encoding='utf-8')
+                    errors = []
+                    with patch.object(vr, 'yaml', vr.yaml if use_yaml else None), patch.object(vr, 'SKILLS', skills), patch.object(vr, 'rel', lambda p: str(p)):
+                        vr.check_skill_frontmatter(errors)
+                    hits = [e for e in errors if 'does not match directory' in e]
+                    self.assertEqual(bool(hits), want_finding, (name, use_yaml, errors))
+
+
 if __name__=='__main__':
     unittest.main()

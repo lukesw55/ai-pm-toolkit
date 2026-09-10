@@ -88,5 +88,30 @@ class HookContractTests(unittest.TestCase):
             self.assertIn(2, codes, (relative, codes))
 
 
+    def test_matcher_semantics(self):
+        data = {'hooks': {'PreToolUse': [
+            {'matcher': 'Edit', 'hooks': [{'type': 'command', 'command': 'hooks/a.sh'}]},
+            {'matcher': 'Edit.*', 'hooks': [{'type': 'command', 'command': 'hooks/b.sh'}]},
+            {'matcher': 'Edit, Write', 'hooks': [{'type': 'command', 'command': 'hooks/c.sh'}]},
+            {'matcher': '', 'hooks': [{'type': 'command', 'command': 'hooks/d.sh'}]},
+        ]}}
+        # A literal matcher is an exact name: `Edit` must not route NotebookEdit.
+        self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'NotebookEdit'), ['hooks/b.sh', 'hooks/d.sh'])
+        self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'Edit'), ['hooks/a.sh', 'hooks/b.sh', 'hooks/c.sh', 'hooks/d.sh'])
+        self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'Write'), ['hooks/c.sh', 'hooks/d.sh'])
+
+    def test_single_handler_removal(self):
+        relative = '.claude/settings.json'
+        original = json.loads((ROOT/relative).read_text())
+        changed = copy.deepcopy(original)
+        block = next(b for b in changed['hooks']['PreToolUse'] if any('anti-slop-gate.sh' in h['command'] for h in b['hooks']))
+        block['hooks'] = [h for h in block['hooks'] if 'anti-slop-gate.sh' not in h['command']]
+        original_read = Path.read_text
+        with patch.object(Path, 'read_text', lambda path, *a, **kw: json.dumps(changed) if path == ROOT/relative else original_read(path, *a, **kw)):
+            errors = []
+            vr.check_hook_contract(errors)
+        self.assertTrue(any('anti-slop-gate.sh' in e for e in errors), errors)
+
+
 if __name__ == '__main__':
     unittest.main()

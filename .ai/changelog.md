@@ -4,6 +4,10 @@
 
 > Active log keeps the most recent entries; older entries in `changelog-archive.md`.
 
+## 2026-09-10: B31 pontas soltas da execução consolidada
+
+B31: pontas soltas da execução consolidada (PRs #16 a #19). Actions fixadas por SHA completo; cobertura de fixtures NC/adversarial derivada dos manifests, com 7 fixtures novas (39/39 blocos cobertos, 94 fixtures); código morto removido e semântica de matcher dos harnesses no validador; name do SKILL.md igual ao diretório; regressões novas no contrato de hooks e no frontmatter; README, REPO_HEALTH e AGENTS.md alinhados com as suítes reais; travessão literal no adapter Codex; título default do log derivado da entrada. Validação local em Python 3.11: preflight, py_compile, bash -n por hook, 132 espelhos, validador verde com e sem PyYAML, hooks 33, contrato 8, grader 94, memória 41, contexto 8, gravador 5, validador 54, frontmatter 5, smoke do grader exit 0, doctor verde.
+
 ## 2026-09-10: Remaining backlog implementation
 
 Implemented B24, B22, B28, B26, B27 and B30 in one consolidated change. Added B25 recorder and protocol; the real 60-output pilot remains pending because authenticated Claude Code and Codex runners are unavailable. B21 and B23 recorded as already integrated. Validation results are recorded in the PR; binding decisions are in docs/DECISIONS.md.
@@ -30,8 +34,4 @@ Backfill from verified GitHub PR metadata; detailed change mapping and source li
 - PR #16: 2026-09-08T17:17:24Z, main `14fb603`.
 - PR #17: 2026-09-09T01:15:48Z, main `bd321d0`.
 - PR #18: 2026-09-09T17:45:37Z, main `88d2e6b`.
-
-## 2026-09-09: Neutral examples audit
-
-Audited all 466 tracked files. Replaced sector-specific examples and the incident narrative with fictional document-collaboration scenarios; generalized the matching grader alternative, analytical inputs and backlog wording. All validation suites passed; 132 canonical files match both generated mirrors. Historical commits were not rewritten.
 
