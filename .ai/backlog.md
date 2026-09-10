@@ -34,7 +34,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B17 | Agents Copilot: pins ausentes, tools insuficientes, required-reading divergente | Agents | agente | 2 | 2 | 2 | 8 | feito |
 | B18 | `pm-prioritization-regua-comum`: genericizar âncoras e unificar idioma | Skills | agente | 2 | 2 | 2 | 8 | feito |
 | B20 | Régua Comum sem eval fora do domínio receita/regulação setorial (genericidade não provada por eval) | Skills | verificado | 2 | 2 | 2 | 8 | feito |
-| B31 | Corrigir `NameError` do `render_html`, runner do piloto nos dois harnesses e runbook | Bug + Evals | verificado | 4 | 4 | 3 | 48 | feito |
+| B39 | Corrigir `NameError` do `render_html`, runner do piloto nos dois harnesses e runbook | Bug + Evals | verificado | 4 | 4 | 3 | 48 | feito |
 | B35 | Camada org compartilhada (`.ai/memory/org/`) e `insights.md` por projeto | Memória | verificado + pesquisa | 3 | 3 | 4 | 36 | feito |
 | B32 | Camada de rótulos humanos e taxa de desacordo do grader | Evals | verificado + pesquisa | 3 | 3 | 3 | 27 | feito |
 | B33 | Reference de eval design (método de Dean Peters em texto próprio) em `pm-archetype-ai` | Conteúdo PM | pesquisa | 3 | 3 | 3 | 27 | feito |
@@ -169,9 +169,9 @@ Entregáveis, em ordem:
 
 Executar o desenho (passos 1 e 2) antes do B1: o fix do prefixo MCP muda de forma dependendo de onde os gates passam a viver.
 
-### B31 — `NameError` do `render_html`, runner do piloto e runbook (GUT 48)
+### B39 — `NameError` do `render_html`, runner do piloto e runbook (GUT 48)
 
-**Feito.** `scripts/grade_evals.py` carregava em `render_html()` uma cópia da checagem de identidade de `grade_all()` que referenciava `metadata`, `iteration_identity` e `eval_dir`, locais da outra função: `NameError` na primeira rodada real gravada, invisível ao `py_compile` e ao smoke zero-run do CI porque o loop por eval nunca executava sem runs. As quatro linhas saíram e `scripts/test_record_eval_run.py` ganhou `test_report_renders_recorded_pair`, que grava um par sintético, gradua e renderiza o HTML (falhava antes, passa depois). `scripts/run_eval_pilot.py` (novo, só stdlib) monta os payloads `without_skill` (prompt byte a byte) e `with_skill` (SKILL.md mais as references listadas em `docs/benchmarks/pilot-deps.json`, cada arquivo com seu sha256), roda o CLI do harness em diretório vazio fora do repo com o payload em stdin, embaralha a ordem das configs por eval a partir de uma seed impressa, interpreta o envelope JSON do Claude Code e o fluxo de eventos do Codex, recusa saída vazia, harness misto, árvore suja e run já gravado, grava via `record_eval_run.record()` e escreve `provenance.json` ao lado do `meta.json`. Flags do Claude Code confirmadas em `claude -p --help` 2.1.267 (`--safe-mode`, `--strict-mcp-config`, `--tools ""`); template do Codex a confirmar na máquina do piloto. `scripts/test_run_eval_pilot.py` (9 testes) dirige o runner com um harness falso. Runbook por harness em `docs/EVAL_PROTOCOL.md`. O piloto real continua sendo executado na máquina do dono, onde os dois CLIs estão autenticados.
+**Feito.** Renumerado de B31 para B39 depois do merge da PR #20, que usa B31 para as pontas soltas da execução consolidada; os commits `cc054d7` e `a9c490f` mantêm o rótulo antigo na mensagem. `scripts/grade_evals.py` carregava em `render_html()` uma cópia da checagem de identidade de `grade_all()` que referenciava `metadata`, `iteration_identity` e `eval_dir`, locais da outra função: `NameError` na primeira rodada real gravada, invisível ao `py_compile` e ao smoke zero-run do CI porque o loop por eval nunca executava sem runs. As quatro linhas saíram e `scripts/test_record_eval_run.py` ganhou `test_report_renders_recorded_pair`, que grava um par sintético, gradua e renderiza o HTML (falhava antes, passa depois). `scripts/run_eval_pilot.py` (novo, só stdlib) monta os payloads `without_skill` (prompt byte a byte) e `with_skill` (SKILL.md mais as references listadas em `docs/benchmarks/pilot-deps.json`, cada arquivo com seu sha256), roda o CLI do harness em diretório vazio fora do repo com o payload em stdin, embaralha a ordem das configs por eval a partir de uma seed impressa, interpreta o envelope JSON do Claude Code e o fluxo de eventos do Codex, recusa saída vazia, harness misto, árvore suja e run já gravado, grava via `record_eval_run.record()` e escreve `provenance.json` ao lado do `meta.json`. Flags do Claude Code confirmadas em `claude -p --help` 2.1.267 (`--safe-mode`, `--strict-mcp-config`, `--tools ""`); template do Codex a confirmar na máquina do piloto. `scripts/test_run_eval_pilot.py` (9 testes) dirige o runner com um harness falso. Runbook por harness em `docs/EVAL_PROTOCOL.md`. O piloto real continua sendo executado na máquina do dono, onde os dois CLIs estão autenticados.
 
 ### B32 — Rótulos humanos e taxa de desacordo do grader (GUT 27)
 
@@ -251,7 +251,7 @@ Lote autorizado pelo dono a partir da avaliação das três referências (Ron Ya
 
 | Item | Estado | Evidência e escopo |
 |---|---|---|
-| B31 | implementado | `render_html` corrigido com regressão; `run_eval_pilot.py`, `docs/benchmarks/pilot-deps.json`, 9 testes com harness falso; runbook por harness no protocolo |
+| B39 | implementado | `render_html` corrigido com regressão; `run_eval_pilot.py`, `docs/benchmarks/pilot-deps.json`, 9 testes com harness falso; runbook por harness no protocolo |
 | B35 | implementado | templates `_templates/org/` e `insights.md`, `init_context.py --org`, slug `org` reservado, caps no doctor, cânone de caminhos, wiring em 4 archetypes, 7 skills e 10 agents, docs; testes de contexto e memória |
 | B33 | implementado | `eval-design.md` e mapa em `pm-archetype-ai`, agent e docs; eval 4 com fixtures |
 | B34 | implementado | `prototyping-ladder.md`, sub-skill 7, linha do estágio 6 no WORKFLOW; eval 4 com fixtures |
