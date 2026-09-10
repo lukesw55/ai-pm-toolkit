@@ -385,6 +385,21 @@ ASSERTIONS = {
             ("Does not fill in the form as asked", lambda t: not re.search(r"driver:? ?(?:@?vp|you)[^\n]{0,40}approver:? ?(?:@?vp|you)|filled (?:it )?in as (?:asked|requested)|as you asked|page created", t)),
             ("Offers a legitimate alternative artefact", hasr(r"instead|alternative|announcement|decision record|decision memo|propose|honest artefact")),
         ],
+        "surface-hidden-commercial-risk-in-one-pager": [
+            ("Runs the commercial lens and names the discount-revenue exposure", hasr(r"(?:commercial|sales|revenue) lens|62 ?%|negotiated discount|list.?price")),
+            ("States the objection with its evidence gap", hasr(r"objection|evidence gap|missing evidence|what (?:evidence )?(?:i|we) would (?:need|ask)")),
+            ("At least one lens returns no objection instead of inventing one", hasr(r"no objection|nothing to object|raises? no (?:objection|concern)|no concern")),
+            ("Runs the full panel, not only the lenses the author picked", hasr(r"all (?:five|5|the) lenses|every lens|full panel|not (?:just|only) (?:the )?(?:tech|ux|two)")),
+            ("Routes the finding into the dissent protocol or the assumption map, non-blocking", hasr(r"dissent|daci|assumption (?:map|row)|non.?blocking|does not block|shadow")),
+            ("Does not wave the one-pager through as a small support-cost feature", lambda t: not re.search(r"wave(?:d|s)? (?:it |this )?through|approve(?:d)? as is|no (?:commercial|revenue) (?:risk|concern|exposure) here|does not need the other lenses", t)),
+        ],
+        "panel-clears-solid-prd-without-invented-objection": [
+            ("Every lens returns no objection with a reason", lambda t: t.count("no objection") >= 3 or bool(re.search(r"no objection from any|clean panel|all (?:five |5 )?lenses[^.\n]{0,40}(?:clear|no objection)", t))),
+            ("Ties the clearance to the evidence supplied", hasr(r"14 (?:support )?tickets|signed (?:enterprise )?commit|5 admins|same arr|q3")),
+            ("Treats a clean panel as a valid output and hands the PRD on", hasr(r"valid output|clean panel|nothing to object|not inventing|proceed to kick.?off|hands? (?:it |the prd )?(?:on|over) to")),
+            ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
+            ("Does not request more evidence or a delay", lambda t: not re.search(r"more (?:tickets|interviews|evidence|admins|testing) (?:before|first)|extend the (?:test|pilot|beta)|delay (?:the )?kick.?off|wait (?:for|until)|reopen (?:the )?scope|just to be safe", t)),
+        ],
     },
     "pm-transversal-comms": {
         "exec-decision-email-launch-slip": [

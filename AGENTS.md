@@ -67,6 +67,8 @@ Shared product logic lives once, at the top level — neither harness is the "re
 
 **Known degradation**: the optional `.pptx` render step in `pm-storytelling` (see `skills/pm-storytelling/references/deck-storyline.md`) hands off to the Anthropic `pptx` skill, which Claude Code sessions may offer and Codex does not — Claude Code-only for now. The storyline is the deliverable on both harnesses.
 
+**Known degradation**: the review panel in `skills/pm-transversal-stakeholder/references/review-panel.md` fans out one subagent per lens where the harness offers subagents; on Codex, whose subagent support this repo has not verified, run the lenses sequentially as the reference describes. The report is identical; only wall-clock time differs.
+
 **Stage-awareness**: both harnesses inject the current workflow stage into every turn via a `UserPromptSubmit` hook reading `.ai/memory/active-context.md` (see `scripts/stage_context.py`). If hooks are disabled or not yet trusted, read `active-context.md` manually before substantial work — it's the source of truth for pipeline position either way.
 
 ## Repository memory files
