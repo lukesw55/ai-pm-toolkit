@@ -1,11 +1,11 @@
 ---
 name: anti-slop
-description: Detect and remove AI slop from Claude Code outputs before they reach the repo or the user. Use before writing or editing code, comments, docstrings, markdown docs, README sections, PR descriptions, Jira/Linear tickets, ADRs, plans, or chat replies longer than two sentences. Also use when reviewing diffs, PRs, generated files, or anything the user calls "AI-generated", "slop", "too verbose", "boilerplate", "generic", "ChatGPT-ish", "Claude-ish", "com cara de IA", "tá com slop", or "tira o ruído". Pairs with humanizer for prose and Stop hooks for runtime enforcement.
+description: Detect and remove AI slop from agent outputs before they reach the repo or the user. Use before writing or editing code, comments, docstrings, markdown docs, README sections, PR descriptions, Jira/Linear tickets, ADRs, plans, or chat replies longer than two sentences. Also use when reviewing diffs, PRs, generated files, or anything the user calls "AI-generated", "slop", "too verbose", "boilerplate", "generic", "ChatGPT-ish", "Claude-ish", "com cara de IA", "tá com slop", or "tira o ruído". Pairs with humanizer for prose and Stop hooks for runtime enforcement.
 ---
 
 # Anti-slop
 
-Remove AI tells from code, comments, docs, repo structure, PR text, and Claude Code replies.
+Remove AI tells from code, comments, docs, repo structure, PR text, and agent replies.
 
 This skill is a **gate**, not a writing style guide. Use it before producing or modifying anything that might enter the codebase or a developer workflow.
 
@@ -181,7 +181,7 @@ Do not add README sections such as Contributing, Roadmap, License, Code of Condu
 
 The right place for a change explanation is usually the PR body or commit message, not a parallel markdown file.
 
-## Claude Code workflow
+## Agent workflow
 
 Before editing:
 

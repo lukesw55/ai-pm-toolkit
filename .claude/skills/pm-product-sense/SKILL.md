@@ -97,7 +97,7 @@ Anti-patterns: averaging away a real weakness, scoring generously to avoid a har
 - `pm-phase-develop/references/prd-writing.md`: EVALUATE reads a PRD the same way it reads a One Pager — for judgement, not formatting.
 - Doctrine: EVALUATE is where calibrated disagreement is the whole job — see `../DOCTRINE.md`. A rubric that only ever scores high isn't evaluating.
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is the BUILD output contract or the EVALUATE scorecard as written above; Standard adds the reasoning behind each score/step; Caveman is the verdict/MVP line only.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is the BUILD output contract or the EVALUATE scorecard as written above; Standard adds the reasoning behind each score/step; Caveman is the verdict/MVP line only.
 
 ## Success criteria
 

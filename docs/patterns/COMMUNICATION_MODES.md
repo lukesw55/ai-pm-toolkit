@@ -1,6 +1,6 @@
 # Communication Modes
 
-Umberto supports three response profiles.
+Default: **Lean**. The toolkit supports three response profiles across harnesses.
 
 ## 1. Standard
 

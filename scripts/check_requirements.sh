@@ -16,6 +16,14 @@ need() {
 
 need bash
 need python3
+if command -v python3 >/dev/null 2>&1; then
+  if python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'; then
+    printf 'OK    python3 >= 3.10\n'
+  else
+    printf 'MISS  python3 >= 3.10 (found %s)\n' "$(python3 --version 2>&1)" >&2
+    missing=1
+  fi
+fi
 need jq
 need git
 
@@ -32,7 +40,7 @@ for hook in hooks/*.sh; do
   if [ -x "$hook" ]; then
     printf 'OK    executable %s\n' "$hook"
   else
-    printf 'WARN  not executable %s (Claude can still run via shell, but chmod +x is recommended)\n' "$hook" >&2
+    printf 'WARN  not executable %s (the harness can still run via shell, but chmod +x is recommended)\n' "$hook" >&2
   fi
 done
 

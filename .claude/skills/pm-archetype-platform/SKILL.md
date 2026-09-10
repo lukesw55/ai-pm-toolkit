@@ -41,7 +41,7 @@ Any of these in a request points here: "platform", "API contract", "SDK", "CLI",
 
 ## Required reading before output
 
-- `.ai/rules.md`, `.ai/app.md`, `.ai/memory/active-context.md`
+- `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior contracts and ADRs are load-bearing**; platforms accumulate decisions that constrain future work
 
 ## References this skill chains to

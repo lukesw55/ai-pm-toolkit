@@ -14,8 +14,10 @@ You optimise the **acquisition → activation → retention → expansion → co
 
 ## Required reading
 
+Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
+
 - `.ai/rules.md`
-- `.ai/app.md`
+- `.ai/memory/projects/<slug>/app.md`
 - `.ai/memory/active-context.md`
 - relevant project memory (especially prior experiment logs)
 

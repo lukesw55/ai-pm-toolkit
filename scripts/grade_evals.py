@@ -865,15 +865,17 @@ def load_timing(path: Path):
         return None
 
 
-def grade_all():
+def grade_all(iteration_name="iteration-1"):
+    from record_eval_run import eval_spec, validate_run
     results_by_skill = {}
+    iteration_identity = None
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
         # Any skill with recorded runs is gradable — the old pm-* prefix
         # filter silently skipped anti-slop, humanizer, and friends.
         if not skill_dir.is_dir() or not (skill_dir / "SKILL.md").exists():
             continue
         skill = skill_dir.name
-        iteration = skill_dir / "workspace" / "iteration-1"
+        iteration = skill_dir / "workspace" / iteration_name
         if not iteration.exists():
             continue
         skill_runs = []
@@ -885,6 +887,19 @@ def grade_all():
                 continue
             eval_id = int(m.group(1))
             eval_name = m.group(2)
+            spec = eval_spec(REPO, skill, eval_name)
+            if eval_id != spec['id']:
+                raise ValueError(f"wrong eval id: {eval_dir}")
+            metadata = []
+            for config in ("with_skill", "without_skill"):
+                metadata.append(validate_run(eval_dir / config, skill, spec, config))
+            for key in ("harness", "model", "repo_commit", "skill_sha256", "prompt_sha256"):
+                if metadata[0][key] != metadata[1][key]:
+                    raise ValueError(f"unmatched pair ({key}): {eval_dir}")
+            identity = tuple(metadata[0][k] for k in ("harness", "model", "repo_commit"))
+            if iteration_identity is not None and identity != iteration_identity:
+                raise ValueError(f"mixed harness, model or revision in iteration: {eval_dir}")
+            iteration_identity = identity
             for config in ["with_skill", "without_skill"]:
                 out = eval_dir / config / "outputs" / "output.md"
                 timing = load_timing(eval_dir / config / "timing.json")
@@ -907,7 +922,7 @@ def grade_all():
     return results_by_skill
 
 
-def aggregate_benchmark(results_by_skill):
+def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
     benchmark = {"skills": {}, "overall": {}}
     with_skill_rates = []
     baseline_rates = []
@@ -964,7 +979,7 @@ def aggregate_benchmark(results_by_skill):
         }
         benchmark["skills"][skill] = skill_entry
         # write per-skill benchmark.json
-        (SKILLS_DIR / skill / "workspace" / "iteration-1" / "benchmark.json").write_text(
+        (SKILLS_DIR / skill / "workspace" / iteration_name / "benchmark.json").write_text(
             json.dumps(skill_entry, indent=2)
         )
 
@@ -1074,6 +1089,10 @@ def render_html(benchmark, results_by_skill, output_path: Path):
             html_parts.append("</table>")
 
             # Output excerpts
+            identity = tuple(metadata[0][k] for k in ("harness", "model", "repo_commit"))
+            if iteration_identity is not None and identity != iteration_identity:
+                raise ValueError(f"mixed harness, model or revision in iteration: {eval_dir}")
+            iteration_identity = identity
             for config in ["with_skill", "without_skill"]:
                 r = configs.get(config)
                 if r:
@@ -1092,8 +1111,17 @@ def render_html(benchmark, results_by_skill, output_path: Path):
 
 
 def main():
-    results = grade_all()
-    benchmark = aggregate_benchmark(results)
+    import argparse
+    parser = argparse.ArgumentParser(description="Grade recorded, provenance-validated eval pairs.")
+    parser.add_argument("--iteration", default="iteration-1")
+    args = parser.parse_args()
+    if not re.fullmatch(r"iteration-[a-z0-9-]+", args.iteration):
+        parser.error("invalid iteration name")
+    try:
+        results = grade_all(args.iteration)
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        parser.exit(1, f"Invalid recorded eval: {exc}\n")
+    benchmark = aggregate_benchmark(results, args.iteration)
     # Master benchmark file
     master_path = REPO / "benchmark_all.json"
     master_path.write_text(json.dumps(benchmark, indent=2))

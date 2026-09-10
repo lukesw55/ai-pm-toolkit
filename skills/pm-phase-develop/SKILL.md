@@ -139,7 +139,7 @@ Anti-patterns: cargo-cult jargon, promising incoherent solutions, ignoring NFRs,
 - Cross-functional pairings: your engineering architecture partner for architecture trade-offs; your QA lead for acceptance-criteria stress-test; a code reviewer once a PR exists; your designer for UI scope.
 - Archetype lenses (load when the product type warrants): `pm-archetype-ai` for probabilistic features, `pm-archetype-enterprise` for B2B / governance, `pm-archetype-growth` for funnel-shaped work, `pm-archetype-platform` for API/SDK/infra.
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is the 1-page PRD + tracking plan + dependency list; Standard is the full PRD with open questions; Caveman is ticket-sized — problem, slice, metric, deps, risk.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is the 1-page PRD + tracking plan + dependency list; Standard is the full PRD with open questions; Caveman is ticket-sized — problem, slice, metric, deps, risk.
 
 ## Success criteria
 

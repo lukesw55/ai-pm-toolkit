@@ -34,6 +34,7 @@ class Sandbox:
     def __init__(self, tmp: Path):
         self.root = tmp
         (tmp / "scripts").mkdir()
+        shutil.copy(ROOT / "scripts" / "context_paths.py", tmp / "scripts" / "context_paths.py")
         shutil.copy(ROOT / "scripts" / "memory.py", tmp / "scripts" / "memory.py")
         shutil.copy(ROOT / "scripts" / "init_context.py", tmp / "scripts" / "init_context.py")
         shutil.copytree(ROOT / ".ai" / "memory" / "_templates", tmp / ".ai" / "memory" / "_templates")
@@ -389,9 +390,10 @@ def main() -> int:
         lg = sb.run("log", "data", "x")
         pr = sb.run("distill", "data", "--prepare")
         ix = sb.run("index", "data")
+        (sb.root / ".ai/memory/projects/data").mkdir(exist_ok=True)
         dc = sb.run("doctor")
-        check("denylist: init creates projects/data but memory.py log refuses it",
-              r.returncode == 0 and lg.returncode == 1 and "PII" in lg.stderr, lg.stderr.strip())
+        check("denylist: init and memory.py log refuse PII project",
+              r.returncode == 1 and lg.returncode == 1 and "PII" in lg.stderr, lg.stderr.strip())
         check("denylist: distill --prepare refuses the PII project",
               pr.returncode == 1 and "PII" in pr.stderr, pr.stderr.strip())
         check("denylist: index refuses the PII project too",

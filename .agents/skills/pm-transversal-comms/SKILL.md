@@ -87,7 +87,7 @@ Anti-patterns: defaulting to whichever channel is already open, letting a negoti
 - Paired: `pm-transversal-stakeholder` (the thread/email escalates into a DACI or exec memo), `pm-storytelling` (a launch-comms email needs a narrative spine before SCQA structuring), `inference-discipline` (claims in a fast, emotional message are exactly where unverified assertions slip through), `humanizer` + `humanize-deliverables` (final pass before anything ships).
 - Doctrine: calibrated disagreement applies here too — a chat message under pressure to assert an unverified claim is the same failure mode as a solution-first premise in a discovery brief, just faster-moving. See `../DOCTRINE.md`.
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is BLUF/SCQA at the stated defaults; Standard adds the "why" a reader might ask for; Caveman is the ask and the date, nothing else.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is BLUF/SCQA at the stated defaults; Standard adds the "why" a reader might ask for; Caveman is the ask and the date, nothing else.
 
 ## Success criteria
 

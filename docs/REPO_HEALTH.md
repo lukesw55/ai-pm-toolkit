@@ -7,13 +7,16 @@ Use this checklist before publishing or packaging `ai-pm-toolkit`.
 ```bash
 bash scripts/check_requirements.sh
 python3 -m py_compile scripts/*.py
-bash -n hooks/*.sh
+for hook in hooks/*.sh; do bash -n "$hook" || exit; done
 python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
+python3 -S scripts/validate_repo.py
 python3 scripts/test_hooks.py
 python3 scripts/test_hook_contract.py
 python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
+python3 scripts/test_context_scripts.py
+python3 scripts/test_record_eval_run.py
 python3 scripts/test_validate_repo.py
 python3 scripts/test_frontmatter.py
 python3 scripts/grade_evals.py
@@ -33,7 +36,7 @@ python3 scripts/grade_evals.py
   - **Schema**: `description` is a non-empty string; `user-invocable` is a boolean; `name` is *not* required, because the filename is the identifier. An unrecognized tool name is an error here precisely because GitHub ignores it silently, so a typo costs a capability with no signal.
   - **What GitHub accepts**: `tools` as a YAML list *or* a comma-separated string, `[]` to disable every tool, `["*"]` to enable every tool, omission to default to all, aliases matched case-insensitively, documented compatible spellings (`Bash`, `NotebookRead`, `MultiEdit`, `WebSearch`, `TodoWrite`, and the rest), and MCP tools as `server/tool` or `server/*`.
   - **Repo policy, narrower on purpose**: `model` is absent, so every agent inherits the default and no model identifier lives in the repository; `tools` is an explicit non-empty list of canonical lowercase aliases, because an allowlist is reviewable; and `agents`, which GitHub does not document, is checked only for internal consistency — each name resolves to a file, and a non-empty list carries the `agent` tool.
-  - **Contract**: exactly one `## Required reading` section per agent, naming `.ai/rules.md`, `.ai/app.md`, the active context and project memory by its own expression; and one `AGENTS.md` table row per agent file.
+  - **Contract**: exactly one `## Required reading` section per agent, naming `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, the active context and project memory by its own expression; and one `AGENTS.md` table row per agent file.
 
 `scripts/test_hooks.py` runs synthetic payloads against the shared gates and the Codex `apply_patch` adapter to confirm both harness paths block and unblock correctly. It also covers the soft memory reminder in a sandboxed git repo: work newer than the last changelog entry warns, a changelog entry newer than the last work stays silent, and no commit timestamp enters either side.
 
@@ -73,3 +76,5 @@ The content-sentinel hooks support both Linux and macOS hashing:
 - macOS: `shasum -a 256`
 
 If neither exists, the hooks fail closed with an actionable error.
+
+The CI tests Python 3.10 and 3.11; the stable `validate` job requires both matrix jobs to pass. Push runs target `main`; pull requests run once per event, with superseded runs cancelled. The preflight rejects Python below 3.10. Progressive-loading maps must name every support file in their skill. Context tests cover traversal, symlinks, switching, non-destructive migration and read-only status/report commands.

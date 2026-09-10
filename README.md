@@ -10,7 +10,7 @@
 [![Blocking hooks](https://img.shields.io/badge/blocking%20hooks-4-critical)](hooks/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/lukesw55/ai-pm-toolkit/pulls)
 
-This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** AI slop, unverified claims, and unhumanized prose before they land anywhere. The repository provides eval cases and a grader for recorded with-skill and no-skill runs. No live benchmark results are published yet.
+This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** selected structural patterns, unresolved inference markers, and unmarked outbound prose on configured routes. The repository provides eval cases and a grader for recorded with-skill and no-skill runs. No live benchmark results are published yet.
 
 It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks, and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
 
@@ -110,7 +110,7 @@ Four hooks in [`hooks/`](hooks/), wired through [`.claude/settings.json`](.claud
 | Hook | Fires on | Blocks |
 |---|---|---|
 | `anti-slop-gate.sh` | every file write/edit | forbidden file artefacts (unrequested PLAN/SUMMARY/NOTES files), banner comments, decorative emoji headings |
-| `inference-discipline-gate.sh` | writes and outbound publishes | content that smuggles an inference in as fact: every claim about external state must be verified or explicitly tagged and approved |
+| `inference-discipline-gate.sh` | writes and outbound publishes | five literal unresolved inference markers; semantic fact-checking remains the skill’s responsibility |
 | `humanize-gate.sh` | Confluence / Slack / Jira publish tools | AI-tinted prose shipping outbound before a `humanizer` pass, tracked by a per-content sha256 sentinel |
 | `scope-bloat-gate.sh` | end of every reply (Stop) | em-dash density, label-colon bullet runs, headers on short questions, scope bloat |
 
@@ -122,14 +122,14 @@ flowchart LR
     P["Publish to<br/>Confluence / Slack"] --> HG{"humanize-gate"}
     HG -->|no humanizer pass| B
     HG --> ID
-    ID -->|unverified claim| B
+    ID -->|unresolved marker| B
     ID --> OK["Lands"]
     R["Reply ends"] --> SB{"scope-bloat-gate"}
     SB -->|slop patterns| B
     SB --> OK2["Turn completes"]
 ```
 
-Each gate has an explicit, per-content override for legitimate exceptions, so the enforcement is strict without being a dead end. Three softer hooks complete the wiring: `memory-context.sh` injects the memory hot layer at session start and stamps the session start, `check-project-isolation.sh` warns when a tool touches another project's memory, and `memory-reminder.sh` reminds, at Stop, when files or commits changed after the last changelog entry `memory.py log` wrote. None of the three blocks.
+Each gate has an explicit, per-content override for legitimate exceptions, so the enforcement is strict without being a dead end. Three softer hooks complete the wiring: `memory-context.sh` injects the memory hot layer at session start and stamps the session start, `check-project-isolation.sh` (Claude Code only) warns when a tool touches another project's memory, and `memory-reminder.sh` reminds, at Stop, when files or commits changed after the last changelog entry `memory.py log` wrote. None of the three blocks.
 
 ## The toolkit grades itself
 
@@ -137,13 +137,15 @@ Every skill ships an `evals/evals.json` with realistic task prompts across four 
 
 Today that floor holds at 79 cases across the 21 skills: 40 standard, 11 doctrine-adversarial, 13 skill-functional-adversarial, and 15 negative controls.
 
+Recording instructions and provenance requirements are in [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md). The two-harness pilot remains pending; synthetic fixtures test the grader, not skill effectiveness.
+
 The point is falsifiability: a skill that does not beat the baseline on its own evals is a skill to fix or delete, not to keep out of sentiment.
 
 ## Memory that survives context switching
 
 | Layer | Contents | When it is read |
 |---|---|---|
-| Hot | a capped pointer (`active-context.md`) plus the active project | injected at session start |
+| Hot | a capped pointer (`active-context.md`) plus `index.md` | injected at session start |
 | Warm | the project's state, kickoff, decisions, recent changelog | only when working on that project |
 | Cold | archives, raw evidence, transcripts | never wholesale; grep-first via the archive index, then one block |
 
@@ -157,12 +159,17 @@ PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py
 
 ## Install
 
-Works the same way in Claude Code and in Codex — clone it, open the folder as a project, and enforcement turns on. Claude Code reads `.claude/settings.json` and `.claude/skills/`; Codex reads `.codex/hooks.json` and `.agents/skills/`. Both are generated mirrors of the canonical `skills/` and `hooks/` trees, committed so a fresh clone needs no bootstrap step in either harness:
+Clone the repo and open it as a project. Claude Code reads `.claude/settings.json`
+and `.claude/skills/`; Codex reads `.codex/hooks.json` and `.agents/skills/`.
+The two skill directories are generated mirrors of `skills/`. The `hooks/` tree is
+canonical and used directly by both adapters. In Codex, run `/hooks` to trust the
+hook hashes before enforcement starts, and repeat after hook or adapter changes.
+The project-isolation warning is currently Claude Code only.
 
 ```bash
 git clone https://github.com/lukesw55/ai-pm-toolkit.git
 cd ai-pm-toolkit
-bash scripts/check_requirements.sh   # preflight: bash, python3, jq, git, sha256
+bash scripts/check_requirements.sh   # preflight: bash, Python >=3.10, jq, git, sha256
 python3 scripts/validate_repo.py     # structural self-check (both harnesses)
 
 # bootstrap your first project context
@@ -198,7 +205,7 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `test_memory.py` | `memory.py` in a throwaway repo: caps, the distill fold, the archive index, the in-code PII denylist |
 | `test_validate_repo.py` | feeds the validator valid JSON and agent frontmatter in unexpected shapes and asserts a finding comes back, not a traceback |
 | `sync_skills.py` | regenerate `.claude/skills/` and `.agents/skills/` from the canonical `skills/` tree; `--check` for a read-only drift check |
-| `check_requirements.sh` | environment preflight (bash, python3, jq, git, sha256) |
+| `check_requirements.sh` | environment preflight (bash, Python >=3.10, jq, git, sha256) |
 
 ## Validation
 
@@ -207,12 +214,15 @@ Run the repo doctor before shipping changes to the toolkit itself:
 ```bash
 bash scripts/check_requirements.sh
 python3 -m py_compile scripts/*.py
-bash -n hooks/*.sh
+for hook in hooks/*.sh; do bash -n "$hook" || exit; done
 python3 scripts/sync_skills.py --check
 python3 scripts/validate_repo.py
+python3 -S scripts/validate_repo.py
 python3 scripts/test_hooks.py
 python3 scripts/test_grade_evals.py
 python3 scripts/test_memory.py
+python3 scripts/test_context_scripts.py
+python3 scripts/test_record_eval_run.py
 python3 scripts/test_validate_repo.py
 python3 scripts/grade_evals.py
 python3 scripts/memory.py doctor
@@ -280,3 +290,24 @@ MIT. See [LICENSE](LICENSE). Issues and PRs welcome.
 ### Third-party
 
 `skills/humanizer/` is a re-sync of [blader/humanizer](https://github.com/blader/humanizer) by Siqi Chen (MIT), pinned to upstream commit `e2e92e7b4b8229253ed5c8e81dc65463fdeddda5` (version 2.11.2). Its license is kept verbatim at [`skills/humanizer/LICENSE`](skills/humanizer/LICENSE) and copied into both generated mirrors; [`skills/humanizer/README.md`](skills/humanizer/README.md) records what is upstream content, what is structural reorganisation, and what is this repo's overlay.
+
+## Project context and toolkit history
+
+Resolve the active slug from `.ai/memory/active-context.md`. Read the active project's
+`app.md`, `design.md` and `tasks.md` under `.ai/memory/projects/<slug>/`, alongside its
+warm memory. Unfilled template fields are unknown, not verified facts. New projects
+receive these files from the tracked templates. Re-running `init_context.py` fills
+missing files without resetting stage, state or parked projects.
+
+For an existing workspace, explicitly run `python3 scripts/init_context.py --migrate-legacy <project-name>`
+to copy legacy repo-level app/design/tasks into missing project files. It keeps the
+sources and never replaces a destination. Review existing destinations manually
+when both versions contain work. Park the current project before initializing another.
+
+Toolkit changes belong in the versioned changelog through `python3 scripts/memory.py log repo "<change and validation>"`.
+Project activity belongs in the project's changelog. Binding toolkit decisions live
+in `docs/DECISIONS.md`; historical PR integrations are recorded in `docs/PR_HISTORY.md`.
+PRs should record validation on the reviewed head. A self-review is not independent
+approval; if GitHub rejects self-approval, disclose that and retain the checks as evidence.
+
+The CI tests Python 3.10 and 3.11; the stable `validate` job requires both matrix jobs to pass. Push runs target `main`; pull requests run once per event, with superseded runs cancelled. The preflight rejects Python below 3.10. Progressive-loading maps must name every support file in their skill. Context tests cover traversal, symlinks, switching, non-destructive migration and read-only status/report commands.

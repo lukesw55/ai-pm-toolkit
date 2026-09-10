@@ -39,7 +39,7 @@ Do not skip phases when uncertainty is high: Discover when facts are thin, Defin
 
 ## Memory rules
 
-Layered, never read wholesale: Hot (the `active-context.md` pointer + active project, injected at session start), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it), Cold (archives, raw evidence, transcripts — never read wholesale, retrieved grep-first through the archive index and then one block). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
+Layered, never read wholesale: Hot (the `active-context.md` pointer + `index.md`, injected at session start; project state is read separately), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it), Cold (archives, raw evidence, transcripts — never read wholesale, retrieved grep-first through the archive index and then one block). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
 
 ## Decision rules, stop conditions, definition of done
 
@@ -140,3 +140,13 @@ This is a PM workspace, not a deployable app: no build, test, or deploy step for
 - **Safe**: `git status`, `git ls-files`, `rg --files`, `python3 scripts/stage_context.py`, `python3 -m py_compile scripts/*.py`, `python3 scripts/sync_skills.py --check`, `git check-ignore -v <path>`.
 - **OK per command**: history/remote-rewriting git, `rm` of tracked files, deleting memory, publishing to Slack / Jira / Confluence.
 - Run `repo-doctor` before committing under `skills/`, `hooks/`, `.claude/`, or `.codex/`. Output: separate verified fact / inference / needs-confirmation.
+
+## Project context and toolkit history
+
+Read app/design/tasks from `.ai/memory/projects/<slug>/`, using the active pointer.
+Unfilled fields are unknown. Bootstrap and non-destructive legacy migration are
+specified in `docs/memory/MEMORY_SYSTEM.md`. Toolkit changes must be logged with
+`python3 scripts/memory.py log repo "<change and validation>"`; project activity
+uses its project slug. Binding decisions: `docs/DECISIONS.md`. Integration history:
+`docs/PR_HISTORY.md`. Record validation against the exact PR head; self-review is
+not independent approval.

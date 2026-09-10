@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+from context_paths import pointer_slug, project_path
+
 import re
 import sys
 from datetime import date
@@ -12,11 +14,10 @@ ACTIVE = MEMORY / "active-context.md"
 
 
 def extract_slug() -> str:
-    text = ACTIVE.read_text(encoding="utf-8")
-    match = re.search(r"- \*\*Slug\*\*: `([^`]+)`", text)
-    if not match:
-        raise RuntimeError("Could not find active context slug in .ai/memory/active-context.md")
-    return match.group(1)
+    slug = pointer_slug(ACTIVE.read_text(encoding="utf-8"))
+    if slug is None:
+        raise ValueError("no active project")
+    return slug
 
 
 def main() -> int:
@@ -28,8 +29,14 @@ def main() -> int:
     choice = sys.argv[2].strip()
     status = sys.argv[3].strip() if len(sys.argv) > 3 else "accepted"
 
-    slug = extract_slug()
-    decisions = MEMORY / "projects" / slug / "decisions.md"
+    try:
+        slug = extract_slug()
+        decisions = project_path(MEMORY / "projects", slug, "decisions.md")
+        if not decisions.parent.is_dir():
+            raise ValueError("unknown project; initialize it first")
+    except (ValueError, OSError) as exc:
+        print(f"log_decision.py: {exc}", file=sys.stderr)
+        return 1
     decisions.parent.mkdir(parents=True, exist_ok=True)
 
     entry = f"""## {date.today().isoformat()} — {title}

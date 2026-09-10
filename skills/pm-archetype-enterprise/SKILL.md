@@ -48,7 +48,7 @@ For a B2B SaaS product this archetype applies to most of the product surface —
 
 ## Required reading before output
 
-- `.ai/rules.md`, `.ai/app.md`, `.ai/memory/active-context.md`
+- `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior compliance decisions are especially important**; precedents bind future work
 
 ## References this skill chains to

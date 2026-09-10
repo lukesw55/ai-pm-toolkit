@@ -48,6 +48,8 @@ def read_current_stage(text: str) -> str | None:
 
 
 def set_stage(text: str, stage: str) -> str:
+    if read_current_stage(text) == stage:
+        return text
     today = date.today().isoformat()
     updated = re.sub(
         r"^(\s*-?\s*\*{0,2}Current\s+stage\*{0,2}\s*:\s*).+$",

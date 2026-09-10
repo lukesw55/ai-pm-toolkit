@@ -149,7 +149,7 @@ When generating a discovery artefact, structure it as:
 - Outputs feed `pm-phase-define` (vision, KPI tree) and prioritisation (scoring opportunities).
 - Experiments designed here are logged via `.ai/memory/_templates/experiment-log.md`.
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is a compact artefact with explicit assumptions; Standard is a full research brief for cross-functional alignment; Caveman is a terse one-page frame when the user is under time pressure.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is a compact artefact with explicit assumptions; Standard is a full research brief for cross-functional alignment; Caveman is a terse one-page frame when the user is under time pressure.
 
 ## Success criteria
 

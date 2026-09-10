@@ -141,7 +141,7 @@ Anti-patterns: one-metric obsession, shipping on averages that hide segment harm
 - Cross-functional pairings: your QA lead stress-tests metric interpretation and experiment integrity; your designer reviews UX post-launch; a data-science partner validates the maths when an A/B looks like a win.
 - Archetype lenses (load when the product type warrants): `pm-archetype-growth` for funnel/activation/retention readouts; `pm-archetype-ai` when the launch is a model and the release gate is an eval threshold; `pm-archetype-enterprise` for staged-rollout governance; `pm-archetype-platform` for adoption / migration / SLO tracking.
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is a 1-page hypothesis → actuals → decision → follow-up; Standard is the full launch readout with scorecard; Caveman is a 5-line shipped-X / metric-Y-vs-Z / decision / next.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is a 1-page hypothesis → actuals → decision → follow-up; Standard is the full launch readout with scorecard; Caveman is a 5-line shipped-X / metric-Y-vs-Z / decision / next.
 
 ## Success criteria
 

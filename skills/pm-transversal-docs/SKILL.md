@@ -124,7 +124,7 @@ What prompted this. 3–5 sentences.
 - MCP tools: when an Atlassian MCP server is available (the `mcp__<server>__` prefix varies by environment), this skill's templates can be pushed directly.
 - Agents: `@pm-orchestrator` uses this skill on every PRD + ticket creation; `@pm-kickoff` for discovery-page publication; archetype agents for area-specific templates.
 
-Communication modes follow `CLAUDE.md#communication-modes`. Per-skill: Lean (default) is a compact template with TL;DR + body + open questions; Standard is a full Confluence page with appendices; Caveman is the ticket-sized minimum viable write-up.
+Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is a compact template with TL;DR + body + open questions; Standard is a full Confluence page with appendices; Caveman is the ticket-sized minimum viable write-up.
 
 ## Success criteria
 

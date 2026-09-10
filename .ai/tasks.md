@@ -1,39 +1,9 @@
-# Tasks
+# Toolkit tasks
 
-## Bootstrap the active context
+Project tasks live in `.ai/memory/projects/<slug>/tasks.md`. Toolkit implementation status is tracked in `.ai/backlog.md`.
 
-- [ ] Create or refresh the active project context with `python3 scripts/init_context.py <project-name>`
-- [ ] Fill in `.ai/app.md` for the current project
-- [ ] Fill in project-specific design rules in `.ai/design.md`
-- [ ] Capture discovery notes in project memory
-
-## Discover
-
-- [ ] List target users, pains, constraints, and unknowns
-- [ ] Rank assumptions by impact and uncertainty
-- [ ] Identify the top opportunities worth defining
-
-## Define
-
-- [ ] Write the problem statement for the current wedge
-- [ ] Define success metrics and stop / continue criteria
-- [ ] Choose the smallest testable wedge
-- [ ] Write the first experiment card
-
-## Develop
-
-- [ ] Generate 2–4 credible solution options
-- [ ] Choose the most reversible option with enough upside
-- [ ] Build the smallest prototype or spike
-- [ ] Decide what needs implementation versus more evidence
-
-## Deliver
-
-- [ ] Implement the smallest useful increment
-- [ ] Validate with tests or direct checks
-- [ ] Log the decision and experiment result
-- [ ] Update changelog, memory, and remaining backlog
-
-## Toolkit maintenance
-
-- [x] Audit tracked content for company and sector associations; replace domain-specific examples with fictional document-collaboration scenarios and validate generated mirrors (2026-09-09).
+- [x] Replace sector-specific examples with fictional collaboration scenarios (PR #18).
+- [x] Implement and locally validate B24, B22, B28, B26, B27 and B30.
+- [x] Provide the B25 recording protocol and validated run format.
+- [ ] Execute the real B25 pilot and publish measured results.
+- [ ] Integrate the consolidated implementation after CI validation.
