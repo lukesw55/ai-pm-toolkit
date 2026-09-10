@@ -475,23 +475,26 @@ def _check_hook_wiring(path: Path, events_without_matcher: set[str], errors: lis
 MATCHER_LITERAL = re.compile(r"^[A-Za-z0-9_\- ,|]*$")
 
 
-def matcher_covers(matcher, tool: str) -> bool:
-    """Whether a hook block fires for `tool`, with the semantics both harness
-    references document: "", "*" or an absent matcher fire on every occurrence;
-    a literal value matches the tool name exactly (so `Edit` never routes
-    `NotebookEdit`, which a plain re.search would claim); a value carrying
-    regex characters is tested unanchored, as the harnesses do."""
+def matcher_covers(matcher, tool: str, harness: str = "claude") -> bool:
+    """Claude uses exact-name lists or regex; Codex documents regex matchers.
+
+    See https://code.claude.com/docs/en/hooks#matcher-patterns and
+    https://learn.chatgpt.com/docs/hooks#matcher-patterns.
+    Python regex evaluates the portable patterns used by this repository.
+    """
+    if harness not in ("claude", "codex"):
+        raise ValueError(f"unknown matcher harness: {harness}")
     if matcher in (None, "", "*"):
         return True
-    if MATCHER_LITERAL.match(matcher):
+    if harness == "claude" and MATCHER_LITERAL.fullmatch(matcher):
         return tool in {part.strip() for part in re.split(r"[|,]", matcher) if part.strip()}
     return re.search(matcher, tool) is not None
 
 
-def matching_handlers(data: dict, event: str, tool: str) -> list[str]:
+def matching_handlers(data: dict, event: str, tool: str, harness: str = "claude") -> list[str]:
     commands = []
     for block in data["hooks"].get(event, []):
-        if matcher_covers(block.get("matcher", ""), tool):
+        if matcher_covers(block.get("matcher", ""), tool, harness):
             commands.extend(h["command"] for h in block["hooks"])
     return commands
 
@@ -514,7 +517,7 @@ def check_hook_contract(errors: list[str]) -> None:
             for route in spec["routes"]:
                 if not all(isinstance(route.get(k), str) for k in ("event", "tool")) or not isinstance(route.get("handlers"), list) or not all(isinstance(h, str) for h in route["handlers"]):
                     raise ValueError(f"invalid {harness} route")
-                commands = matching_handlers(data, route["event"], route["tool"])
+                commands = matching_handlers(data, route["event"], route["tool"], harness)
                 targets = [t for command in commands for t in re.findall(r"(?:hooks|scripts|\.codex/adapters)/[\w.-]+\.(?:sh|py)", command)]
                 if targets != route["handlers"]:
                     err(errors, f"{spec['config']}: {route['event']} {route['tool']!r}: expected {route['handlers']}, got {targets}")

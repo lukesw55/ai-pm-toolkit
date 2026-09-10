@@ -82,7 +82,7 @@ class HookContractTests(unittest.TestCase):
             ('.codex/hooks.json', 'apply_patch', {'command': '*** Begin Patch\n*** Add File: /tmp/fixture/doc.md\n+'+marker+'\n*** End Patch'}),
         ):
             data = json.loads((ROOT/relative).read_text())
-            commands = vr.matching_handlers(data, 'PreToolUse', tool)
+            commands = vr.matching_handlers(data, 'PreToolUse', tool, 'codex' if relative.startswith('.codex/') else 'claude')
             env = dict(os.environ, CLAUDE_PROJECT_DIR=str(ROOT))
             codes = [subprocess.run(['bash', '-c', command], input=json.dumps({'tool_name': tool, 'tool_input': inp}), text=True, capture_output=True, cwd=ROOT, env=env).returncode for command in commands]
             self.assertIn(2, codes, (relative, codes))
@@ -99,6 +99,22 @@ class HookContractTests(unittest.TestCase):
         self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'NotebookEdit'), ['hooks/b.sh', 'hooks/d.sh'])
         self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'Edit'), ['hooks/a.sh', 'hooks/b.sh', 'hooks/c.sh', 'hooks/d.sh'])
         self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'Write'), ['hooks/c.sh', 'hooks/d.sh'])
+
+    def test_codex_regex_is_not_claude_exact_list(self):
+        for matcher, tool, claude, codex in (
+            ('Edit', 'NotebookEdit', False, True),
+            ('Edit, Write', 'Write', True, False),
+            ('^Edit$', 'NotebookEdit', False, False),
+            ('Edit|Write', 'NotebookEdit', False, True),
+        ):
+            for harness, expected in (('claude', claude), ('codex', codex)):
+                with self.subTest(matcher=matcher, tool=tool, harness=harness):
+                    self.assertEqual(vr.matcher_covers(matcher, tool, harness), expected)
+        data = {'hooks': {'PreToolUse': [
+            {'matcher': 'Edit, Write', 'hooks': [{'command': 'hooks/a.sh'}]},
+        ]}}
+        self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'Write', 'codex'), [])
+        self.assertEqual(vr.matching_handlers(data, 'PreToolUse', 'Write', 'claude'), ['hooks/a.sh'])
 
     def test_single_handler_removal(self):
         relative = '.claude/settings.json'
