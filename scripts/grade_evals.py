@@ -323,6 +323,14 @@ ASSERTIONS = {
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
             ("Does not expand scope into SCIM, HR sync or field mapping", lambda t: not re.search(r"(?:add|include|bring in|pull in) (?:scim|hr sync|(?:the )?field.?mapping)|should (?:also )?(?:cover|include) scim", t)),
         ],
+        "choose-prototype-tier-for-billing-change": [
+            ("Names the tier and where it lives", hasr(r"tier [abc]|throwaway|web prototype|code prototype|in (?:a branch of )?the (?:real )?codebase")),
+            ("Keeps core billing logic out of PM-authored code", hasr(r"core logic|(?:inferior|worse) code|owned by another team|not (?:the )?pm'?s? (?:code|pr) to")),
+            ("A branch prototype is disposable, never merged as-is", hasr(r"never merged|not merged as.is|disposable|throw(?:n)? (?:it )?away|discard(?:ed)? after")),
+            ("Asks for a sandbox repo with mock data and no backend", hasr(r"sandbox (?:repo|repository|branch)|mock(?:ed)? data|no (?:backend|environment variables|env vars)")),
+            ("Feeds the stage-6 gate and the decision record", hasr(r"stage.?6|prototype validated|prototypes/|feeds? (?:into )?(?:the )?(?:prd|gate)|decision record")),
+            ("Does not send the PM to ship the proration change as a production PR", lambda t: not re.search(r"tier c(?: for|:)[^.\n]{0,60}(?:proration|billing)|(?:open|ship|write) (?:the |a )?pr yourself|ship it yourself|merge (?:the |your )?branch when", t)),
+        ],
     },
     "pm-phase-deliver": {
         "pricing-v2-launch-package": [

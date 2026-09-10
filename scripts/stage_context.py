@@ -33,7 +33,7 @@ STAGE_TO_SKILL = {
     "discovery": "pm-phase-discover",
     "one-pager": "pm-phase-define (one-pager.md)",
     "product-prioritization": "pm-phase-define + pm-phase-develop (validated-bet selection + backlog-scope-slicing.md)",
-    "prd": "pm-phase-develop (prd-writing.md + prototype loop)",
+    "prd": "pm-phase-develop (prd-writing.md + prototyping-ladder.md)",
     "tech-kickoff": "pm-phase-develop (tech-team-kickoff.md)",
     "delivery": "pm-phase-deliver (launch-readiness.md + release-notes.md + post-launch-monitoring.md)",
 }
