@@ -1089,10 +1089,6 @@ def render_html(benchmark, results_by_skill, output_path: Path):
             html_parts.append("</table>")
 
             # Output excerpts
-            identity = tuple(metadata[0][k] for k in ("harness", "model", "repo_commit"))
-            if iteration_identity is not None and identity != iteration_identity:
-                raise ValueError(f"mixed harness, model or revision in iteration: {eval_dir}")
-            iteration_identity = identity
             for config in ["with_skill", "without_skill"]:
                 r = configs.get(config)
                 if r:

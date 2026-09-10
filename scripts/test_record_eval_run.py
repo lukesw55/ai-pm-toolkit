@@ -63,5 +63,16 @@ class RecorderTests(unittest.TestCase):
             args=argparse.Namespace(**vars(self.args));setattr(args,key,value)
             with self.subTest(key=key),self.assertRaises(ValueError):rr.record(args,self.root)
 
+    def test_report_renders_recorded_pair(self):
+        rr.record(self.args,self.root)
+        self.args.config='without_skill';rr.record(self.args,self.root)
+        with patch.object(ge,'REPO',self.root),patch.object(ge,'SKILLS_DIR',self.root/'skills'):
+            runs=ge.grade_all('iteration-test')
+            benchmark=ge.aggregate_benchmark(runs,'iteration-test')
+            ge.render_html(benchmark,runs,self.root/'eval-report.html')
+        html=(self.root/'eval-report.html').read_text(encoding='utf-8')
+        self.assertIn(self.args.eval,html)
+        self.assertIn('Synthetic pipeline fixture',html)
+
 
 if __name__=='__main__':unittest.main()

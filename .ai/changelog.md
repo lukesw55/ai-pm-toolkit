@@ -4,6 +4,10 @@
 
 > Active log keeps the most recent entries; older entries in `changelog-archive.md`.
 
+## 2026-09-10: session log
+
+B31: removed the stray identity check in grade_evals.render_html (lines 1092-1095 referenced grade_all locals and raised NameError on the first recorded run); added test_report_renders_recorded_pair in scripts/test_record_eval_run.py, which failed with NameError before the fix and passes after. Validation: full docs/REPO_HEALTH.md battery green.
+
 ## 2026-09-10: Remaining backlog implementation
 
 Implemented B24, B22, B28, B26, B27 and B30 in one consolidated change. Added B25 recorder and protocol; the real 60-output pilot remains pending because authenticated Claude Code and Codex runners are unavailable. B21 and B23 recorded as already integrated. Validation results are recorded in the PR; binding decisions are in docs/DECISIONS.md.
@@ -30,8 +34,4 @@ Backfill from verified GitHub PR metadata; detailed change mapping and source li
 - PR #16: 2026-09-08T17:17:24Z, main `14fb603`.
 - PR #17: 2026-09-09T01:15:48Z, main `bd321d0`.
 - PR #18: 2026-09-09T17:45:37Z, main `88d2e6b`.
-
-## 2026-09-09: Neutral examples audit
-
-Audited all 466 tracked files. Replaced sector-specific examples and the incident narrative with fictional document-collaboration scenarios; generalized the matching grader alternative, analytical inputs and backlog wording. All validation suites passed; 132 canonical files match both generated mirrors. Historical commits were not rewritten.
 
