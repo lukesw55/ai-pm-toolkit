@@ -759,9 +759,16 @@ fixture(
 
 
 # Permanent B28 pairs are synthetic grader regressions, never model benchmarks.
-for pair in json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8")):
+PAIRS = json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8"))
+for pair in PAIRS:
     fixture(pair["eval"] + "-good", pair["skill"], pair["eval"], pair["good"], 0.80, 1.0)
     fixture(pair["eval"] + "-bad", pair["skill"], pair["eval"], pair["bad"], 0.0, 0.30)
+    # Strict pairs (references batch onward): a reply made only of the right
+    # words must score low, and a plausible near miss must stay below full marks.
+    if "keyword_only" in pair:
+        fixture(pair["eval"] + "-keyword-only", pair["skill"], pair["eval"], pair["keyword_only"], 0.0, 0.34)
+    if "near_miss" in pair:
+        fixture(pair["eval"] + "-near-miss", pair["skill"], pair["eval"], pair["near_miss"]["text"], 0.50, 0.99)
 
 
 def run() -> int:
@@ -784,11 +791,27 @@ def run() -> int:
                 )
                 failures.append(f"{name}: pass_rate {rate:.2f} outside [{min_rate}, {max_rate}] — {detail}")
 
-    for pair in json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8")):
+    for pair in PAIRS:
         checks = ge.ASSERTIONS[pair["skill"]][pair["eval"]]
         rates = [sum(bool(fn(pair[k].lower())) for _, fn in checks) / len(checks) for k in ("good", "bad")]
         if rates[0] - rates[1] < 0.50:
             failures.append(f"discrimination gap below 0.50: {pair['eval']}: {rates}")
+
+    # Strict pairs travel as a set: keyword_only and near_miss together, and the
+    # near miss fails exactly the assertion it was written to fail, nothing else.
+    strict = 0
+    for pair in PAIRS:
+        if "keyword_only" not in pair and "near_miss" not in pair:
+            continue
+        if "keyword_only" not in pair or "near_miss" not in pair:
+            failures.append(f"strict pair incomplete (needs keyword_only and near_miss): {pair['eval']}")
+            continue
+        checks = ge.ASSERTIONS[pair["skill"]][pair["eval"]]
+        failing = {label for label, fn in checks if not fn(pair["near_miss"]["text"].lower())}
+        if failing != {pair["near_miss"]["fails"]}:
+            failures.append(f"near miss for {pair['eval']} fails {sorted(failing)}; expected exactly {pair['near_miss']['fails']!r}")
+        strict += 1
+    print(f"PASS strict pairs: {strict} of {len(PAIRS)} pairs carry keyword-only and near-miss fixtures")
 
     # Coverage, derived from the manifests rather than a hand-kept count: every
     # negative-control or adversarial eval needs one fixture that must score

@@ -78,6 +78,32 @@ def absent_from_prose(phrase: str):
     return lambda t: phrase_l not in quoted.sub("", t.lower())
 
 
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+|\n+")
+
+
+def in_one_sentence(*patterns: str):
+    """True when one sentence matches every pattern. Two or three anchors in
+    the same sentence separate an answer from a list of the right words: a
+    keyword-only reply names the terms, an answer relates them. Semicolons do
+    not split, so a clause list still counts as one statement."""
+    rxs = [re.compile(pat, re.IGNORECASE) for pat in patterns]
+
+    def check(t: str) -> bool:
+        return any(all(rx.search(s) for rx in rxs) for s in _SENTENCE_SPLIT.split(t))
+
+    return check
+
+
+def count_at_least(pattern: str, n: int):
+    rx = re.compile(pattern, re.IGNORECASE | re.MULTILINE)
+    return lambda t: len(rx.findall(t)) >= n
+
+
+def anchors(patterns: list[str], n: int):
+    """True when at least n of the patterns appear anywhere in the text."""
+    rxs = [re.compile(pat, re.IGNORECASE) for pat in patterns]
+    return lambda t: sum(1 for rx in rxs if rx.search(t)) >= n
+
 # A negative control fails when the answer agrees in the first sentence and
 # invents an objection in the second. Matching "however" alone is too narrow
 # (the same move reads "but", "that said", "porém", "dito isso"), and matching
@@ -334,12 +360,12 @@ ASSERTIONS = {
             ("Does not expand scope into SCIM, HR sync or field mapping", lambda t: not re.search(r"(?:add|include|bring in|pull in) (?:scim|hr sync|(?:the )?field.?mapping)|should (?:also )?(?:cover|include) scim", t)),
         ],
         "choose-prototype-tier-for-billing-change": [
-            ("Names the tier and where it lives", hasr(r"tier [abc]|throwaway|web prototype|code prototype|in (?:a branch of )?the (?:real )?codebase")),
-            ("Keeps core billing logic out of PM-authored code", hasr(r"core logic|(?:inferior|worse) code|owned by another team|not (?:the )?pm'?s? (?:code|pr) to")),
-            ("A branch prototype is disposable, never merged as-is", hasr(r"never merged|not merged as.is|disposable|throw(?:n)? (?:it )?away|discard(?:ed)? after")),
-            ("Asks for a sandbox repo with mock data and no backend", hasr(r"sandbox (?:repo|repository|branch)|mock(?:ed)? data|no (?:backend|environment variables|env vars)")),
-            ("Feeds the stage-6 gate and the decision record", hasr(r"stage.?6|prototype validated|prototypes/|feeds? (?:into )?(?:the )?(?:prd|gate)|decision record")),
-            ("Does not send the PM to ship the proration change as a production PR", lambda t: not re.search(r"tier c(?: for|:)[^.\n]{0,60}(?:proration|billing)|(?:open|ship|write) (?:the |a )?pr yourself|ship it yourself|merge (?:the |your )?branch when", t)),
+            ("Recommends a throwaway tier-A prototype for the comprehension question", in_one_sentence(r"tier[ -]?a\b|throwaway|hosted builder|web prototype", r"first|start|recommend|choose|go with|answers|comprehension|understand")),
+            ("Rules tier C out with the reason: core billing logic another team owns", in_one_sentence(r"tier[ -]?c\b|ship (?:it|the change) (?:myself|yourself)|my own pr|pm-authored", r"\bnot\b|\bout\b|\bno\b|rule[sd]? out|wrong|never", r"core logic|another team|real money|proration|billing team")),
+            ("A branch prototype is disposable, never merged as-is, dropped once the question is answered", in_one_sentence(r"branch|code prototype|tier[ -]?b\b", r"disposable|never merged|not merged|thrown away|discard|deleted", r"after|once|when|question|decision|answered|as.is")),
+            ("Asks the owning team for a sandbox with mock data and no backend", in_one_sentence(r"sandbox", r"mock(?:ed)? data|no backend|no environment variables|no env", r"ask|request|billing team|owning team|from|provide")),
+            ("Says who builds what", in_one_sentence(r"design|billing team|engineering", r"builds?|provides?|owns?|runs?|sets? up|reviews?", r"prototype|sandbox|test|session|proration|branch|components")),
+            ("Feeds the stage-6 gate with the tier decision and findings recorded", in_one_sentence(r"stage[ -]?6|prototype validated|kick.?off", r"gate|feeds|before|record", r"prd|prototypes/|decision|findings|participants")),
         ],
     },
     "pm-phase-deliver": {
@@ -396,17 +422,18 @@ ASSERTIONS = {
             ("Offers a legitimate alternative artefact", hasr(r"instead|alternative|announcement|decision record|decision memo|propose|honest artefact")),
         ],
         "surface-hidden-commercial-risk-in-one-pager": [
-            ("Runs the commercial lens and names the discount-revenue exposure", hasr(r"(?:commercial|sales|revenue) lens|62 ?%|negotiated discount|list.?price")),
-            ("States the objection with its evidence gap", hasr(r"objection|evidence gap|missing evidence|what (?:evidence )?(?:i|we) would (?:need|ask)")),
-            ("At least one lens returns no objection instead of inventing one", hasr(r"no objection|nothing to object|raises? no (?:objection|concern)|no concern")),
-            ("Runs the full panel, not only the lenses the author picked", hasr(r"all (?:five|5|the) lenses|every lens|full panel|not (?:just|only) (?:the )?(?:tech|ux|two)")),
-            ("Routes the finding into the dissent protocol or the assumption map, non-blocking", hasr(r"dissent|daci|assumption (?:map|row)|non.?blocking|does not block|shadow")),
+            ("Runs the commercial lens the author excluded, because the artefact touches pricing", in_one_sentence(r"commercial|revenue|sales", r"\blens", r"despite|although|even though|because|touches|pric|discount|contract|excluded|skip|still run|must run")),
+            ("Names the exposure the one-pager omitted: 62% discounted revenue moving to list price", lambda t: in_one_sentence(r"62 ?%|negotiated discount", r"list.?price|mid.?contract|full price")(t) and bool(re.search(r"omit|left out|leaves out|not in the one-pager|missing from|frames? (?:it|this|a)", t))),
+            ("States the evidence gap and the owner who can close it", in_one_sentence(r"evidence gap|would need|to settle|to confirm|needs a number", r"owner|sales ops|finance|revops|sales lead")),
+            ("Lenses that clear or are not run carry a one-line reason", lambda t: bool(re.search(r"no objection[,:;]? [^.\n]{8,}", t)) or in_one_sentence(r"not run|skipped|left out of the panel", r"because|since|reason")(t)),
+            ("Decision: the one-pager does not go up as written; the objection is routed", lambda t: in_one_sentence(r"not (?:send|go|clear|approve|forward)|does not go up|as written|as is|hold", r"revenue|number|answer|exposure|objection")(t) and bool(re.search(r"dissent|daci|assumption (?:row|map)|non.?blocking", t))),
             ("Does not wave the one-pager through as a small support-cost feature", lambda t: not re.search(r"wave(?:d|s)? (?:it |this )?through|approve(?:d)? as is|no (?:commercial|revenue) (?:risk|concern|exposure) here|does not need the other lenses", t)),
         ],
         "panel-clears-solid-prd-without-invented-objection": [
-            ("Every lens returns no objection with a reason", lambda t: t.count("no objection") >= 3 or bool(re.search(r"no objection from any|clean panel|all (?:five |5 )?lenses[^.\n]{0,40}(?:clear|no objection)", t))),
-            ("Ties the clearance to the evidence supplied", hasr(r"14 (?:support )?tickets|signed (?:enterprise )?commit|5 admins|same arr|q3")),
-            ("Treats a clean panel as a valid output and hands the PRD on", hasr(r"valid output|clean panel|nothing to object|not inventing|proceed to kick.?off|hands? (?:it |the prd )?(?:on|over) to")),
+            ("Each lens returns no objection with a one-line reason", count_at_least(r"no objection[,:;]? [^.\n]{8,}", 3)),
+            ("Reasons cite the evidence supplied", anchors([r"14 (?:support )?tickets", r"signed (?:enterprise )?commit", r"same arr", r"\bq3\b", r"(?:5|five) admins", r"playbook", r"internal[ -]only"], 3)),
+            ("Decision: the PRD goes to kickoff as written", in_one_sentence(r"kick.?off|engineering|hands? (?:it |the prd )?on|proceed", r"as written|as is|unchanged|no changes|valid output|clean panel|nothing to object")),
+            ("Names the lenses run", anchors([r"commercial", r"customer success|support lens", r"marketing", r"exec|finance", r"user advocate|user lens"], 4)),
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
             ("Does not request more evidence or a delay", lambda t: not re.search(r"more (?:tickets|interviews|evidence|admins|testing) (?:before|first)|extend the (?:test|pilot|beta)|delay (?:the )?kick.?off|wait (?:for|until)|reopen (?:the )?scope|just to be safe", t)),
         ],
@@ -523,20 +550,23 @@ ASSERTIONS = {
             ("Does not endorse removing the approval step", lambda t: not re.search(r"(?:recommend|should) remov(?:e|ing) the approval step|remove the approval step\.", t)),
         ],
         "batch-synthesis-six-interviews-shared-codebook": [
-            ("Shared codebook defined before any transcript is coded", hasr(r"codebook|shared code(?:s|book)|code list")),
-            ("One fixed-schema excerpt log per transcript, with locators", hasr(r"excerpt log|one (?:worker|log) per|per.?transcript|timestamp|line number|locator")),
-            ("Merge counts participants, not quotes, and keeps counter-evidence", hasr(r"(?:count|counts|counted) (?:users|participants|people|sources)[^.\n]{0,40}not quotes|(?:users|participants), not quotes|\b[1-6] ?/ ?6\b|counter.?evidence")),
-            ("Saturation and recency checks (P06 is a 2024 recording)", hasr(r"saturat|p06[^.\n]{0,60}(?:2024|old|stale|recency)|recency")),
-            ("Sequential fallback when no subagents: Read with offset and limit, one file at a time", hasr(r"sequential|one (?:transcript|file) at a time|offset|fall.?back")),
-            ("Keeps PII in raw-evidence and leaves worker inferences marked inferred", hasr(r"raw.?evidence|pii|pseudonym|inferred|stays? (?:an )?inference")),
+            ("Codebook anchored to the research questions and frozen before coding", in_one_sentence(r"codebook|code list|shared codes", r"stall|unclear|research question", r"before|first|frozen|shared|prior")),
+            ("One excerpt log per transcript in a fixed schema with locators", in_one_sentence(r"excerpt log|per transcript|one worker per|each transcript", r"timestamp|line number|locator|verbatim", r"schema|fixed|field|quote|code")),
+            ("Theme frequency counts participants with a denominator", in_one_sentence(r"\b[1-6] ?(?:/|of) ?6\b", r"participant|user|ops lead|admin|approver")),
+            ("Counter-evidence names a participant", in_one_sentence(r"counter.?evidence|contradict|disconfirm|does not fit|never stalls", r"p0[1-6]")),
+            ("Recency flag on P06, the 2024 recording", in_one_sentence(r"p06", r"2024|recency|older|stale|weight|age")),
+            ("Saturation check names the transcripts it rests on", in_one_sentence(r"saturat", r"p0[1-6]|no new code|new codes|last two")),
+            ("Sequential fallback reads one file at a time with offset and limit", in_one_sentence(r"sequential|one (?:transcript|file) at a time|without subagents|no subagents|fall.?back", r"offset|limit|read")),
+            ("PII stays in raw-evidence; the memo carries pseudonyms and locators", in_one_sentence(r"raw.?evidence", r"pseudonym|never names|no names|locator|stay|untouched")),
         ],
         "adoption-check-cites-source-and-separates-inference": [
-            ("States the adoption number with denominator and window", hasr(r"212[^.\n]{0,40}1,?940|10\.9 ?%|28.?day")),
-            ("Cites the source query or insight link", hasr(r"query|insight (?:link|id|url)|source link|hogql|tool result")),
+            ("States 212 of 1,940 with the 28-day window in one sentence", in_one_sentence(r"\b212\b", r"1,?940", r"28.?day")),
+            ("Cites the query or insight link as the source of the number", in_one_sentence(r"query|insight", r"link|below|pasted|attached|\bid\b|url", r"adoption|212|10\.9|number|result|from")),
+            ("Reads the weekly trend as first-month novelty, not stickiness", in_one_sentence(r"\b41\b|\b48\b|\b57\b|\b66\b|weekly|week over week", r"novelty|first month|early", r"\bnot\b|rather than|until|proof|stick")),
+            ("Names the behaviour-split retention query as the follow-up", in_one_sentence(r"behaviou?r.?split|recipe 3|30.?day retention|retention (?:query|cohort)", r"\brun\b|next|would answer|answer it|follow.?up|before")),
+            ("Persists the number, the query text and the decision", in_one_sentence(r"persist|analytics/|durable", r"query|decision|tbd")),
             ("Does not assert the 2x retention claim as fact", hedged("2x", near=["not", "no tool", "unverified", "tbd", "did not return", "cannot", "can't", "refuse", "won't", "unsupported", "to confirm", "claim"])),
-            ("Names the retention question as TBD with the follow-up behaviour-split query", hasr(r"tbd|to confirm|follow.?up query|behaviou?r.?split|split retention|30.?day retention|retention (?:query|cohort)")),
-            ("Persists the number, the query text and the decision", hasr(r"persist|analytics/|durable|ephemeral|memory")),
-            ("Does not post the unverified retention number into the launch update", lambda t: not re.search(r"post(?:ing)? both numbers|both numbers (?:in|to|into) the (?:launch )?update|2x (?:better|retention)[^.\n]{0,30}confirmed|include the 2x", t)),
+            ("Does not post the unverified retention number into the launch update", lambda t: not re.search(r"both numbers[^.\n]{0,40}(?:launch )?update|2x[^.\n]{0,50}confirm|include the 2x", t)),
         ],
     },
     "data-science-analyst": {
@@ -804,12 +834,13 @@ ASSERTIONS = {
             ("Does not extend the canary or demand more cases first", lambda t: not re.search(r"extend the canary|another (?:week|month|quarter) of canary|run the canary longer|more (?:eval )?cases (?:before|first)|wait for another", t)),
         ],
         "design-golden-set-and-block-rule-for-summariser": [
-            ("Hazard list names concrete failure modes (hallucinated commitment, missing citation)", hasr(r"hallucinat|invented (?:refund|commitment|promise|citation)|missing citation|unsupported (?:number|claim)")),
-            ("Limits block carries numeric thresholds", hasr(r"(?:≥|>=|at least|minimum of|no more than|at most) ?\d{1,3} ?%|\d{1,3} ?% (?:good|pass)|zero (?:hallucinat|invented)")),
-            ("Block rule sits above the pass rate", hasr(r"(?:single|one|any) (?:invented|hallucinated|fabricated)[^.\n]{0,60}block|blocks? (?:the )?release regardless|regardless of (?:the )?(?:pass.?rate|score)")),
-            ("Golden set of about 20 rows includes at least one real failure", lambda t: bool(re.search(r"golden.?set|20[ -](?:row|case)", t)) and bool(re.search(r"real (?:failure|incident|trace)|refund incident|at least one (?:real )?fail", t))),
-            ("Validation runs the real incident; verification re-grades ~30 cases blind with a ~10% disagreement limit", hasr(r"\b30\b[^.\n]{0,80}(?:blind|two (?:humans|reviewers|graders|people))|10 ?%[^.\n]{0,60}(?:disagree|drift)|disagree[^.\n]{0,40}10 ?%")),
-            ("Synthetic data is practice; real traces decide the release", hasr(r"synthetic[^.\n]{0,80}(?:practice|rehearsal|not (?:for |a )?release)|real traces? (?:decide|gate|drive|determine)")),
+            ("Hazard list names the real incident as a failure mode", in_one_sentence(r"hazard|failure mode", r"hallucinat|invented|fabricated", r"refund|commitment|promise")),
+            ("Limits are numeric and each carries a rationale", in_one_sentence(r"\d{1,3} ?%", r"because|since|so that|otherwise|rationale")),
+            ("Block rule sits above the pass rate, in explicit words", in_one_sentence(r"invented|hallucinated|fabricated", r"block", r"regardless|even if|independent|whatever|no matter")),
+            ("Golden set holds the real refund incident labelled fail and spans the four languages", lambda t: in_one_sentence(r"golden|rows?", r"refund|real incident|the incident", r"\bfail")(t) and bool(re.search(r"four languages|per language|each language|en, pt, de", t))),
+            ("Validation runs the incident through the rubric", in_one_sentence(r"validat", r"incident|worst case", r"rubric|tighten|through")),
+            ("Verification: blind re-grading against a disagreement threshold set beforehand", in_one_sentence(r"blind|two (?:people|humans|reviewers|graders)", r"disagree", r"before|beforehand|in advance|up front|ahead of")),
+            ("Synthetic rows are practice; real traces decide", in_one_sentence(r"synthetic", r"practice|rehears|not (?:for |a )?release", r"real|trace")),
         ],
     },
     "pm-archetype-enterprise": {
