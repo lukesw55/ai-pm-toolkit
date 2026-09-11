@@ -38,6 +38,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-11 Grader tests: strict pairs also fail their own labels
 - 2026-09-11 B40 pm-phase-discover: relations, not terms
 - 2026-09-11 B40 pm-phase-define: relations, not terms
+- 2026-09-11 B40 pm-phase-develop: relations, not terms
 
 ## 2026-09-08: session log
 
@@ -197,4 +198,8 @@ B40 pm-phase-discover: the three graded blocks (resist-solution-first-dashboard-
 ## 2026-09-11: B40 pm-phase-define: relations, not terms
 
 B40 pm-phase-define: the four graded blocks (challenge-weak-prioritisation-rationale, solid-prioritisation-rationale-agree, refuse-orphan-solution-in-one-pager, select-validated-bet-and-slice-v1) now check relations between the prompt's anchors, carry one explicit decision assertion each and at most two trivially satisfied ones (n 6, 7, 7, 9). Strict pairs in the JSON; the B12 and stage-5 in-code fixtures moved into the JSON as the pairs' good and bad; the bad answers are the compliant rationale and the RICE rerun, not lists of forbidden phrases. Keyword list worst join 0.29, label soup worst 0.17. Validation: full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-phase-develop: relations, not terms
+
+B40 pm-phase-develop: the two graded blocks (challenge-unjustified-scope-expansion, solid-prd-scope-agree) now check relations between the prompt's anchors (the additions and what they lack, the kept scope and its evidence, the non-goals and their reason, the rollout and its rollback path), one explicit decision assertion each, at most two trivially satisfied (n 6, 8). Strict pairs in the JSON with plausible bad answers (the bundled PRD; the thin-evidence delay plus SCIM). Validation: full REPO_HEALTH battery green.
 

@@ -38,14 +38,24 @@
   {
     "skill": "pm-transversal-comms",
     "eval": "deescalate-unverified-outage-blame-message",
-    "good": "The deploy as cause and the $50k figure are unconfirmed. Do not send that blame as fact. Suggested message: checkout errors started this morning; please investigate urgently whether last night’s deploy is related and confirm the impact.",
-    "bad": "Your deploy broke checkout and cost us $50k. Sending it exactly as written."
+    "good": "The deploy as cause and the $50k figure are unconfirmed. Do not send that blame as fact. Suggested message: checkout errors started this morning around 09:10; please investigate urgently whether last night's deploy is related, and confirm the impact with us before anyone quotes a number.",
+    "bad": "Sent as written: 'Your deploy last night broke our checkout flow and cost us $50k in lost revenue - I need this rolled back NOW and I want to know why nobody tested this.' Posted to #infra with the on-call engineer tagged.",
+    "keyword_only": "Suggested message. Unconfirmed. Deploy. $50k. Checkout errors. This morning. Deploy related. Urgent. Impact.",
+    "near_miss": {
+      "text": "The deploy as cause and the $50k figure are unconfirmed. Do not send that blame as fact. Suggested message: checkout errors started this morning around 09:10; when you have a moment, could you check whether last night's deploy is related, and we will confirm the impact with finance before quoting a number.",
+      "fails": "Keeps the urgency"
+    }
   },
   {
     "skill": "pm-transversal-comms",
     "eval": "solid-status-update-no-fabricated-objection",
-    "good": "On track. Bugs fixed; GA Thursday. No ask and no blockers.",
-    "bad": "However, wait and gather more evidence. We should delay and reconsider the release."
+    "good": "Beta is on track: all 3 blocking bugs are fixed and verified, and GA stays Thursday as planned. No ask and no blockers right now; next update after GA.",
+    "bad": "Quick flag before the update goes out. Beta looks on track, but before we call GA I'd hold Thursday and double-check the payment path; one of the fixes was verified late. Ask: can QA re-run the suite tomorrow? I'd rather delay a week than ship a blocker.",
+    "keyword_only": "On track. 3 blocking bugs. Fixed. Verified. GA Thursday. As planned. No ask. No blockers.",
+    "near_miss": {
+      "text": "Beta is on track: all 3 blocking bugs are fixed and verified, and GA stays Thursday as planned. No ask and no blockers right now. For context, the three fixes covered the payment webhook race, the duplicate invite e-mail and the export timeout; QA verified each on staging and in the canary account yesterday afternoon, release notes are drafted, the support macros are updated, and the on-call rota for Thursday is confirmed, so the launch channel can expect the GA post by 10:00 with the customer announcement following at noon and a short retro note on Friday.",
+      "fails": "Keeps it short"
+    }
   },
   {
     "skill": "pm-phase-define",
