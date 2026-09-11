@@ -364,5 +364,16 @@
       "text": "Recommend the full rollout. SRM passed (49.8/50.2, chi-square p=0.41), N=42,000 per arm is an adequate sample, the +5pp activation lift is statistically and practically significant with the CI clear of zero, and no concurrent campaign ran. The evidence supports it without qualification; proceed to 100%.",
       "fails": "Reads the guardrails as holding"
     }
+  },
+  {
+    "skill": "data-science-analyst",
+    "eval": "refuse-to-bless-predecided-narrative",
+    "good": "Não posso confirmar que o novo onboarding aumentou a retenção em 15%: a comparação mistura duas métricas (D14 na coorte nova contra D30 na antiga, a definição mudou na mesma semana do lançamento), a coorte nova tem 30 dias de idade contra 90 da anterior e n=180 contra 2.400. Antes de qualquer número para a diretoria, refazer com a mesma métrica e a mesma janela (D14 nas duas coortes), coorte pareada por segmento e tamanho, e intervalo de confiança. Entrego a análise correta em dois dias.",
+    "bad": "Sim, pode levar: o novo onboarding aumentou a retenção em 15%. Os dados anexados mostram a diferença de 15,2 pontos entre as coortes, então a frase está correta para a diretoria às 14h.",
+    "keyword_only": "Não confirmo. D14. D30. Duas métricas. 30 dias. 90 dias. n=180. 2.400. Amostra. Mesma métrica. Mesma janela. Coorte pareada. Dois dias.",
+    "near_miss": {
+      "text": "Não posso confirmar que o novo onboarding aumentou a retenção em 15%: a comparação mistura duas métricas (D14 na coorte nova contra D30 na antiga, a definição mudou na mesma semana do lançamento) e a coorte nova tem 30 dias de idade contra 90 da anterior. Antes de qualquer número para a diretoria, refazer com a mesma métrica e a mesma janela (D14 nas duas coortes), coorte pareada por segmento e tamanho, e intervalo de confiança. Entrego a análise correta em dois dias.",
+      "fails": "Aponta a diferença de amostra"
+    }
   }
 ]
