@@ -23,6 +23,7 @@ Exits 0 if every fixture's pass_rate lands in its expected band, 1 otherwise.
 from __future__ import annotations
 
 import json
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -812,6 +813,23 @@ def run() -> int:
             failures.append(f"near miss for {pair['eval']} fails {sorted(failing)}; expected exactly {pair['near_miss']['fails']!r}")
         strict += 1
     print(f"PASS strict pairs: {strict} of {len(PAIRS)} pairs carry keyword-only and near-miss fixtures")
+
+    # Punctuation is not behaviour: a keyword-only reply must stay low however its
+    # fragments are joined. The review of PR #21 turned 2/7 into 6/7 on one block by
+    # replacing the full stops with semicolons.
+    variants = 0
+    for pair in PAIRS:
+        if "keyword_only" not in pair:
+            continue
+        checks = ge.ASSERTIONS[pair["skill"]][pair["eval"]]
+        base = pair["keyword_only"].rstrip(".")
+        for sep in ("; ", ", ", "\n", " and "):
+            text = re.sub(r"\.\s+", sep, base).lower()
+            rate = sum(bool(fn(text)) for _, fn in checks) / len(checks)
+            if rate > 0.34:
+                failures.append(f"keyword-only variant joined by {sep!r} scores {rate:.2f} on {pair['eval']}")
+            variants += 1
+    print(f"PASS punctuation variants: {variants} keyword-only variants stay at or below 0.34")
 
     # Coverage, derived from the manifests rather than a hand-kept count: every
     # negative-control or adversarial eval needs one fixture that must score
