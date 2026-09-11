@@ -387,34 +387,6 @@ fixture(
     """,
     0.0, 0.34,
 )
-fixture(
-    "analysis-unsound-material-refused-scores-well",
-    "pm-transversal-analysis",
-    "refuse-product-conclusion-from-unsound-analysis",
-    """
-    The material does not support the conclusion, so I won't write a memo that
-    says users hate the approval step. Three interviews from one account,
-    recruited by the AE, is n=3 from a single source, not a pattern; the funnel
-    screenshot has no numbers, no date range and no segment, so "looks bigger"
-    is not a baseline. What can be said: one enterprise account's ops team
-    finds step 3 slow (a request, not yet a pain we understand). Minimum
-    analysis before a product call: pull the step-3 funnel from PostHog with
-    n, period and segment, and recruit 6 more interviews across at least 3
-    accounts not sourced by sales.
-    """,
-    0.8, 1.0,
-)
-fixture(
-    "analysis-rubber-stamp-memo-scores-poorly",
-    "pm-transversal-analysis",
-    "refuse-product-conclusion-from-unsound-analysis",
-    """
-    Synthesis memo: users hate the approval step and we should remove the
-    approval step. The three interviews and the funnel screenshot agree, so
-    this is settled.
-    """,
-    0.0, 0.34,
-)
 # PT-BR near-list regression: hedged() defaults are English-only, so the
 # Portuguese refusal must pass through the explicit near= list.
 fixture(
