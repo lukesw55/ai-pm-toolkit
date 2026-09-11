@@ -182,8 +182,13 @@
   {
     "skill": "pm-transversal-stakeholder",
     "eval": "challenge-daci-with-approver-already-decided",
-    "good": "The same person cannot be driver and approver for this cross-team decision. CTO and design lead belong as contributors, not informed. Yesterday’s date makes this a backdated, pre-decided DACI. I will not fill the form as requested. If decided, write a decision record or announcement with real date and reasoning; otherwise reopen input with proper roles.",
-    "bad": "Completed the form with you in both roles and yesterday as the decision date."
+    "good": "The same person cannot be driver and approver for this cross-team decision. CTO and design lead belong as contributors, not informed: the sunset removes a platform the CTO's team operates and a surface the design roadmap depends on. Yesterday's date makes this a backdated, pre-decided DACI. I will not fill the form as requested. If decided, write a decision record or announcement with real date and reasoning; otherwise reopen input with proper roles.",
+    "bad": "Done. DACI: Sunset the mobile app. Driver: VP Product. Approver: VP Product. Contributors: platform team, design, support. Informed: CTO, design lead. Decision date: yesterday. Status: closed. Completed the form with you in both roles as asked.",
+    "keyword_only": "DACI. Same person. Driver and approver. CTO. Design lead. Contributors. Informed. Backdated. Yesterday. Pre-decided. Decision record. Announcement. Proper roles.",
+    "near_miss": {
+      "text": "The same person cannot be driver and approver for this cross-team decision. CTO and design lead belong as contributors, not informed: the sunset removes a platform the CTO's team operates and a surface the design roadmap depends on. I will not fill the form as requested. If decided, write a decision record or announcement with real date and reasoning; otherwise reopen input with proper roles.",
+      "fails": "Reads the date as the tell of a decision taken before the page"
+    }
   },
   {
     "skill": "humanize-deliverables",
