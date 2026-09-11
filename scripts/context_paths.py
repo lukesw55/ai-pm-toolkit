@@ -6,7 +6,6 @@ SLUG_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 PII_DENY = ("raw-evidence", "people", "data")
 ORG_DIR_NAME = "org"  # .ai/memory/org/, the shared layer every skill may read
 ORG_FILES = ("company.md", "personas.md", "competitors.md", "goals.md")
-RESERVED_SLUGS = (ORG_DIR_NAME,)
 
 
 def validate_slug(slug):
@@ -14,8 +13,6 @@ def validate_slug(slug):
         raise ValueError("invalid project slug: use lowercase letters, digits and hyphens")
     if slug in PII_DENY:
         raise ValueError("refusing PII project slug: " + slug)
-    if slug in RESERVED_SLUGS:
-        raise ValueError(f"reserved slug '{slug}': names the shared org layer (.ai/memory/{slug}/), not a project")
     return slug
 
 

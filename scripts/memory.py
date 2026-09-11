@@ -56,6 +56,10 @@ PROFILE_SOFT_CAP = 12288    # bytes
 DECISIONS_SOFT_CAP = 12288  # bytes
 INSIGHTS_SOFT_CAP = 12288   # bytes; ranked themes with locators only
 ORG_SOFT_CAP = PROFILE_SOFT_CAP  # bytes, per file of the shared org layer; prose, never distilled
+# The org layer is checked for personal data, not assumed free of it: a template does not stop
+# anyone from pasting an address. Names cannot be caught by pattern and stay a review rule.
+ORG_EMAIL_RX = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+ORG_PHONE_RX = re.compile(r"(?<![\w/.-])(?:\+\d{1,3}[ -]?)?(?:\(\d{2,4}\)|\d{2,4})[ -]\d{3,5}[ -]?\d{4}\b")
 
 # Warm files the doctor and `distill` measure. Only the three block logs below
 # in DISTILL_FILES are foldable; kickoff, profile and insights are prose the
@@ -740,8 +744,15 @@ def cmd_doctor(_args):
     if org.is_dir():  # an absent shared layer is a valid state, never a finding
         for name in ORG_FILES:  # fixed names; the layer is never enumerated
             f = org / name
-            if f.exists() and f.stat().st_size > ORG_SOFT_CAP:
+            if not f.exists():
+                continue
+            if f.stat().st_size > ORG_SOFT_CAP:
                 warns.append(f"{f.relative_to(ROOT)}: {f.stat().st_size} B > {ORG_SOFT_CAP} B — shared org layer is prose; trim by hand")
+            body = f.read_text(encoding="utf-8", errors="replace")
+            if ORG_EMAIL_RX.search(body):
+                warns.append(f"{f.relative_to(ROOT)}: e-mail address found — a role alias is fine, a person is not; people notes belong in people/")
+            if ORG_PHONE_RX.search(body):
+                warns.append(f"{f.relative_to(ROOT)}: possible phone number found — personal data does not belong in the shared org layer")
 
     for proj in sorted(p for p in PROJECTS.glob("*") if p.is_dir()) if PROJECTS.is_dir() else []:
         rel = proj.relative_to(ROOT)

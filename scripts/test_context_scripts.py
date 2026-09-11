@@ -102,14 +102,18 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(self.run_script('memory.py','doctor').returncode,0)
         self.assertEqual(self.run_script('init_context.py').returncode,2)
 
-    def test_org_slug_reserved(self):
+    def test_org_project_coexists_with_org_layer(self):
         self.assertEqual(self.run_script('memory.py','park','alpha').returncode,0)
         result=self.run_script('init_context.py','Org')
-        self.assertEqual(result.returncode,1);self.assertNotIn('Traceback',result.stderr);self.assertIn('reserved',result.stderr)
-        self.assertFalse((self.projects/'org').exists())
-        for args in [('log','org','x'),('activate','org'),('index','org')]:
-            result=self.run_script('memory.py',*args)
-            self.assertNotEqual(result.returncode,0,args);self.assertNotIn('Traceback',result.stderr)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertTrue((self.projects/'org').is_dir())
+        self.assertEqual(self.run_script('init_context.py','--org').returncode,0)
+        layer=self.root/'.ai/memory/org'
+        self.assertTrue((layer/'goals.md').exists())
+        self.assertEqual(self.run_script('memory.py','log','org','project note').returncode,0)
+        self.assertIn('project note',(self.projects/'org'/'changelog.md').read_text())
+        self.assertNotIn('project note',(layer/'goals.md').read_text())
+        self.assertEqual(self.run_script('memory.py','doctor').returncode,0)
 
     def test_missing_template_is_a_finding(self):
         (self.root/'.ai/memory/_templates/org/goals.md').unlink()

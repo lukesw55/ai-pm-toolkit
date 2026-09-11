@@ -428,6 +428,13 @@ def main() -> int:
               dc2.returncode == 0 and "org/personas.md" in dc2.stdout and f"{slug}/insights.md" in dc2.stdout, dc2.stdout.strip())
         dr = sb.run("distill", slug)
         check("distill reports insights.md as prose over its cap", dr.returncode == 2 and "insights.md" in dr.stdout, dr.stdout.strip())
+        (sb.mem / "org" / "company.md").write_text("# Company\n\nContact: jane.doe@example.com, +55 11 91234-5678\n", encoding="utf-8")
+        dc3 = sb.run("doctor")
+        check("doctor warns on an e-mail and a phone pattern in an org file and still exits 0",
+              dc3.returncode == 0 and "org/company.md" in dc3.stdout and "e-mail" in dc3.stdout and "phone" in dc3.stdout, dc3.stdout.strip())
+        (sb.mem / "org" / "company.md").write_text("# Company\n\nReviewed 2026-09-10 14:10; 1,940 accounts; support@example.com is a role alias, flagged for review anyway.\n", encoding="utf-8")
+        dc4 = sb.run("doctor")
+        check("doctor does not read dates or counts as phone numbers", dc4.returncode == 0 and "phone" not in dc4.stdout, dc4.stdout.strip())
 
     failures = [r for r in RESULTS if not r[1]]
     if failures:

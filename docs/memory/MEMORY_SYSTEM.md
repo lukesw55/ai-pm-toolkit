@@ -61,7 +61,7 @@ One line per known project, appended by `init_context.py`.
 Temporary raw notes, copied facts, rough observations, meeting snippets, or loose findings that are not yet organized. Manual only: no script creates, reads, or rotates it.
 
 ### `org/`
-The shared org layer: `company.md` (what we sell, business model, strategy pillars, constraints that bind every project, vocabulary), `personas.md` (archetypes with a job to be done and evidence locators), `competitors.md` (organisations and substitutes) and `goals.md` (current-cycle objectives with an owner role and a review date). Created by `python3 scripts/init_context.py --org` from `_templates/org/`, never overwritten, never injected by a hook: a skill opens the one file the task needs. PII-free by construction: roles, archetypes and organisations only; a real person belongs in `people/`. Upstream keeps the layer ignored; a fork versions its real content (see the bootstrap section). `org` is a reserved slug, so no project can shadow it.
+The shared org layer: `company.md` (what we sell, business model, strategy pillars, constraints that bind every project, vocabulary), `personas.md` (archetypes with a job to be done and evidence locators), `competitors.md` (organisations and substitutes) and `goals.md` (current-cycle objectives with an owner role and a review date). Created by `python3 scripts/init_context.py --org` from `_templates/org/`, never overwritten, never injected by a hook: a skill opens the one file the task needs. Precedence: the layer is shared context, not a project fact; for a project's decisions the project files win, a contradiction is recorded in that project's `decisions.md` (what the org file says, what the evidence says, who decides), and the org file changes only when the evidence holds beyond one project, logged with `memory.py log`. Content rule, checked rather than assumed: roles, archetypes and organisations only; `doctor` warns on e-mail and phone patterns in `org/*.md`, a person's name is a review rule no pattern catches, and pseudonymisation lowers but does not remove re-identification risk, so a real person belongs in `people/`. Upstream keeps the layer ignored; a fork versions its real content (see the bootstrap section). A project may be called `org`: `projects/org/` and `org/` are different directories.
 
 ### `projects/<slug>/state.md`
 Where things stand. Newest-first park/close blocks written by `memory.py park`; the pointer names it as the first file to read on resume.
@@ -147,7 +147,7 @@ Guarantees: content is moved, never deleted; the archive is rebuilt into a sibli
 
 ## PII denylist
 
-`memory.py` refuses, in code, any path with a segment in `PII_DENY = ("raw-evidence", "people", "data")` relative to the repo root: `log`, `park`, `activate`, rotation, `distill --prepare/--apply`, and the archive writes all pass through `guard()`. `doctor` skips such projects with a WARN. A project literally named `data` is therefore unusable through the scripts by design. The shared org layer is PII-free by construction: archetypes, organisations and roles only; a real person's name belongs in `people/`.
+`memory.py` refuses, in code, any path with a segment in `PII_DENY = ("raw-evidence", "people", "data")` relative to the repo root: `log`, `park`, `activate`, rotation, `distill --prepare/--apply`, and the archive writes all pass through `guard()`. `doctor` skips such projects with a WARN. A project literally named `data` is therefore unusable through the scripts by design. The shared org layer is checked, not assumed, to be free of personal data: `doctor` warns on e-mail and phone patterns in `org/*.md`; a name is a review rule; a real person's notes belong in `people/`.
 
 ## Retrieval protocol
 
@@ -210,7 +210,8 @@ when both versions contain work. Park the current project before initializing an
 
 `python3 scripts/init_context.py --org` creates the shared org layer `.ai/memory/org/` from
 `.ai/memory/_templates/org/` without overwriting existing files, with or without a project
-name in the same call; `org` is a reserved slug. Upstream keeps the layer ignored because its
+name in the same call; a project may be called `org`, since `projects/org/` and `org/` do not
+collide. Upstream keeps the layer ignored because its
 real content is confidential; a fork that versions it adds `!.ai/memory/org/` and
 `!.ai/memory/org/**` to `.gitignore`. Changes to org files are tracked by git in the fork and
 logged in the project changelog that produced the evidence.
