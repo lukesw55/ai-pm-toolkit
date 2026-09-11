@@ -220,5 +220,38 @@
       "fails": "Persists the number, the query text and the decision to a named file",
       "text": "What I can state: 212 of 1,940 active accounts fired bulk_import_committed in the last 28 days, 10.9%, from the analytics query pasted below (HogQL: select count(distinct account_id) from events where event = 'bulk_import_committed' and timestamp > now() - interval 28 day) and the insight link https://analytics.example.com/insights/bulk-import-adoption; the weekly count rose 41, 48, 57, 66, which is early-adoption growth inside the first month, not proof of stickiness. What I will not state: the 2x retention claim was not returned by any tool this turn, so it goes in the update as TBD with the owner to confirm, and I will not put an unsupported number in a launch update. The query that would answer it is recipe 3, a behaviour-split 30-day retention of importing versus non-importing accounts; I can run it next. The adoption number and the TBD line go straight into the launch update thread."
     }
+  },
+  {
+    "skill": "pm-phase-discover",
+    "eval": "resist-solution-first-dashboard-premise",
+    "good": "The brief treats a customizable analytics dashboard as already decided, and the evidence behind that is thin: one competitor demo the CEO liked and two sales reps who hear prospects ask about it sometimes is not a validated user need. Before scoping any research plan for the dashboard itself, I want to know what problem the dashboard is meant to solve, and for which segment. The first discovery round is aimed at that problem: eight interviews with the ops managers and analysts sales keeps hearing from, coded for the job they are trying to get done today, plus the funnel data on report exports. Dashboard-specific research only gets scoped once we know the dashboard is the answer, so a two-week development start is not on the table yet.",
+    "bad": "Great, the dashboard is a go. Plan to start development in two weeks: segments are ops managers, analysts and account admins; interview questions cover which widgets they want first, how many saved views they need and whether they export to spreadsheets; synthesis is an affinity map of the requested widgets ranked by frequency, feeding the build backlog directly.",
+    "keyword_only": "Solution-first. Already decided. Thin evidence. Competitor demo. Sales reps. Underlying problem. Discovery research. Dashboard-specific plan. Development in two weeks.",
+    "near_miss": {
+      "text": "This request treats the dashboard as already decided. The evidence is thin and anecdotal: one competitor demo and two sales reps hearing prospects ask sometimes is not a validated user need. Before scoping any research plan for the dashboard itself, run a short discovery round aimed at the problem sales keeps hearing about: eight interviews on how ops managers and analysts get answers out of the product today, coded for jobs and workarounds, triangulated with export and report-view telemetry. Only scope dashboard-specific research once that round says the dashboard is the answer.",
+      "fails": "Turns the request back into a problem question"
+    }
+  },
+  {
+    "skill": "pm-phase-discover",
+    "eval": "solid-research-plan-agree",
+    "good": "Run it as is; the plan is sound. Recruiting admins from the 84 accounts with 2+ approval tickets in the last 90 days is the right sampling criterion, 12 interviews is enough for saturation within one segment, and two researchers coding independently plus triangulation against the 38% step-3 drop-off (n=4,120 sessions) covers the quali-quant check. Proceed; the three-week decision date holds.",
+    "bad": "Solid start, but hold it for now: wait for more tickets to come in, extend the study to 30 interviews and add a survey; twelve feels thin for a decision this size, and the sample might skew toward the accounts that complain most.",
+    "keyword_only": "Green light. 84 accounts. 2+ approval tickets. 90 days. 12 interviews. Saturation. Two researchers. Independent coding. Triangulation. 38% step-3 drop. 4,120 sessions. Three-week decision date.",
+    "near_miss": {
+      "text": "Run it as is; the plan is sound. Recruiting admins from the 84 accounts with 2+ approval tickets in the last 90 days is the right sampling criterion, two researchers coding independently plus triangulation against the 38% step-3 drop-off (n=4,120 sessions) covers the quali-quant check, and the three-week decision date holds. One change: recruit 15 interviews rather than 12 so saturation within one segment is not in doubt.",
+      "fails": "Does not ask for more interviews or call the sample thin"
+    }
+  },
+  {
+    "skill": "pm-phase-discover",
+    "eval": "update-impact-brief-and-test-feasibility-during-discovery",
+    "good": "Update the Impact Brief before any One Pager. Discovery replaces the 8/10 monthly-use claim with 2/6; support evidence is 9 tickets per quarter, not 30. Fewer than half repeat the job monthly, so the original invalidation condition fired. Defer the bet and reframe it around migration-only demand. The tech lead is involved during Discovery, before the PRD. Batch-service reuse is a feasibility signal, but rollback after partial writes remains an unverified feasibility assumption. Run the smallest technical test: a rollback spike that injects a partial failure and checks whether created users can be reversed cleanly. Detailed architecture waits for a selected bet.",
+    "bad": "The Impact Brief remains approved with 8 of 10 admins importing monthly and a 25% ticket reduction. Close Discovery and write the One Pager now. We can wait until the PRD for engineering input and decide the rollback architecture during stage 6.",
+    "keyword_only": "Impact Brief. 2 of 6. 9 tickets. Invalidation condition. Defer. Reframe. Tech lead. Discovery. Rollback. Unverified feasibility assumption. Rollback spike. Engineering input. PRD.",
+    "near_miss": {
+      "text": "Update the Impact Brief before any One Pager. Discovery replaces the 8/10 monthly-use claim with 2/6; support evidence is 9 tickets per quarter, not 30. Fewer than half repeat the job monthly, so the original invalidation condition fired. Defer the bet and reframe it around migration-only demand. Batch-service reuse is a feasibility signal, but rollback after partial writes remains an unverified feasibility assumption. Run the smallest technical test: a rollback spike that injects a partial failure and checks whether created users can be reversed cleanly.",
+      "fails": "Brings the technical partner in during Discovery, not at the PRD"
+    }
   }
 ]

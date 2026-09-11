@@ -33,6 +33,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-11 Stale rubric labels are reported, never counted
 - 2026-09-11 Strict probe, explicit configuration checks, immutable probes bound to validation
 - 2026-09-11 Codex results need a completed turn; one directory per attempt
+- 2026-09-11 Org bootstrap confines the destination before writing
 
 ## 2026-09-08: session log
 
@@ -172,4 +173,8 @@ Round 3 of PR #21, finding 3: parse_probe accepts only two lines, TOOLS then INS
 ## 2026-09-11: Codex results need a completed turn; one directory per attempt
 
 Round 3 of PR #21, finding 4: parse_codex_jsonl accepts a stream only when its turn completed (turn.failed or error refused, missing turn.completed refused), and every harness attempt runs in its own attempt-NN directory so a resume with --skip-recorded in the same work directory records the pair while the failed attempt's stdout and stderr stay in place; attempts.jsonl carries the attempt number. Validation: test_run_eval_pilot 15 (partial stream with turn.failed refused, fail then resume keeps attempt-01), recorder and label suites, full REPO_HEALTH battery green.
+
+## 2026-09-11: Org bootstrap confines the destination before writing
+
+Round 3 of PR #21, finding 5: init_context.py --org checks confinement before creating anything: when .ai/memory or .ai/memory/org is, or sits behind, a symlink, it exits 1 and writes nothing (the old guard only resolved the path once org/ existed, so a symlinked ancestor let the four files land outside the repository). Regression relocates .ai/memory behind a symlink and requires exit 1 with nothing created outside. MEMORY_SYSTEM states the rule. Validation: test_context_scripts 12, full REPO_HEALTH battery green.
 

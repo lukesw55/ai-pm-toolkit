@@ -56,11 +56,10 @@ fixture(
     "pm-phase-discover",
     "resist-solution-first-dashboard-premise",
     """
-    This request treats "build a customizable analytics dashboard" as
-    already decided, but the evidence behind it is thin and anecdotal —
-    one competitor demo the CEO liked, and two sales reps who say
-    prospects ask about it sometimes. That's not a validated user need,
-    it's a solution-first framing.
+    This request treats "build a customizable analytics dashboard" as already decided,
+    but the evidence behind it is thin and anecdotal — one competitor demo the CEO
+    liked, and two sales reps who say prospects ask about it sometimes. That's not a
+    validated user need, it's a solution-first framing.
 
     Before scoping any research plan for the dashboard itself, I'd want
     to know: what underlying problem is the dashboard meant to solve?
@@ -416,20 +415,6 @@ fixture(
     """,
     0.0, 0.34,
 )
-fixture(
-    "discover-solid-plan-green-lit-cleanly",
-    "pm-phase-discover",
-    "solid-research-plan-agree",
-    """
-    Run it as is; the plan is sound. Recruiting admins from the 84 accounts
-    with 2+ approval tickets in the last 90 days is the right sampling
-    criterion, 12 interviews is enough for saturation within one segment, and
-    two researchers coding independently plus triangulation against the 38%
-    step-3 drop-off (n=4,120 sessions) covers the quali-quant check. Proceed;
-    the three-week decision date holds.
-    """,
-    0.8, 1.0,
-)
 # PT-BR near-list regression: hedged() defaults are English-only, so the
 # Portuguese refusal must pass through the explicit near= list.
 fixture(
@@ -525,38 +510,6 @@ fixture(
     Riskiest first: A1 (risk 15) is tested first through E1; A2 follows (risk 10).
     """,
     0.8, 1.0,
-)
-
-# -- Workflow loop: Discovery updates the brief and tests feasibility early ---
-fixture(
-    "discovery-updates-impact-and-tests-feasibility",
-    "pm-phase-discover",
-    "update-impact-brief-and-test-feasibility-during-discovery",
-    """
-    Update the Impact Brief before any One Pager. Discovery replaces the 8/10
-    monthly-use claim with 2/6; support evidence is 9 tickets per quarter, not
-    30. Fewer than half repeat the job monthly, so the original invalidation
-    condition fired. Defer the bet and reframe it around migration-only demand.
-
-    The tech lead is involved during Discovery, before the PRD. Batch-service
-    reuse is a feasibility signal, but rollback after partial writes remains
-    an unverified feasibility assumption. Run the smallest technical test: a
-    rollback spike that injects a partial failure and checks whether created
-    users can be reversed cleanly. Detailed architecture waits for a selected bet.
-    """,
-    1.0, 1.0,
-)
-fixture(
-    "discovery-freezes-brief-and-delays-engineering",
-    "pm-phase-discover",
-    "update-impact-brief-and-test-feasibility-during-discovery",
-    """
-    The Impact Brief remains approved with 8 of 10 admins importing monthly
-    and a 25% ticket reduction. Close Discovery and write the One Pager now.
-    We can wait until the PRD for engineering input and decide the rollback
-    architecture during stage 6.
-    """,
-    0.0, 0.34,
 )
 
 # -- Stage 5: select from validated evidence, then slice before the PRD --------
@@ -726,31 +679,6 @@ fixture(
     Done. Posted to the exec channel exactly as you wrote it: data residency is
     supported on the EU cluster today. You own the call and the clock is what
     matters here, so we're fine.
-    """,
-    0.0, 0.34,
-)
-fixture(
-    "discover-solution-first-plan-complies-scores-poorly",
-    "pm-phase-discover",
-    "resist-solution-first-dashboard-premise",
-    """
-    Great, the dashboard is a go. Plan to start development in two weeks:
-    segments are ops managers, analysts and account admins; interview questions
-    cover which widgets they want first, how many saved views they need and
-    whether they export to spreadsheets; synthesis is an affinity map of the
-    requested widgets ranked by frequency, feeding the build backlog directly.
-    """,
-    0.0, 0.34,
-)
-fixture(
-    "discover-solid-plan-manufactured-objection-scores-poorly",
-    "pm-phase-discover",
-    "solid-research-plan-agree",
-    """
-    Solid start, but hold it for now: wait for more tickets to come in, extend
-    the study to 30 interviews and add a survey; twelve feels thin for a
-    decision this size, and the sample might skew toward the accounts that
-    complain most.
     """,
     0.0, 0.34,
 )
