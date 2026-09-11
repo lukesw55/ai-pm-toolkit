@@ -245,11 +245,30 @@ class PilotRunnerTests(unittest.TestCase):
             self.assertEqual(meta['model'], 'fake-codex'); self.assertEqual(meta['source'], 'codex thread fake-thread')
             self.assertEqual(meta['total_tokens'], 15); self.assertEqual(prov['model_source'], 'flag')
 
+    def test_failed_attempt_then_resume_keeps_the_evidence(self):
+        self.args.skill = self.skills[2]
+        with patch.dict(os.environ, {'FAKE_EMPTY': '1'}):
+            with self.assertRaisesRegex(ValueError, 'empty'): rp.run_pilot(self.args, self.root)
+        failed = self.attempts(); self.assertEqual([a['status'] for a in failed], ['failed']); self.assertEqual(failed[0]['attempt'], 1)
+        failed_dir = Path(failed[0]['cwd']); self.assertTrue(failed_dir.name == 'attempt-01' and (failed_dir / 'harness_stdout.txt').exists())
+        self.args.skip_recorded = True
+        recorded = rp.run_pilot(self.args, self.root)
+        self.assertEqual(len(recorded), 2 * len(json.loads((self.root / 'skills' / self.skills[2] / 'evals/evals.json').read_text())['evals']))
+        attempts = self.attempts()
+        self.assertEqual(attempts[0]['status'], 'failed'); self.assertEqual({a['status'] for a in attempts[1:]}, {'recorded'})
+        retried = [a for a in attempts[1:] if a['eval_name'] == failed[0]['eval_name'] and a['config'] == failed[0]['config']]
+        self.assertEqual(retried[0]['attempt'], 2); self.assertTrue(Path(retried[0]['cwd']).name == 'attempt-02')
+        self.assertTrue((failed_dir / 'harness_stdout.txt').exists(), 'the failed attempt keeps its evidence')
+        self.assertEqual(len(list(rp.probe_dir(self.root, 'iteration-fake').glob('*.json'))), 2)
+
     def test_rejects_bad_envelopes(self):
         with self.assertRaisesRegex(ValueError, 'JSON'): rp.parse_claude_json('not json', 'm')
         with self.assertRaisesRegex(ValueError, 'not a successful'): rp.parse_claude_json(json.dumps({'type': 'result', 'is_error': True}), 'm')
         with self.assertRaisesRegex(ValueError, 'exactly one'): rp.parse_claude_json(json.dumps({'type': 'result', 'result': 'x', 'session_id': 's', 'modelUsage': {}}), 'm')
         with self.assertRaisesRegex(ValueError, 'thread.started'): rp.parse_codex_jsonl('{"type":"item.completed"}', None, 'm')
+        started = json.dumps({'type': 'thread.started', 'thread_id': 't1'}); partial = json.dumps({'type': 'item.completed', 'item': {'type': 'agent_message', 'text': 'partial answer'}})
+        with self.assertRaisesRegex(ValueError, 'turn failed'): rp.parse_codex_jsonl('\n'.join([started, partial, json.dumps({'type': 'turn.failed', 'error': 'boom'})]), None, 'm')
+        with self.assertRaisesRegex(ValueError, 'turn.completed'): rp.parse_codex_jsonl('\n'.join([started, partial]), None, 'm')
 
 
 if __name__ == '__main__': unittest.main()

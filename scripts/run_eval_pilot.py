@@ -349,6 +349,10 @@ def parse_codex_jsonl(raw: str, output_file: Path | None, model_flag: str) -> Ha
     thread = next((str(e.get("thread_id")) for e in events if e.get("type") == "thread.started" and e.get("thread_id")), None)
     if not thread:
         raise ValueError("codex stream carries no thread.started event; the protocol needs an auditable source")
+    if any(e.get("type") in ("turn.failed", "error") for e in events):
+        raise ValueError("codex turn failed (turn.failed or error event in the stream); a partial answer is not a result")
+    if not any(e.get("type") == "turn.completed" for e in events):
+        raise ValueError("codex stream carries no turn.completed event; an unfinished turn is not a result")
     text = output_file.read_text(encoding="utf-8") if output_file and output_file.is_file() else ""
     if not text.strip():
         for event in reversed(events):
@@ -476,7 +480,11 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
             print(f"WARN {message}", file=sys.stderr)
     recorded = []
     for entry, config, order in planned:
-        cwd = work_dir / f"{entry['skill']}-{entry['id']}-{config}"
+        # One directory per attempt: a resume after a failure never overwrites the
+        # evidence the failed attempt left behind.
+        base = work_dir / f"{entry['skill']}-{entry['id']}-{config}"
+        attempt_no = 1 + len(list(base.glob("attempt-*"))) if base.exists() else 1
+        cwd = base / f"attempt-{attempt_no:02d}"
         cwd.mkdir(parents=True, exist_ok=False)
         payload, loaded = build_payload(root, entry["skill"], entry["prompt"], config, deps)
         prompt_file = cwd / "prompt.md"
@@ -484,7 +492,7 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
         output_file = cwd / "last_message.md"
         argv = harness_argv(template, model=args.model, cwd=str(cwd), prompt_file=str(prompt_file), output_file=str(output_file))
         attempt = {"harness": args.harness, "skill": entry["skill"], "eval_id": entry["id"], "eval_name": entry["name"],
-                   "config": config, "seed": seed, "cwd": str(cwd), "harness_version": version}
+                   "config": config, "attempt": attempt_no, "seed": seed, "cwd": str(cwd), "harness_version": version}
         try:
             raw = run_harness(argv, payload, cwd, args.timeout)
             result = parse_claude_json(raw, args.model) if args.harness == "claude-code" else parse_codex_jsonl(raw, output_file, args.model)

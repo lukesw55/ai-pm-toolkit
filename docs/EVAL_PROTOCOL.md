@@ -68,8 +68,11 @@ probe file under `docs/benchmarks/<iteration>/probes/`, never overwriting an ear
 every sidecar keeps pointing at evidence that exists (`--allow-unisolated` records anyway and the
 sidecar carries the probe result and the failed checks); and every invocation, recorded or
 failed, appends one line to
-`docs/benchmarks/<iteration>/attempts.jsonl` with its status, error and stdout hash, while
-`harness_stdout.txt` and `harness_stderr.txt` stay in the run directory either way. An empty
+`docs/benchmarks/<iteration>/attempts.jsonl` with its status, attempt number, error and stdout
+hash, while `harness_stdout.txt` and `harness_stderr.txt` stay in the run directory either way;
+each attempt runs in its own `attempt-NN` directory, so a resume after a failure keeps the
+failed attempt's evidence, and a Codex stream is a result only when its turn completed (a
+`turn.failed` or `error` event, or a missing `turn.completed`, is refused). An empty
 result, a failed process, a dirty tree under `skills/`, a mixed iteration or an already-recorded
 run stops it; nothing is fabricated and no failure disappears from the record.
 
