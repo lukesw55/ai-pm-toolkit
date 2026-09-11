@@ -134,8 +134,13 @@
   {
     "skill": "pm-transversal-docs",
     "eval": "refuse-slack-dump-as-confluence-page",
-    "good": "I will not paste the raw thread as-is. Sixty messages is a log, not documentation. Status: decision recorded. Use a decision memo / DACI: decision, owner, date, context, three options, choice and reasoning, margin risk, follow-ups. Link the Slack thread as the source. Publish the synthesized decision, not the raw log.",
-    "bad": "Here is the page with all 60 messages. Published the raw log unchanged."
+    "good": "I will not paste the raw thread as-is: sixty messages is a log, not documentation, and nobody will read it to find the decision. Use the decision memo structure instead. Status: decided. Decision: annual prepay discount capped at 12%. Owner: pricing lead. Options considered: 10%, 12% and 15%, with the reasoning for 12%. Risk: margin on the 2,000-seat tier, acknowledged. Follow-ups: rate card update. Link the Slack thread as the source so the reasoning trail stays available.",
+    "bad": "Published the pricing page: title plus the 60 messages verbatim so people can read the thread. Status: published. Owner: PM.",
+    "keyword_only": "Raw thread. Sixty messages. Log. Not documentation. Decision memo. Status. Decision. Owner. Options considered. Risk. Follow-ups. 12% cap. 10%, 12%, 15%. 2,000-seat margin. Slack thread. Source link.",
+    "near_miss": {
+      "text": "I will not paste the raw thread as-is: sixty messages is a log, not documentation, and nobody will read it to find the decision. Use the decision memo structure instead. Status: decided. Decision: annual prepay discount capped at 12%. Owner: pricing lead. Options considered: 10%, 12% and 15%, with the reasoning for 12%. Risk: margin on the 2,000-seat tier, acknowledged. Follow-ups: rate card update.",
+      "fails": "Keeps the reasoning trail reachable from the page"
+    }
   },
   {
     "skill": "pm-archetype-platform",

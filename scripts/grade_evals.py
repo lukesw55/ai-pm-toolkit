@@ -551,11 +551,12 @@ ASSERTIONS = {
         ],
         # B11 skill-functional-adversarial: a Slack log is not a Confluence page.
         "refuse-slack-dump-as-confluence-page": [
-            ("Refuses to paste the thread as-is", hasr(r"not (?:paste|publish) (?:it |the thread )?as.?is|won't paste|is a log, not|not documentation|isn't (?:a page|documentation)")),
-            ("Proposes the decision-memo / DACI structure", hasr(r"template|decision memo|daci|decision:|owner:|options considered|structure")),
-            ("Links the thread as the source", hasr(r"link (?:to )?the (?:slack )?thread|source: link|linked? the thread|source:")),
-            ("Sets a status line", hasr(r"status:|status line|published|draft")),
-            ("Does not publish the raw log", lambda t: not re.search(r"pasted (?:the )?(?:thread|messages) as.?is|publishing the raw|here is the page with all 60|with all 60 messages", t)),
+            ("Turns the publish request down", hasr(r"(?:not|won't|will not|refuse|decline)\w*[^.\n;]{0,20}\b(?:paste|publish|post|dump)\b[^.\n;]{0,40}(?:thread|log|60 messages|sixty messages|as.?is|raw|verbatim)|(?:thread|log|raw messages)[^.\n;]{0,30}\b(?:stays?|is not|isn't|won't be)\b[^.\n;]{0,20}(?:published|posted|the page)")),
+            ("Says what sixty messages amount to", hasr(r"(?:60|sixty) messages[^.\n;]{0,40}\b(?:is|are|make|makes|remain)\b[^.\n;]{0,30}(?:a log|log, not|not documentation|not a page|a transcript)|(?:thread|log)[^.\n;]{0,30}\b(?:is|isn't|is not)\b[^.\n;]{0,20}(?:documentation|a page|a decision page)|nobody (?:will|would) read[^.\n;]{0,40}(?:thread|60|sixty|log)")),
+            ("Lays out the page as a decision record, field by field", lambda t: bool(re.search(r"(?:decision.memo|daci|memo structure|page structure|template)[^.\n;]{0,30}(?::|with|has|carries|needs|holds|gets)[^.\n;]{0,160}(?:owner|options|follow.?ups?)", t)) or len(re.findall(r"(?:^|[.!?]\s+)\W*(?:status|decision|owner|date|context|options(?: considered)?|choice|reasoning|risk|follow.?ups?)\s*:", t)) >= 4),
+            ("Extracts the substance from the thread into the fields", lambda t: sum(bool(re.search(p, t)) for p in (r"decision[^.\n;]{0,10}:[^.\n;]{0,60}12 ?%", r"options?(?: considered)?[^.\n;]{0,10}:[^.\n;]{0,60}(?:10|15) ?%", r"risk[^.\n;]{0,10}:[^.\n;]{0,80}(?:margin|2,?000)")) >= 2),
+            ("Keeps the reasoning trail reachable from the page", hasr(r"(?:link|linked|links|source|sourced|cite)\w*[^.\n;]{0,30}(?:slack )?thread[^.\n;]{0,60}\b(?:as|for|so|keeps?|trail|stays|remains)\b|source:\s*(?:slack|the thread|<?link|https?)|thread[^.\n;]{0,30}\b(?:linked|cited)\b[^.\n;]{0,30}(?:as|for) (?:the )?(?:source|record|trail)")),
+            ("Does not publish the raw log", lambda t: not re.search(r"pasted (?:the )?(?:thread|messages) as.?is|publishing the raw|here is the page with all 60|with all 60 messages|60 messages verbatim|pasted verbatim|published the raw log|raw log unchanged", t)),
         ],
     },
     "pm-transversal-analysis": {
