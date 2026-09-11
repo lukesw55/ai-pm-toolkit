@@ -42,6 +42,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B36 | Painel de revisão com lentes selecionadas pelo risco, não bloqueante, com regra "sem objeção é resposta válida" | Framework | pesquisa | 3 | 2 | 3 | 18 | feito |
 | B37 | Síntese em lote de entrevistas e receitas de tarefa via conectores MCP | Conteúdo PM | pesquisa | 3 | 2 | 3 | 18 | feito |
 | B38 | Candidatos de catálogo: positioning/GTM, build-vs-buy, win/loss | Conteúdo PM | pesquisa | 2 | 1 | 2 | 4 | candidato |
+| B40 | Asserções anteriores ao lote vulneráveis a resposta só de palavras-chave (54 de 79 blocos) | Evals | verificado | 3 | 2 | 3 | 18 | candidato |
 
 ## Detalhe por item
 
@@ -201,6 +202,10 @@ Executar o desenho (passos 1 e 2) antes do B1: o fix do prefixo MCP muda de form
 
 **Candidato, não executado.** Do catálogo mySecond, três references encaixam no pipeline e ficaram para um próximo ciclo por decisão do dono: positioning e GTM (impact brief e launch), build-vs-buy (seleção de aposta) e win/loss (discovery competitiva). O resto do catálogo já está coberto por references mais profundas ou é genérico demais para um toolkit com evals.
 
+### B40 — Asserções antigas vulneráveis a palavras-chave (GUT 18)
+
+**Candidato.** Medição desta sessão (2026-09-10) com o mesmo ataque que o dono aplicou ao bloco de síntese em lote: uma resposta feita só dos termos que as asserções procuram passa em 0,8 ou mais em 54 dos 79 blocos anteriores ao lote de referências. Os seis blocos novos foram reescritos na rodada 2 da PR #21 (`in_one_sentence`, `count_at_least` e `anchors` em `scripts/grade_evals.py`, uma asserção de decisão por bloco, no máximo duas negativas, fixtures `keyword_only` e `near_miss` obrigatórias por par em `scripts/fixtures/adversarial_outputs.json`). O mesmo tratamento para os 26 pares antigos é trabalho próprio: um commit por skill, cada par ganhando as duas fixtures novas e as asserções positivas passando a duas ou três âncoras na mesma frase, banda good mantida em 0,80 a 1,00 e `test_grade_evals.py` verde a cada passo. Limite conhecido do grading por regex: uma resposta que reproduza as próprias frases dos rótulos ainda passa em parte; o modelo avaliado nunca vê o grader e o veredito humano (B32) é a verdade.
+
 ## Frameworks avaliados e não aportados
 
 - **Shape Up (Basecamp)**: appetite/betting colide com a dupla priorização por régua comum já existente; adotaria vocabulário concorrente sem resolver gap real.
@@ -260,7 +265,23 @@ Lote autorizado pelo dono a partir da avaliação das três referências (Ron Ya
 | B32 | implementado | `label_eval_run.py` com identidade composta, `rubric_version`, `--supersede` e split; grader com taxas de desacordo humano e do grader e `investigate_grader`, 12 testes; seção "Label runs" no protocolo |
 | B38 | candidato | positioning/GTM, build-vs-buy, win/loss ficam para o próximo ciclo |
 
-Contagem ao fim do lote, recontada pelos manifestos: 85 evals (43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial, 16 negative-control), 32 pares sintéticos e 99 fixtures no grader, 138 arquivos em cada espelho.
+Contagem ao fim da rodada 2, recontada pelos manifestos e pelas suítes: 85 evals (43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial, 16 negative-control), 32 pares sintéticos dos quais 6 estritos (keyword-only e near-miss), 118 fixtures no grader com 42 de 42 blocos graduados cobertos, 138 arquivos em cada espelho; suítes: hooks 33, contrato 9, memória 48, contexto 11, gravador 6, runner 12, rótulos 12, validador 54, frontmatter 5.
+
+## Revisão da PR #21 (2026-09-11)
+
+O dono revisou o lote em 2026-09-10 (comentário único na PR) com sete ajustes. Todos entraram como follow-ups na mesma PR, na ordem que a revisão propôs, sem reescrever o histórico já revisado; `main` (PR #20) foi mesclada antes e o item B31 desta branch virou B39.
+
+| Ponto da revisão | O que mudou | Commit |
+|---|---|---|
+| 1. Base e IDs | merge de `main`, B31 renumerado para B39, README sem linhas duplicadas, contagens recontadas | `fec7391`, `2f26601` |
+| 2. Correção do HTML primeiro | já estava em `cc054d7`, com a regressão gravar, graduar, agregar e renderizar | nenhum novo |
+| 3. Asserções | seis blocos com âncoras por frase e decisão explícita; fixtures keyword-only (no máximo 0,34) e near-miss (uma falha exata) por par; fixtures ruins plausíveis | `de31a8a` |
+| 4. Rótulos | identidade composta, `rubric_version`, `--supersede`, empate vira split, duas taxas de desacordo, `investigate_grader` | `53a7433` |
+| 5. Números didáticos | eval-design proporcional à tarefa, limiar fixado antes com justificativa, coluna "counts as a failure when", drift só com comparação temporal | `dec134e` |
+| 6. O que o piloto mede | seção no protocolo, probe de isolamento, `attempts.jsonl`, sidecar conferido por `validate_run`, `verified_harness_versions` | `d59d968` |
+| 7. Org, painel, receitas | slug `org` livre, precedência e checagem de PII; lentes por risco; completude, unidade, fuso e janela de observação | `9b944b5`, `a0153e2`, `dec134e` |
+
+Achado registrado sem maquiagem: as fixtures só de palavras-chave reprovam nos seis blocos novos, mas uma resposta que reproduza as frases dos rótulos das asserções ainda passa em parte. É limite do grading por regex, mitigado porque o modelo avaliado nunca vê o grader e porque o veredito humano decide; os 54 blocos antigos com a mesma fraqueza estão em B40.
 
 O histórico por PR está em `docs/PR_HISTORY.md`; as decisões estão em `docs/DECISIONS.md`. A confiança nos hooks do Codex continua dependendo da ação local `/hooks` do usuário. Configurações administrativas do GitHub e limpeza de branches são ações separadas do backlog de código.
 

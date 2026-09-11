@@ -206,7 +206,7 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `label_eval_run.py` | append a human verdict and classification to a recorded run, keyed by run identity and output hash; corrections supersede, history stays |
 | `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap, Copilot agent schema and repo policy |
 | `test_hooks.py` | synthetic payloads through the shared gates, the Codex `apply_patch` adapter, and the soft session-close reminder |
-| `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low |
+| `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low; strict pairs add a keyword-only reply that must score low and a near miss that fails exactly one named assertion |
 | `test_record_eval_run.py` | the eval recorder refuses missing provenance, changed output and overwrites; renders the HTML report from a recorded pair |
 | `test_run_eval_pilot.py` | the pilot runner against a fake harness: recorded runs, provenance, seeded order, probe, attempts, version gate, refusals (code paths, not CLI compatibility) |
 | `test_label_eval_run.py` | the label file, run identity and hash binding, supersede and split rules, the grader's two disagreement rates and the investigate flag |
