@@ -143,13 +143,23 @@
     "skill": "pm-phase-develop",
     "eval": "challenge-unjustified-scope-expansion",
     "good": "Scope creep goes beyond the evidence. Table stakes and eventually are not justification: no customer ask or sizing for those additions. Scope the PRD to CSV import, supported by 14 tickets and a signed commitment. SCIM, custom field mapping, real-time HR sync and audit log viewer are explicit non-goals unless separately evidenced.",
-    "bad": "Yes, include the whole bundle now. We will need those capabilities eventually."
+    "bad": "Yes, include the whole bundle: SCIM, mapping UI, HR sync and the audit viewer go in the PRD as v1 scope since enterprise will need them eventually. I will size the four additions with engineering next week and write the PRD as one initiative.",
+    "keyword_only": "Scope creep. Beyond the evidence. Table stakes. Eventually anyway. CSV import. 14 tickets. Signed commitment. SCIM. Field mapping. HR sync. Audit log viewer. Non-goals. Separately evidenced.",
+    "near_miss": {
+      "text": "Scope the PRD to CSV import, supported by 14 tickets and a signed commitment. SCIM, custom field mapping, real-time HR sync and the audit log viewer have no customer ask, no sizing and no urgency behind them. Those four are explicit non-goals unless separately evidenced. Scope creep beyond the evidence makes the PRD unshippable in one quarter.",
+      "fails": "Rejects the stated rationale for bundling"
+    }
   },
   {
     "skill": "pm-phase-develop",
     "eval": "solid-prd-scope-agree",
     "good": "Ready for engineering kickoff. CSV import matches 14 tickets and a signed commitment. Non-goals correctly exclude unevidenced scope. The five given/when/then acceptance criteria are testable, four events cover the funnel, and the flag rollout has a rollback path.",
-    "bad": "However, delay kickoff and gather more tickets. Add SCIM now and include HR sync and field mapping."
+    "bad": "Not yet: 14 tickets in a quarter is thin, so gather another quarter of tickets, and while we wait add SCIM and field mapping so the PRD is worth the kickoff.",
+    "keyword_only": "Engineering kickoff. CSV import. 14 tickets. Signed commitment. Non-goals. Unevidenced scope. Five acceptance criteria. Given/when/then. Testable. Four events. Import funnel. Flag rollout. Rollback path.",
+    "near_miss": {
+      "text": "Ready for engineering kickoff. CSV import matches 14 tickets and a signed commitment. Non-goals correctly exclude unevidenced scope. The five given/when/then acceptance criteria are testable, four events cover the funnel, and the flag rollout has a rollback path. Add SCIM to the same PRD since the enterprise customer will want it next.",
+      "fails": "Does not widen the scope"
+    }
   },
   {
     "skill": "pm-product-sense",
