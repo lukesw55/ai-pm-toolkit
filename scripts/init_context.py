@@ -59,9 +59,13 @@ def append_if_missing(path: Path, line: str) -> None:
 
 def init_org() -> int:
     """Create the shared org layer from _templates/org/ without overwriting anything."""
-    if ORG.is_symlink() or (ORG.exists() and ORG.resolve() != ORG.absolute()):
-        print("init_context.py: .ai/memory/org must not be a symlink", file=sys.stderr)
-        return 1
+    # Confinement before anything is created: a symlinked ancestor would send the four
+    # files outside the repository while org/ itself does not exist yet, so the check
+    # cannot wait for ORG.exists(). Same policy as context_paths.project_path.
+    for path in (MEMORY, ORG):
+        if path.is_symlink() or path.resolve() != path.absolute():
+            print(f"init_context.py: {path.relative_to(ROOT).as_posix()} must not be, or sit behind, a symlink", file=sys.stderr)
+            return 1
     missing = [name for name in ORG_FILES if not (ORG_TEMPLATES / name).is_file()]
     if missing:
         print(f"init_context.py: missing template .ai/memory/_templates/org/{missing[0]}", file=sys.stderr)

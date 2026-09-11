@@ -211,7 +211,9 @@ when both versions contain work. Park the current project before initializing an
 `python3 scripts/init_context.py --org` creates the shared org layer `.ai/memory/org/` from
 `.ai/memory/_templates/org/` without overwriting existing files, with or without a project
 name in the same call; a project may be called `org`, since `projects/org/` and `org/` do not
-collide. Upstream keeps the layer ignored because its
+collide. The bootstrap checks confinement before creating anything: when `.ai/memory` or
+`.ai/memory/org` is, or sits behind, a symlink, `--org` exits 1 and writes nothing, the same
+policy the project scripts apply. Upstream keeps the layer ignored because its
 real content is confidential; a fork that versions it adds `!.ai/memory/org/` and
 `!.ai/memory/org/**` to `.gitignore`. Changes to org files are tracked by git in the fork and
 logged in the project changelog that produced the evidence.

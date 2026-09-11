@@ -115,6 +115,15 @@ class ContextTests(unittest.TestCase):
         self.assertNotIn('project note',(layer/'goals.md').read_text())
         self.assertEqual(self.run_script('memory.py','doctor').returncode,0)
 
+    def test_org_refuses_a_symlinked_memory_ancestor(self):
+        memory=self.root/'.ai/memory';outside=Path(self.tmp.name)/'outside-memory'
+        shutil.move(str(memory),str(outside));memory.symlink_to(outside,target_is_directory=True)
+        result=self.run_script('init_context.py','--org')
+        self.assertEqual(result.returncode,1,result.stdout);self.assertIn('symlink',result.stderr);self.assertNotIn('Traceback',result.stderr)
+        self.assertFalse((outside/'org').exists(),'nothing may be created outside the repository')
+        memory.unlink();shutil.move(str(outside),str(memory))
+        self.assertEqual(self.run_script('init_context.py','--org').returncode,0)
+
     def test_missing_template_is_a_finding(self):
         (self.root/'.ai/memory/_templates/org/goals.md').unlink()
         result=self.run_script('init_context.py','--org')
