@@ -265,7 +265,7 @@ Lote autorizado pelo dono a partir da avaliação das três referências (Ron Ya
 | B32 | implementado | `label_eval_run.py` com identidade composta, `rubric_version`, `--supersede` e split; grader com taxas de desacordo humano e do grader e `investigate_grader`, 12 testes; seção "Label runs" no protocolo |
 | B38 | candidato | positioning/GTM, build-vs-buy, win/loss ficam para o próximo ciclo |
 
-Contagem ao fim da rodada 2, recontada pelos manifestos e pelas suítes: 85 evals (43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial, 16 negative-control), 32 pares sintéticos dos quais 6 estritos (keyword-only e near-miss), 118 fixtures no grader com 42 de 42 blocos graduados cobertos, 138 arquivos em cada espelho; suítes: hooks 33, contrato 9, memória 48, contexto 11, gravador 6, runner 12, rótulos 12, validador 54, frontmatter 5.
+Contagem ao fim da rodada 3, recontada pelos manifestos e pelas suítes: 85 evals (43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial, 16 negative-control), 32 pares sintéticos dos quais 6 estritos (keyword-only com 4 variantes de pontuação cada e near-miss), 118 fixtures no grader com 42 de 42 blocos graduados cobertos, 138 arquivos em cada espelho; suítes: hooks 33, contrato 9, memória 48, contexto 12, gravador 6, runner 15, rótulos 13, validador 54, frontmatter 5.
 
 ## Revisão da PR #21 (2026-09-11)
 
@@ -282,6 +282,18 @@ O dono revisou o lote em 2026-09-10 (comentário único na PR) com sete ajustes.
 | 7. Org, painel, receitas | slug `org` livre, precedência e checagem de PII; lentes por risco; completude, unidade, fuso e janela de observação | `9b944b5`, `a0153e2`, `dec134e` |
 
 Achado registrado sem maquiagem: as fixtures só de palavras-chave reprovam nos seis blocos novos, mas uma resposta que reproduza as frases dos rótulos das asserções ainda passa em parte. É limite do grading por regex, mitigado porque o modelo avaliado nunca vê o grader e porque o veredito humano decide; os 54 blocos antigos com a mesma fraqueza estão em B40.
+
+## Revisão do head `23fd183` (2026-09-11)
+
+Segunda revisão do dono, com cinco grupos de defeitos reproduzidos em sandboxes descartáveis. Todos reproduziram aqui antes da correção e nenhum reproduz depois; um commit por grupo, com regressão própria e bateria completa.
+
+| Achado | Correção | Commit |
+|---|---|---|
+| 1. Fixture keyword-only da adoção com `;` sobe de 2/7 para 6/7 | asserções exigem artefatos (URL ou texto de query, caminho `analytics/*.md`, números semanais, coortes, pergunta no evidence gap com papel do owner, lente colada ao veredito, PRD como objeto da decisão, participante com verbo); `test_grade_evals` deriva 4 variantes de pontuação de cada keyword-only e exige ≤ 0,34 (24 variantes) | `dad9608` |
+| 2. `rubric_version` gravado mas não conferido | `split_by_rubric`: rótulo de outra rubrica é stale, sai do veredito e das taxas, gera aviso e `labels_stale`; nova rotulação sem `--supersede`, histórico preservado | `994632b` |
+| 3. Probe aceita duplicatas contraditórias, é sobrescrito na retomada e não é conferido | probe estrito (duas linhas, ordem, sem duplicata), `isolation_config` com checagens explícitas por harness (a garantia; o probe é diagnóstico), um arquivo de probe por invocação em `probes/`, `validate_run` exige o probe referenciado com hash e conteúdo | `d917af4` |
+| 4. Parser Codex aceita `turn.failed` com resposta parcial; retomada falha com `FileExistsError` | resultado só com `turn.completed` e sem `turn.failed`/`error`; diretório por tentativa (`attempt-NN`) com a evidência da falha preservada | `9d955e2` |
+| 5. `--org` escreve fora do repo por symlink ancestral | confinamento de `.ai/memory` e `.ai/memory/org` antes de qualquer criação, exit 1 e nada escrito | `a4d009c` |
 
 O histórico por PR está em `docs/PR_HISTORY.md`; as decisões estão em `docs/DECISIONS.md`. A confiança nos hooks do Codex continua dependendo da ação local `/hooks` do usuário. Configurações administrativas do GitHub e limpeza de branches são ações separadas do backlog de código.
 
