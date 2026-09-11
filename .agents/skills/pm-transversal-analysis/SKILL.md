@@ -99,11 +99,11 @@ Anti-patterns: no codebook before fan-out, counting quotes, the lead reading raw
 
 ### 6. Connector task recipes (Jira and analytics MCP)
 
-Close a routine PM task end to end through MCP connectors: launch retro from tickets, feature adoption from analytics, behaviour-split retention. Each recipe fixes the question, the tools by suffix name, the discovery step before the query, the query shape, the output with numerator, denominator, window and source link, where it persists, and what stays TBD because no tool returned it.
+Close a routine PM task end to end through MCP connectors: launch retro from tickets, feature adoption from analytics, behaviour-split retention. Each recipe fixes the question, the tools by suffix name, the discovery step before the query, the query shape, the output with numerator, denominator, window (with its time zone) and source link, completeness (results paged to the end), the unit of analysis and its deduplication key, where it persists, and what stays TBD because no tool returned it.
 
 Outputs: the number with its link and query text persisted in project memory; TBD claims named with an owner.
 
-Anti-patterns: stating a number no tool returned, percentage without denominator or window, adoption read as retention, ephemeral result without the query.
+Anti-patterns: stating a number no tool returned, percentage without denominator or window, a count from the first page, a cohort defined with information from the window it is measured in, adoption read as retention, ephemeral result without the query.
 
 → Deep-dive: `references/connector-task-recipes.md`
 

@@ -21,14 +21,14 @@ Scenario → good-answer rules → test cases → responses → human labels (go
 - **User**: who reads the output and what they do with it without checking
 - **Good-answer rules** (4 to 6, each testable):
   1. ...
-- **Hazard list** (exactly four failure modes, one line each, sayable in a meeting):
+- **Hazard list** (sized to the task and the segments it serves; about four failure modes is a usual start, one line each, sayable in a meeting):
   1. ...
-- **Limits block** (four numbers; write them before adding any scoring dimension):
-  - at least NN % of golden rows graded good
-  - zero rows in <blocking hazard>
-  - 100 % of outputs carry <required element>
-  - at most NN % of outputs <undesired behaviour>
-- **Decision rule**: ship when every limit holds; a single row in <blocking hazard> blocks release regardless of the pass rate
+- **Limits block** (the numbers the task needs, usually three to five, each with a one-line rationale, written before any scoring dimension and before the run):
+  - at least NN % of golden rows graded good — because <what breaks below it>
+  - zero rows in <blocking hazard> — because <what one such row costs>
+  - 100 % of outputs carry <required element> — because <who depends on it>
+  - at most NN % of outputs <undesired behaviour> — because <what the user cannot do then>
+- **Decision rule**: ship when every limit holds; a single row in <blocking hazard> blocks release regardless of the pass rate, because a critical failure is never offset by a high average
 - **Versions**: prompt <id/date>, eval file <id/date>, model <id>; the three change together
 ```
 
@@ -42,7 +42,7 @@ Scenario → good-answer rules → test cases → responses → human labels (go
 
 Rules for the sheet:
 
-- Twenty rows minimum before the first release decision; grow it from production failures.
+- Size the set to the task and write the reason in the sheet: enough rows to cover every language, segment and input shape in proportion to traffic. About twenty is a workable start for one language and one segment, not a rule; grow it from production failures.
 - At least one row is a real failure the team has already seen. A set with no failure in it is a scrapbook, not a test.
 - Cover every language, segment and input shape the feature serves, in proportion to traffic.
 - Real traces first; synthetic rows are practice material for a team that has no traces yet.
@@ -51,34 +51,34 @@ Rules for the sheet:
 
 ## Failure taxonomy for product outputs
 
-| Failure | What it looks like | Detection | Default severity |
-|---|---|---|---|
-| Hallucination | an invented fact, commitment, amount or citation stated with confidence | reference check against the source | blocking for commitments and citations |
-| Broken logic | steps that contradict each other, or a conclusion the steps do not support | human read; arithmetic check | fail |
-| Asked instead of answered | the feature stalls on a question the user expected it to resolve | pattern check on the output | weak; fail above the limit |
-| Missing evidence | a claim with no source, a number with no formula | automated presence check | weak |
-| Unsupported numbers | round figures with no basis | human read | fail |
-| Incomplete | part of the task done, the rest silently dropped | checklist against the task | weak |
-| Bad UX | correct content nobody can use: a wall of text, a buried answer, the wrong language | human read | weak |
+| Failure | What it looks like | Detection | Default severity | Counts as a failure when |
+|---|---|---|---|---|
+| Hallucination | an invented fact, commitment, amount or citation stated with confidence | reference check against the source | blocking for commitments and citations | always for facts; for commitments and citations whenever the contract forbids inventing them (a summariser's does) |
+| Broken logic | steps that contradict each other, or a conclusion the steps do not support | human read; arithmetic check | fail | always |
+| Asked instead of answered | the feature stalls on a question the user expected it to resolve | pattern check on the output | weak; fail above the limit | the contract expects a resolved answer (a single-shot summary an agent acts on); a clarifying question is correct where the contract allows a dialogue |
+| Missing evidence | a claim with no source, a number with no formula | automated presence check | weak | the contract requires traceability (here, agents act without opening the ticket); optional where the reader checks the source anyway |
+| Unsupported numbers | round figures with no basis | human read | fail | always |
+| Incomplete | part of the task done, the rest silently dropped | checklist against the task | weak | always, in proportion to what was dropped |
+| Bad UX | correct content nobody can use: a wall of text, a buried answer, the wrong language | human read | weak | the audience cannot use it as delivered |
 
-Severity is a product decision and lives in the scenario sheet. Invented commitments and invented citations default to blocking because they are the failures a PM cannot defend in front of a customer or an executive.
+Severity is a product decision and lives in the scenario sheet, and so is the contract: asking a question or omitting a citation counts against an output only where the task requires the opposite, which is why the scenario sheet names the user and what they do with the output without checking. Invented commitments and invented citations default to blocking because they are the failures a PM cannot defend in front of a customer or an executive.
 
 ## Limits before dimensions
 
-Write four numbers before adding a single scoring dimension. Dimensions without numbers feel rigorous and decide nothing. A limits block for a support summariser:
+Write the numbers the task needs before adding a single scoring dimension; three to five is usual, and each carries a one-line rationale so the threshold can be defended before the run instead of adjusted after it. Dimensions without numbers feel rigorous and decide nothing. A limits block for a support summariser:
 
-- at least 80 % of golden rows graded good
-- zero hallucinated commitments
-- 100 % of summaries cite the ticket line they act on
-- at most 5 % of outputs ask the agent a question instead of summarising
+- at least 80 % of golden rows graded good, because below that agents stop trusting the summary and reopen the ticket
+- zero hallucinated commitments, because one honoured refund costs more than the feature saves
+- 100 % of summaries cite the ticket line they act on, because agents act without opening the ticket
+- at most 5 % of outputs ask the agent a question instead of summarising, because the agent has no way to answer
 
-If a fifth dimension appears before one of these numbers is written down, the team is expressing anxiety, not measuring quality.
+If a fifth dimension appears before one of these numbers is written down, the team is expressing anxiety, not measuring quality. A critical failure is never offset by a high average: the block rule sits above the pass rate, whatever the mean says.
 
 ## Validation and verification
 
 Validation happens once, before the first release decision: run the worst incident the feature has produced through the rubric. If the rubric passes it, the rubric is wrong; tighten a rule or add a hazard until the incident fails.
 
-Verification is ongoing and applies to any automated judge, rubric-based or model-based. Take about thirty cases the judge has scored, have two people re-grade them blind, and count the disagreements. Above roughly one in ten, the judge has drifted: stop trusting its recent scores, recalibrate the rubric or the judge prompt, and re-run. Repeat verification whenever the prompt, the model or the retrieval index changes.
+Verification is ongoing and applies to any automated judge, rubric-based or model-based. Take a sample the judge has scored (about thirty is a workable start; more when the task serves many segments), have two people re-grade it blind, and count the disagreements against a threshold you set before the run and wrote down with its rationale; one in ten is a common starting point, not a guarantee of sufficiency. A rate above the threshold is a signal to investigate the judge, the rubric or the sample before trusting recent scores; call it drift only when the rate rose against the previous verification. Repeat verification whenever the prompt, the model or the retrieval index changes.
 
 Synthetic rows are for practice: they teach a team what good and bad look like before real traffic exists. A release decision rests on real traces.
 
@@ -93,7 +93,8 @@ Synthetic rows are for practice: they teach a team what good and bad look like b
 ## Common anti-patterns
 
 - **Threshold-less eval.** Dimensions and scores with no number that decides ship or hold.
-- **Dataset with no failure.** Twenty rows of happy paths prove the harness runs, not that the product is safe.
+- **Dataset with no failure.** A set of happy paths proves the harness runs, not that the product is safe.
+- **Numbers copied as rules.** Four hazards, twenty rows, thirty cases, one in ten: starting points from a worked example treated as guarantees of sufficiency.
 - **A fifth dimension before one number.** Taxonomy standing in for a decision.
 - **Demo as evidence.** Twelve hand-picked examples standing in for traffic.
 - **Synthetic-only release.** Practice rows deciding a launch.
