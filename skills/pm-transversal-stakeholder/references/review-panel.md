@@ -1,8 +1,8 @@
-# Review panel — five lenses before real stakeholders see the artefact
+# Review panel — the lenses the artefact's risk calls for, before real stakeholders see it
 
 ## What it is
 
-A structured pre-review of a stage-4 one-pager or a stage-6 PRD through five stakeholder lenses: commercial, customer success, marketing and positioning, exec and finance, user advocate. Each lens answers one question, "what would make me object, and what evidence would settle it", and returns either an objection with its evidence gap and an owner, or "no objection" with a one-line reason. The technical and evidence lenses are not on the panel because they already exist: `.github/agents/pm-tech-advisor.agent.md` and `.github/agents/pm-evidence.agent.md` where the harness runs agents, `pm-phase-develop/references/technical-fluency.md` and `inference-discipline/SKILL.md` everywhere else.
+A structured pre-review of a stage-4 one-pager or a stage-6 PRD through the stakeholder lenses its exposures call for, drawn from five: commercial, customer success, marketing and positioning, exec and finance, user advocate. Lenses are selected by risk, never run as a ritual, and every lens left out is named in the report with a one-line reason. Each lens answers one question, "what would make me object, and what evidence would settle it", and returns either an objection with its evidence gap and an owner, or "no objection" with a one-line reason. The technical and evidence lenses are not on the panel because they already exist: `.github/agents/pm-tech-advisor.agent.md` and `.github/agents/pm-evidence.agent.md` where the harness runs agents, `pm-phase-develop/references/technical-fluency.md` and `inference-discipline/SKILL.md` everywhere else.
 
 ## Why it matters
 
@@ -11,6 +11,20 @@ The recommendation is written before the meeting (`references/stakeholder-mappin
 ## The rule that makes it safe
 
 **No objection is a valid output. A manufactured objection is a doctrine failure.** Calibrated disagreement (`../../DOCTRINE.md`, behaviour 7) agrees when the premise is sound instead of inventing an objection to look critical; the panel is that behaviour applied per lens. An objection counts only when it names the evidence gap that would resolve it and the owner who could close it. A lens with nothing to object says so in one line and stops.
+
+## Which lenses to run
+
+Pick by exposure, not by habit. Running all five on an artefact that touches one exposure is the ritual the panel exists to avoid; skipping the lens the author would rather not hear from is the failure it exists to catch.
+
+| The artefact touches | Run |
+|---|---|
+| price, discounts, contract terms, a committed deal, the renewal base | commercial, and exec and finance |
+| support surface, onboarding, a playbook, a path customers rely on | customer success |
+| what we claim, the category, a story a competitor could use | marketing and positioning |
+| cost, a cycle objective, a dependency, what it displaces | exec and finance |
+| a persona's path, harm, accessibility, buyer served instead of user | user advocate |
+
+Three rules. Every lens not run is named in the report with a one-line reason, so the selection is reviewable. An author's request to skip a lens because it might object is the reason to run it. When an exposure is in doubt, run the lens: a "no objection" costs one line, a missed exposure costs the meeting.
 
 ## Lens cards
 
@@ -29,7 +43,8 @@ Each card has four fields: what I optimise for, what would make me object, the e
 ```markdown
 # Panel report — <artefact> (stage <4|6>)
 
-- **Lenses run**: commercial, customer success, marketing, exec, user advocate
+- **Lenses run**: <the lenses the exposures call for>
+- **Lenses not run (reason)**: <lens: one line each>
 - **Date / author**: <date> / <role>
 
 | Lens | Verdict | Reason (one line) | Evidence gap | Owner |
@@ -52,7 +67,7 @@ Before a stage-4 one-pager or a stage-6 PRD reaches the people it names, as a co
 
 ## How to run
 
-Default: one session, lens by lens, each card's verdict written before the next card is opened, so a later lens cannot soften an earlier one. Where the harness offers subagents, one per lens in parallel with the same card and the same report contract, then the lead consolidates. Codex subagent support is not verified in this repo; run the lenses sequentially there. Digest rule from `inference-discipline/SKILL.md`: a lens's output is evidence only for what that lens verified, and an objection that cites a number the lens did not read is itself an inference to mark, not a finding.
+Start from the selection above and write it down first. Default: one session, lens by lens, each card's verdict written before the next card is opened, so a later lens cannot soften an earlier one. Where the harness offers subagents, one per lens in parallel with the same card and the same report contract, then the lead consolidates. Codex subagent support is not verified in this repo; run the lenses sequentially there. Digest rule from `inference-discipline/SKILL.md`: a lens's output is evidence only for what that lens verified, and an objection that cites a number the lens did not read is itself an inference to mark, not a finding.
 
 ## Consolidation
 
@@ -66,6 +81,7 @@ Default: one session, lens by lens, each card's verdict written before the next 
 - **Persona cosplay.** Writing in a stakeholder's voice instead of applying their criteria.
 - **Panel as gate.** Holding the artefact until every lens is silent.
 - **Only the convenient lenses.** Skipping the commercial or finance lens because the author expects them to object.
+- **Ritual panel.** Five lenses on an artefact that touches one exposure; a skipped lens with a written reason is the discipline, an unexplained one is the failure.
 - **Objection without an evidence gap.** "Risky" with no statement of what would settle it.
 - **Re-running until the answer changes.** Shopping for a clean report.
 

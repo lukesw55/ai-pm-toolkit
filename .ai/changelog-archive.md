@@ -24,6 +24,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-10 Merge main and renumber B31 to B39
 - 2026-09-10 Two-anchor assertions and strict fixture pairs for the six new evals
 - 2026-09-11 Composite label identity, supersede, split verdicts, two disagreement rates
+- 2026-09-11 Pilot runner: measurement scope, isolation probe, attempts log, sidecar validation
 
 ## 2026-09-08: session log
 
@@ -127,4 +128,8 @@ B33-B37 evals rewritten after the owner's review of PR #21: the six new assertio
 ## 2026-09-11: Composite label identity, supersede, split verdicts, two disagreement rates
 
 B32 revised after the owner's review of PR #21: labels.jsonl moves to schema 2 with a composite run identity (iteration, skill, eval_id, config, output_sha256), rubric_version (12 hex of prompt + expected_output), corrections through --supersede with the history kept in the file, a tie between labelers reported as a split awaiting resolution instead of the worse verdict, and the grader reporting human disagreement and grader disagreement separately with investigate_grader (threshold set before the run) replacing grader_drift, since drift needs a comparison across iterations. Protocol, DECISIONS, README, REPO_HEALTH and backlog updated. Validation: test_label_eval_run 12 tests including identical text under both configurations keeping separate labels; recorder, runner and grader suites; full REPO_HEALTH battery green.
+
+## 2026-09-11: Pilot runner: measurement scope, isolation probe, attempts log, sidecar validation
+
+B39 revised after the owner's review of PR #21: run_eval_pilot.py states what the pilot measures (an instruction bundle's effect on one response; not routing, progressive loading, hooks, memory or MCP; comparisons only inside one harness), runs an isolation probe before the runs and fails closed when the session reports tools or instructions (docs/benchmarks/<iteration>/isolation-probe.json, referenced from every sidecar), appends every invocation to docs/benchmarks/<iteration>/attempts.jsonl with status and error so failures stay on record, keeps stdout and stderr in the run directory on failure too, writes output_sha256 into provenance.json which record_eval_run.validate_run now checks against the run (output hash, payload hash, loaded SKILL.md), and refuses a full iteration on a harness version not listed under verified_harness_versions in pilot-deps.json (empty until a smoke run parses the envelope). Protocol gained 'What the pilot measures' and the isolation checklist; REPO_HEALTH and README say the fake-harness suite tests code paths, not CLI compatibility. Validation: test_run_eval_pilot 12 tests, recorder and label suites, dry run, full REPO_HEALTH battery green.
 

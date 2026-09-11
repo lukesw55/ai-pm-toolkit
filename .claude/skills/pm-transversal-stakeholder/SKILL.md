@@ -64,11 +64,11 @@ Anti-patterns: treating stakeholders as a single undifferentiated group, engagin
 
 ### 4. Review panel (multi-lens pre-review)
 
-Run a stage-4 one-pager or a stage-6 PRD through five stakeholder lenses (commercial, customer success, marketing and positioning, exec and finance, user advocate) before the real stakeholders see it. Each lens returns an objection with its evidence gap and an owner, or "no objection" with a one-line reason. No objection is a valid output; a manufactured objection is a failure of calibrated disagreement (`../DOCTRINE.md`, behaviour 7). Companion to the `pm-product-sense` shadow evaluation: non-blocking, never a gate.
+Run a stage-4 one-pager or a stage-6 PRD through the stakeholder lenses its exposures call for, drawn from five (commercial, customer success, marketing and positioning, exec and finance, user advocate), before the real stakeholders see it; every lens not run is named with a one-line reason, and a lens the author wants skipped because it might object is the one to run. Each lens returns an objection with its evidence gap and an owner, or "no objection" with a one-line reason. No objection is a valid output; a manufactured objection is a failure of calibrated disagreement (`../DOCTRINE.md`, behaviour 7). Companion to the `pm-product-sense` shadow evaluation: non-blocking, never a gate.
 
 Outputs: panel report per lens, objections carried into the dissent protocol, unverified claims added to the assumption map.
 
-Anti-patterns: manufactured objection, persona cosplay, panel as gate, skipping the lenses the author expects to object, re-running until the report is clean.
+Anti-patterns: manufactured objection, persona cosplay, panel as gate, skipping the lenses the author expects to object, running all five as a ritual, re-running until the report is clean.
 
 → Deep-dive: `references/review-panel.md`
 
