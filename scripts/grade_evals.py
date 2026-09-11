@@ -960,10 +960,11 @@ def grade_all(iteration_name="iteration-1", labels=None, report=None):
     (label_eval_run.load_labels); report, when given, receives labels_unmatched, the
     labels whose run is not on this machine."""
     from record_eval_run import eval_spec, validate_run
-    from label_eval_run import human_verdict, is_split
+    from label_eval_run import human_verdict, is_split, rubric_version, split_by_rubric
     results_by_skill = {}
     iteration_identity = None
     matched = set()
+    stale_total = 0
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
         # Any skill with recorded runs is gradable — the old pm-* prefix
         # filter silently skipped anti-slop, humanizer, and friends.
@@ -1003,10 +1004,18 @@ def grade_all(iteration_name="iteration-1", labels=None, report=None):
                     continue
                 sha = metadata[0 if config == "with_skill" else 1]["output_sha256"]
                 key = (skill, eval_id, config, sha)
-                grading["labels"] = list((labels or {}).get(key, []))
-                grading["human_verdict"] = human_verdict(grading["labels"])
-                grading["human_split"] = is_split(grading["labels"])
-                if grading["labels"]:
+                attached = list((labels or {}).get(key, []))
+                current, stale = split_by_rubric(attached, rubric_version(spec))
+                for record in stale:
+                    print(f"WARN label by {record['labeler']} on {skill} eval {eval_id} {config} was made against rubric "
+                          f"{record['rubric_version']}, current is {rubric_version(spec)}; it is stale and not counted, relabel the run",
+                          file=sys.stderr)
+                stale_total += len(stale)
+                grading["labels"] = current
+                grading["stale_labels"] = [{"labeler": r["labeler"], "rubric_version": r["rubric_version"], "verdict": r["verdict"]} for r in stale]
+                grading["human_verdict"] = human_verdict(current)
+                grading["human_split"] = is_split(current)
+                if attached:
                     matched.add(key)
                 grading_path = eval_dir / config / "grading.json"
                 grading_path.write_text(json.dumps(grading, indent=2))
@@ -1027,6 +1036,7 @@ def grade_all(iteration_name="iteration-1", labels=None, report=None):
         print(f"WARN label for {key[0]} eval {key[1]} {key[2]} output {key[3][:12]} has no recorded run in {iteration_name} on this machine", file=sys.stderr)
     if report is not None:
         report["labels_unmatched"] = len(unmatched)
+        report["labels_stale"] = stale_total
     return results_by_skill
 
 
@@ -1068,6 +1078,7 @@ def config_entry(run):
         "word_count": run["grading"].get("word_count"),
         "human_verdict": run["grading"].get("human_verdict"),
         "human_split": run["grading"].get("human_split", False),
+        "stale_labels": len(run["grading"].get("stale_labels", [])),
         "labelers": len(run["grading"].get("labels", [])),
         "human_mixed": len({r["verdict"] for r in run["grading"].get("labels", [])}) > 1,
         "agrees": agreement(run["grading"]),
@@ -1293,6 +1304,7 @@ def main():
         parser.exit(1, f"Invalid recorded eval: {exc}\n")
     benchmark = aggregate_benchmark(results, args.iteration)
     benchmark["overall"]["labels_unmatched"] = report.get("labels_unmatched", 0)
+    benchmark["overall"]["labels_stale"] = report.get("labels_stale", 0)
     benchmark["overall"]["labels_superseded"] = superseded
     # Master benchmark file
     master_path = REPO / "benchmark_all.json"
@@ -1323,6 +1335,8 @@ def main():
             print(f"Human disagreement:           {ov['human_disagreement_rate']*100:.0f}% of runs with two or more labelers")
     if ov.get("labels_unmatched"):
         print(f"Labels without a run here:    {ov['labels_unmatched']}")
+    if ov.get("labels_stale"):
+        print(f"Labels against another rubric: {ov['labels_stale']} (stale, not counted; relabel those runs)")
     if ov.get("labels_superseded"):
         print(f"Labels superseded:            {ov['labels_superseded']}")
     print(f"Master benchmark: {master_path}")

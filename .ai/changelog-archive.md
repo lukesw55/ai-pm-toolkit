@@ -27,6 +27,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-11 Pilot runner: measurement scope, isolation probe, attempts log, sidecar validation
 - 2026-09-11 Org layer: slug unreserved, precedence rule, verifiable personal-data check
 - 2026-09-11 Eval design sized to the task; recipe contract gains completeness, unit and time zone
+- 2026-09-11 Review panel selects lenses by risk and names the ones not run
 
 ## 2026-09-08: session log
 
@@ -142,4 +143,8 @@ B35 revised after the owner's review of PR #21: the project slug 'org' is no lon
 ## 2026-09-11: Eval design sized to the task; recipe contract gains completeness, unit and time zone
 
 B33 and B37 revised after the owner's review of PR #21: eval-design.md no longer turns Peters' worked-example numbers into rules (hazard list and limits block sized to the task, each limit with a rationale written before the run, golden set sized and justified, verification against a threshold set beforehand with about thirty cases and one in ten as starting points), the failure taxonomy gained a 'counts as a failure when' column so asking a question or omitting a citation fails only where the task contract requires the opposite, a critical failure is never offset by a high average, and drift is claimed only against the previous verification. connector-task-recipes.md: the contract gained Completeness (paged to the end, total against fetched), Unit and deduplication, and Time zone; each recipe carries the three; Recipe 3 defines the behaviour observation window (days 0 to 7) closed before the retention window and names leakage as a check. Sub-skill 6, DECISIONS and backlog follow. Validation: validate_repo both parsers, test_grade_evals 118, mirrors synced; full REPO_HEALTH battery green.
+
+## 2026-09-11: Review panel selects lenses by risk and names the ones not run
+
+B36 revised after the owner's review of PR #21: the review panel selects lenses by the exposure the artefact touches (exposure-to-lens table in review-panel.md) instead of running five as a ritual, every lens not run is named in the report with a one-line reason, an author's request to skip a lens because it might object is the reason to run it, and a 'ritual panel' anti-pattern was added; sub-skill 4, the WORKFLOW shadow-gate sentence, the progressive-loading row, root SKILL and README blurbs and the backlog say risk-selected instead of five-lens. The adversarial eval (M3) already requires the commercial objection to name the omitted 62% discount exposure. Validation: validate_repo both parsers, test_grade_evals 118, mirrors synced; full REPO_HEALTH battery green.
 

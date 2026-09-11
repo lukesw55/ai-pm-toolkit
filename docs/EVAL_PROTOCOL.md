@@ -137,7 +137,10 @@ and expected output, so a label can be traced to the rubric its author read. The
 appended: a run carries one current label per labeler, a second opinion is a second line, and
 a labeler who changes their mind appends a correcting record with `--supersede`; the loader
 keeps the latest record per labeler, the earlier one stays as history and the report counts
-it. The consolidated human verdict is the majority; a tie between labelers is a split awaiting
+it. A label whose `rubric_version` differs from the eval's current prompt and expected output
+is stale: the grader reports it, warns, and never counts it as a current verdict, and the run
+is relabelled against the current rubric without `--supersede`. The consolidated human verdict
+is the majority; a tie between labelers is a split awaiting
 resolution, reported as such and left out of the grader comparison rather than resolved to
 the worse verdict.
 

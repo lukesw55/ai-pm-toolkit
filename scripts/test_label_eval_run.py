@@ -79,7 +79,7 @@ class LabelTests(unittest.TestCase):
         entry=benchmark['skills'][self.skill]['evals'][0]
         self.assertEqual(entry['with_skill']['human_verdict'],'good');self.assertEqual(entry['without_skill']['human_verdict'],'fail')
         self.assertFalse(entry['with_skill']['human_split']);self.assertFalse(entry['without_skill']['human_split'])
-        self.assertEqual(report,{'labels_unmatched':0})
+        self.assertEqual(report,{'labels_unmatched':0,'labels_stale':0})
 
     def test_hash_mismatch_and_unknown_run_refused(self):
         target=self.root/'skills'/self.skill/'workspace'/self.iteration
@@ -109,7 +109,7 @@ class LabelTests(unittest.TestCase):
         self.assertEqual(entry['without_skill']['human_verdict'],'fail');self.assertTrue(entry['without_skill']['agrees'])
         grading=json.loads(next((self.root/'skills'/self.skill/'workspace'/self.iteration).glob('eval-*/with_skill/grading.json')).read_text())
         self.assertEqual(len(grading['labels']),1);self.assertEqual(grading['human_verdict'],'fail');self.assertFalse(grading['human_split'])
-        self.assertIn('investigate',html);self.assertIn('Human',html);self.assertNotIn('drift',html);self.assertEqual(report,{'labels_unmatched':0})
+        self.assertIn('investigate',html);self.assertIn('Human',html);self.assertNotIn('drift',html);self.assertEqual(report,{'labels_unmatched':0,'labels_stale':0})
 
     def test_split_is_pending_not_worse(self):
         lr.label(self.label_args(verdict='good'),self.root)
@@ -152,6 +152,29 @@ class LabelTests(unittest.TestCase):
         self.assertIsNone(lr.human_verdict([mk('good'),mk('weak')]));self.assertTrue(lr.is_split([mk('good'),mk('weak')]))
         self.assertEqual(lr.human_verdict([mk('weak'),mk('weak'),mk('good'),mk('fail')]),'weak')
         self.assertIsNone(lr.binarize([mk('good'),mk('fail')]));self.assertTrue(lr.binarize([mk('good')]));self.assertFalse(lr.binarize([mk('weak')]))
+
+    def test_stale_rubric_label_is_flagged_not_counted(self):
+        lr.label(self.label_args(verdict='good'),self.root)
+        manifest_path=self.root/'skills'/self.skill/'evals/evals.json'
+        manifest=json.loads(manifest_path.read_text())
+        entry=next(e for e in manifest['evals'] if e['name']==self.eval)
+        entry['expected_output']=entry.get('expected_output','')+' Revised expectation.'
+        manifest_path.write_text(json.dumps(manifest))
+        runs,benchmark,report,html=self.grade()
+        entry_ws=benchmark['skills'][self.skill]['evals'][0]['with_skill']
+        self.assertIsNone(entry_ws['human_verdict']);self.assertEqual(entry_ws['labelers'],0);self.assertEqual(entry_ws['stale_labels'],1)
+        self.assertEqual(report,{'labels_unmatched':0,'labels_stale':1})
+        self.assertEqual(benchmark['skills'][self.skill]['summary']['labeled_runs'],0)
+        grading=json.loads(next((self.root/'skills'/self.skill/'workspace'/self.iteration).glob('eval-*/with_skill/grading.json')).read_text())
+        self.assertEqual(grading['labels'],[]);self.assertEqual(grading['stale_labels'][0]['labeler'],'lucas')
+        # relabelling against the current rubric needs no --supersede and keeps the history
+        path=lr.label(self.label_args(verdict='weak',classification=['incomplete']),self.root)
+        self.assertEqual(len(path.read_text().splitlines()),2)
+        runs,benchmark,report,html=self.grade()
+        entry_ws=benchmark['skills'][self.skill]['evals'][0]['with_skill']
+        # the relabel supersedes the stale record for that labeler: nothing stale remains, the history is counted as superseded
+        self.assertEqual(entry_ws['human_verdict'],'weak');self.assertEqual(entry_ws['stale_labels'],0);self.assertEqual(report['labels_stale'],0)
+        self.assertEqual(lr.superseded_count(path,self.iteration),1)
 
     def test_rubric_version_follows_prompt_and_expectation(self):
         version=lr.rubric_version(self.spec)

@@ -126,6 +126,15 @@ def load_labels(path: Path, iteration: str) -> dict[tuple, list[dict]]:
     return {key: list(by_labeler.values()) for key, by_labeler in current.items()}
 
 
+def split_by_rubric(labels: list[dict], version: str) -> tuple[list[dict], list[dict]]:
+    """(current, stale): a label made against another rubric_version judged a different
+    prompt or expectation. It stays in the file as history, is reported as stale and
+    never feeds the consolidated verdict; the run is relabelled against the current rubric."""
+    current = [r for r in labels if r["rubric_version"] == version]
+    stale = [r for r in labels if r["rubric_version"] != version]
+    return current, stale
+
+
 def superseded_count(path: Path, iteration: str) -> int:
     records = read_labels(path, iteration)
     return len(records) - len({(run_key(r), r["labeler"]) for r in records})
@@ -191,7 +200,10 @@ def label(args, root: Path = ROOT) -> Path:
         raise ValueError("--reason and --labeler must not be empty")
     path = Path(args.labels_file) if getattr(args, "labels_file", None) else labels_path(root, args.iteration)
     key = (args.skill, spec["id"], args.config, meta["output_sha256"])
-    prior = [r for r in load_labels(path, args.iteration).get(key, []) if r["labeler"] == labeler]
+    version = rubric_version(spec)
+    # A label made against another rubric is stale and never blocks relabelling.
+    prior = [r for r in load_labels(path, args.iteration).get(key, [])
+             if r["labeler"] == labeler and r["rubric_version"] == version]
     supersede = bool(getattr(args, "supersede", False))
     if prior and not supersede:
         raise ValueError(f"run already labeled by {labeler}; pass --supersede to append a correcting record (the earlier one stays in the file)")
@@ -200,7 +212,7 @@ def label(args, root: Path = ROOT) -> Path:
     record = {
         "schema": SCHEMA, "iteration": args.iteration, "skill": args.skill, "eval_id": spec["id"],
         "eval_name": spec["name"], "config": args.config, "output_sha256": meta["output_sha256"],
-        "rubric_version": rubric_version(spec), "verdict": args.verdict, "classification": classification,
+        "rubric_version": version, "verdict": args.verdict, "classification": classification,
         "verdict_reason": reason, "labeler": labeler, "labeled_at": datetime.now().astimezone().isoformat(),
         "supersedes": supersede,
     }
