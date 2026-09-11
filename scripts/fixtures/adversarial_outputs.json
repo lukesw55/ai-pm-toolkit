@@ -50,14 +50,46 @@
   {
     "skill": "pm-phase-define",
     "eval": "challenge-weak-prioritisation-rationale",
-    "good": "I will not reverse-engineer RICE to justify a predetermined order. SLA covers a single renewal, not broad impact. Mobile redesign is engineering-driven without user or business evidence. Billing has vague sometimes evidence, not quantified frequency. Score on actual merits; let the evidence determine a different ranking.",
-    "bad": "I will write the rationale to match your order. Leadership’s preference is sufficient."
+    "good": "I will not reverse-engineer RICE to justify a predetermined order. SLA covers a single renewal, not broad impact. Mobile redesign is engineering-driven without user or business evidence. Billing has vague sometimes evidence, not quantified frequency. Score on actual merits; let the evidence determine a different ranking, and I will write that rationale once the scores exist.",
+    "bad": "Here is the RICE rationale for your order. (1) Custom SLA reporting: reach high because every enterprise renewal will want it, impact 3, confidence 80%, effort 6 weeks. (2) Mobile redesign: reach all users, impact 2, confidence 70%, effort 12 weeks; a modern stack lowers future cost. (3) Self-serve billing: reach medium, impact 1, confidence 60%, effort 5 weeks. The order holds as leadership set it.",
+    "keyword_only": "Predetermined order. Reverse-engineered RICE. SLA reporting. Single renewal. Mobile redesign. Engineering-driven. Self-serve billing. Sometimes. Vague evidence. Actual merits. Different ranking.",
+    "near_miss": {
+      "text": "I will not reverse-engineer RICE to justify a predetermined order. SLA covers a single renewal, not broad impact. Mobile redesign is engineering-driven without user or business evidence. Score on actual merits; let the evidence determine a different ranking, and I will write that rationale once the scores exist.",
+      "fails": "Names the billing item's evidence as vague"
+    }
   },
   {
     "skill": "pm-phase-define",
     "eval": "solid-prioritisation-rationale-agree",
-    "good": "The ranking holds; take it to roadmap review as is. RICE 48 and 41 lead and use 14 of 16 person-weeks. Defer SSO: a single renewal at 40% confidence explains its lower score.",
-    "bad": "However, wait and gather more data. Re-score with a different framework and postpone review."
+    "good": "The ranking holds; take it to roadmap review as is. RICE 48 and 41 lead and use 14 of 16 person-weeks. Defer SSO: a single renewal at 40% confidence explains its lower score. The scores and reach numbers you supplied are enough; no need to ask for more.",
+    "bad": "Before the review, re-score with WSJF and wait for the SSO renewal call; 40% confidence feels arbitrary, and 14 of 16 leaves no buffer, so postpone the review a week.",
+    "keyword_only": "Ranking. Roadmap review. 48 and 41. 14 of 16 person-weeks. SSO audit log. Single renewal. 40% confidence. Evidence supplied.",
+    "near_miss": {
+      "text": "The ranking holds; take it to roadmap review as is. RICE 48 and 41 lead and use 14 of 16 person-weeks. Defer SSO: a single renewal at 40% confidence explains its lower score. The scores and reach numbers you supplied are enough; no need to ask for more. Run it through WSJF as a cross-check tonight.",
+      "fails": "Does not ask for a re-score or a different framework"
+    }
+  },
+  {
+    "skill": "pm-phase-define",
+    "eval": "refuse-orphan-solution-in-one-pager",
+    "good": "The Slack approval bot is an orphan solution: it has no parent opportunity in the tree. O1 (approvers miss requests buried in email, 11/14) already has O1-S1 email digest and O1-S2 in-app inbox, and nothing in the synthesis puts approvers in Slack. The two Slack mentions come from admins, not approvers, and one prospect's demo request is one account: an anecdote (evidence strength 1), not validated demand. I will not write a one-pager for it as it stands. Two ways to keep Friday: attach the bot to O1 as O1-S3 and map 'approvers act on Slack messages within the day' as an unverified desirability assumption, then run the smallest test first (a fake-door in the demo environment or five approver interviews this week). If a one-pager must exist by Friday, it carries that assumption as an open row with you as the named owner accepting the risk, the rationale (the 600k renewal), a reconsideration date after the interviews, and confidence marked low.",
+    "bad": "Sure, I'll skip the tree and write the one-pager for the Slack approval bot now. Problem: approvers miss requests and 38% of requests miss the SLA. Proposed direction: a Slack bot that posts each request with approve and reject buttons. Expected impact: median approval time drops to 1.5 days, confidence high because the prospect (ARR 600k) asked for it and legal is fine. Ask: approve for build on Friday.",
+    "keyword_only": "One-pager declined. Orphan solution. No parent opportunity. One prospect. Two admin mentions. Anecdote. O1-S3. Desirability assumption. Fake-door. Five approver interviews. Open assumption row. Named owner. Low confidence.",
+    "near_miss": {
+      "text": "The Slack approval bot is an orphan solution: it has no parent opportunity in the tree. O1 (approvers miss requests buried in email, 11/14) already has O1-S1 email digest and O1-S2 in-app inbox, and nothing in the synthesis puts approvers in Slack. The two Slack mentions come from admins, not approvers, and one prospect's demo request is one account: an anecdote (evidence strength 1), not validated demand. I will not write a one-pager for it as it stands. Two ways to keep Friday: attach the bot to O1 as O1-S3 and map 'approvers act on Slack messages within the day' as an unverified desirability assumption. If a one-pager must exist by Friday, it carries that assumption as an open row with you as the named owner accepting the risk, the rationale (the 600k renewal), a reconsideration date after the interviews, and confidence marked low.",
+      "fails": "Proposes the cheapest check ahead of any one-pager"
+    }
+  },
+  {
+    "skill": "pm-phase-define",
+    "eval": "select-validated-bet-and-slice-v1",
+    "good": "Selection record: the already funded audit-export bet stays selected from its validated One Pager: 12 enterprise accounts need self-serve audit evidence and three renewals are at risk. Do not rerun problem prioritisation. V1, within three weeks: CSV export over the existing 90-day data. Learning goal: prove that admins can self-serve audit evidence and unblock the three renewals. Later slices: filters, a searchable one-year log, API access and scheduled delivery. Non-goals for V1: API, scheduling, custom filters and one-year retention. Reconsider those only after V1 evidence. Produce priorities.md plus scope-slices.md now; the PRD comes after this scope-slices handoff.",
+    "bad": "Rerun RICE against the original discovery backlog. Rank every problem from zero, then put the complete one-year audit log, CSV, API, filters and scheduled delivery into the PRD as one initiative.",
+    "keyword_only": "Selection record. Funded bet. Validated One Pager. V1. CSV export. 90-day data. Three weeks. Learning goal. Self-serve audit evidence. Three renewals. Later slices. API. Scheduled delivery. Filters. One-year log. Non-goals. Scope slices. PRD.",
+    "near_miss": {
+      "text": "Selection record: the already funded audit-export bet stays selected from its validated One Pager: 12 enterprise accounts need self-serve audit evidence and three renewals are at risk. Do not rerun problem prioritisation. V1, within three weeks: CSV export over the existing 90-day data. Later slices: filters, a searchable one-year log, API access and scheduled delivery. Non-goals for V1: API, scheduling, custom filters and one-year retention. Reconsider those only after V1 evidence. Produce priorities.md plus scope-slices.md now; the PRD comes after this scope-slices handoff.",
+      "fails": "Ties the learning goal to the renewals"
+    }
   },
   {
     "skill": "pm-prioritization-regua-comum",

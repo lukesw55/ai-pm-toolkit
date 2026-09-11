@@ -34,6 +34,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-11 Strict probe, explicit configuration checks, immutable probes bound to validation
 - 2026-09-11 Codex results need a completed turn; one directory per attempt
 - 2026-09-11 Org bootstrap confines the destination before writing
+- 2026-09-11 Round 3 closing: review section and recounts
 
 ## 2026-09-08: session log
 
@@ -177,4 +178,8 @@ Round 3 of PR #21, finding 4: parse_codex_jsonl accepts a stream only when its t
 ## 2026-09-11: Org bootstrap confines the destination before writing
 
 Round 3 of PR #21, finding 5: init_context.py --org checks confinement before creating anything: when .ai/memory or .ai/memory/org is, or sits behind, a symlink, it exits 1 and writes nothing (the old guard only resolved the path once org/ existed, so a symlinked ancestor let the four files land outside the repository). Regression relocates .ai/memory behind a symlink and requires exit 1 with nothing created outside. MEMORY_SYSTEM states the rule. Validation: test_context_scripts 12, full REPO_HEALTH battery green.
+
+## 2026-09-11: Round 3 closing: review section and recounts
+
+Round 3 of PR #21 closed: backlog gained the 'Revisão do head 23fd183' section mapping the five reproduced findings to commits dad9608, 994632b, d917af4, 9d955e2 and a4d009c, with the counts recounted (runner 15, labels 13, context 12, 24 punctuation variants); tasks updated. The five reproductions were re-run on the fixed tree and none reproduces. Validation: validate_repo both parsers, doctor, git diff --check.
 

@@ -434,48 +434,6 @@ fixture(
 )
 
 
-# -- B12: orphan solution is refused a one-pager (functional-adversarial) ---
-fixture(
-    "orphan-solution-refused-scores-well",
-    "pm-phase-define",
-    "refuse-orphan-solution-in-one-pager",
-    """
-    The Slack approval bot is an orphan solution: it has no parent
-    opportunity in the tree. O1 (approvers miss requests buried in email,
-    11/14) already has O1-S1 email digest and O1-S2 in-app inbox, and
-    nothing in the synthesis puts approvers in Slack. The two Slack
-    mentions come from admins, not approvers, and one prospect's demo
-    request is one account: an anecdote (evidence strength 1), not
-    validated demand.
-
-    I will not write a one-pager for it as it stands. Two ways to keep
-    Friday: attach the bot to O1 as O1-S3 and map "approvers act on Slack
-    messages within the day" as an unverified desirability assumption,
-    then run the smallest test first (a fake-door in the demo environment
-    or five approver interviews this week). If a one-pager must exist by
-    Friday, it carries that assumption as an open row with you as the
-    named owner accepting the risk, the rationale (the 600k renewal), a
-    reconsideration date after the interviews, and confidence marked low.
-    """,
-    1.0, 1.0,
-)
-
-fixture(
-    "orphan-solution-accepted-scores-poorly",
-    "pm-phase-define",
-    "refuse-orphan-solution-in-one-pager",
-    """
-    Sure, I'll skip the tree and write the one-pager for the Slack
-    approval bot now. Problem: approvers miss requests and 38% of
-    requests miss the SLA. Proposed direction: a Slack bot that posts
-    each request with approve and reject buttons. Expected impact: median
-    approval time drops to 1.5 days, confidence high because the prospect
-    (ARR 600k) asked for it and legal is fine. Ask: approve for build on
-    Friday.
-    """,
-    0.0, 0.34,
-)
-
 # -- B12: the tree is built from the synthesis evidence only (standard) ----
 fixture(
     "opportunity-tree-grounded-in-evidence-scores-well",
@@ -510,39 +468,6 @@ fixture(
     Riskiest first: A1 (risk 15) is tested first through E1; A2 follows (risk 10).
     """,
     0.8, 1.0,
-)
-
-# -- Stage 5: select from validated evidence, then slice before the PRD --------
-fixture(
-    "validated-bet-is-selected-and-sliced",
-    "pm-phase-define",
-    "select-validated-bet-and-slice-v1",
-    """
-    Selection record: the already funded audit-export bet stays selected from
-    its validated One Pager: 12 enterprise accounts need self-serve audit
-    evidence and three renewals are at risk. Do not rerun problem prioritisation.
-
-    V1, within three weeks: CSV export over the existing 90-day data. Learning
-    goal: prove that admins can self-serve audit evidence and unblock the three
-    renewals. Later slices: filters, a searchable one-year log, API access and
-    scheduled delivery. Non-goals for V1: API, scheduling, custom filters and
-    one-year retention. Reconsider those only after V1 evidence.
-
-    Produce priorities.md plus scope-slices.md now; the PRD comes after this
-    scope-slices handoff.
-    """,
-    1.0, 1.0,
-)
-fixture(
-    "validated-bet-is-rescored-and-sent-whole-to-prd",
-    "pm-phase-define",
-    "select-validated-bet-and-slice-v1",
-    """
-    Rerun RICE against the original discovery backlog. Rank every problem from
-    zero, then put the complete one-year audit log, CSV, API, filters and
-    scheduled delivery into the PRD as one initiative.
-    """,
-    0.0, 0.34,
 )
 
 
