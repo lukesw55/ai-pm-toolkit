@@ -202,13 +202,13 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `context_paths.py` | shared slug validation and project path boundary used by every context writer |
 | `grade_evals.py` | grade eval runs with-skill vs baseline; join human labels and report the disagreement rate; emit benchmark JSON + HTML report |
 | `record_eval_run.py` | record one externally produced eval output with provenance (model, source, commit, hashes); never generates output |
-| `run_eval_pilot.py` | drive a harness CLI through the pilot: payloads from the dependency manifest, fresh directory per run, seeded order, provenance sidecar |
+| `run_eval_pilot.py` | drive a harness CLI through the pilot: payloads from the dependency manifest, fresh directory per run, seeded order, isolation probe, attempts log, provenance sidecar bound to the run's validation, verified-version gate |
 | `label_eval_run.py` | append a human verdict and classification to a recorded run, keyed by run identity and output hash; corrections supersede, history stays |
 | `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap, Copilot agent schema and repo policy |
 | `test_hooks.py` | synthetic payloads through the shared gates, the Codex `apply_patch` adapter, and the soft session-close reminder |
 | `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low |
 | `test_record_eval_run.py` | the eval recorder refuses missing provenance, changed output and overwrites; renders the HTML report from a recorded pair |
-| `test_run_eval_pilot.py` | the pilot runner against a fake harness: recorded runs, provenance, seeded order, refusals |
+| `test_run_eval_pilot.py` | the pilot runner against a fake harness: recorded runs, provenance, seeded order, probe, attempts, version gate, refusals (code paths, not CLI compatibility) |
 | `test_label_eval_run.py` | the label file, run identity and hash binding, supersede and split rules, the grader's two disagreement rates and the investigate flag |
 | `test_context_scripts.py` | slug traversal, symlink escapes, idempotent bootstrap, the org layer, project switching, legacy migration and the preflight version check |
 | `test_hook_contract.py` | malformed Codex envelopes block with exit 2; adapter routes match `hooks/contract.json`; the configured write commands really block a marker |

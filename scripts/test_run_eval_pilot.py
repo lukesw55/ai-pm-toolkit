@@ -20,7 +20,10 @@ if "--version" in sys.argv:
     print("fake 0.0"); sys.exit(0)
 payload = sys.stdin.read()
 last = payload.rstrip().splitlines()[-1] if payload.strip() else ""
-text = "" if os.environ.get("FAKE_EMPTY") else "Deterministic fake answer for: " + last[:60]
+if payload.startswith("Reply with exactly two lines"):
+    text = "TOOLS: Bash, Read\nINSTRUCTIONS: a CLAUDE.md was loaded" if os.environ.get("FAKE_UNISOLATED") else "TOOLS: none\nINSTRUCTIONS: none"
+else:
+    text = "" if os.environ.get("FAKE_EMPTY") else "Deterministic fake answer for: " + last[:60]
 if os.environ.get("FAKE_FORMAT") == "codex":
     events = [{"type": "thread.started", "thread_id": "fake-thread"},
               {"type": "item.completed", "item": {"type": "agent_message", "text": text}},
@@ -46,7 +49,9 @@ class PilotRunnerTests(unittest.TestCase):
             shutil.copytree(rp.ROOT / 'skills' / skill, self.root / 'skills' / skill, ignore=shutil.ignore_patterns('workspace', '__pycache__'))
         shutil.copy(rp.ROOT / 'skills/DOCTRINE.md', self.root / 'skills/DOCTRINE.md')
         (self.root / 'docs/benchmarks').mkdir(parents=True)
-        shutil.copy(rp.ROOT / 'docs/benchmarks/pilot-deps.json', self.root / 'docs/benchmarks/pilot-deps.json')
+        manifest = json.loads((rp.ROOT / 'docs/benchmarks/pilot-deps.json').read_text(encoding='utf-8'))
+        manifest['verified_harness_versions'] = {'claude-code': ['fake 0.0'], 'codex': ['fake 0.0']}
+        (self.root / 'docs/benchmarks/pilot-deps.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)
         subprocess.run(['git', '-C', str(self.root), 'add', '-A'], check=True)
         subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
@@ -55,10 +60,21 @@ class PilotRunnerTests(unittest.TestCase):
         self.args = argparse.Namespace(harness='claude-code', iteration='iteration-fake', model='fake-model-1', seed=7,
                                        harness_cmd=self.template, deps='docs/benchmarks/pilot-deps.json', skill=None, eval=None,
                                        dry_run=False, skip_recorded=False, allow_dirty=False, timeout=60,
-                                       work_dir=str(Path(self.tmp.name) / 'work'))
+                                       work_dir=str(Path(self.tmp.name) / 'work'),
+                                       skip_probe=False, allow_unisolated=False, allow_unverified=False)
 
     def metas(self):
         return sorted(self.root.glob('skills/*/workspace/iteration-fake/eval-*/*/meta.json'))
+
+    def attempts(self):
+        path = rp.attempts_path(self.root, 'iteration-fake')
+        return [json.loads(l) for l in path.read_text().splitlines() if l.strip()] if path.exists() else []
+
+    def unlist_version(self):
+        path = self.root / 'docs/benchmarks/pilot-deps.json'
+        manifest = json.loads(path.read_text()); manifest['verified_harness_versions'] = {'claude-code': [], 'codex': []}
+        path.write_text(json.dumps(manifest, indent=2) + '\n')
+        subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qam', 'unlist'], check=True)
 
     def test_records_every_pilot_run_with_provenance(self):
         recorded = rp.run_pilot(self.args, self.root)
@@ -71,7 +87,10 @@ class PilotRunnerTests(unittest.TestCase):
             self.assertTrue(meta['source'].startswith('claude-code session fake-')); self.assertEqual(meta['total_tokens'], 15)
             self.assertEqual(prov['seed'], 7); self.assertEqual(prov['model_source'], 'harness'); self.assertEqual(prov['harness_version'], 'fake 0.0')
             self.assertEqual(sorted(prov['config_order']), ['with_skill', 'without_skill'])
+            self.assertEqual(prov['output_sha256'], meta['output_sha256']); self.assertEqual(prov['schema'], rp.PROVENANCE_SCHEMA)
+            self.assertTrue(prov['isolation_probe']['isolated']); self.assertEqual(prov['isolation_probe']['path'], 'docs/benchmarks/iteration-fake/isolation-probe.json')
             spec = rr.eval_spec(self.root, meta['skill'], meta['eval_name'])
+            self.assertEqual(rr.validate_run(meta_path.parent, meta['skill'], spec, meta['config'])['output_sha256'], meta['output_sha256'])
             if meta['config'] == 'with_skill':
                 self.assertEqual(prov['loaded_files'][0]['path'], f"skills/{meta['skill']}/SKILL.md")
                 for entry in prov['loaded_files']:
@@ -83,6 +102,11 @@ class PilotRunnerTests(unittest.TestCase):
             runs = ge.grade_all('iteration-fake')
             benchmark = ge.aggregate_benchmark(runs, 'iteration-fake')
         self.assertEqual(benchmark['overall']['n_evals'], expected // 2)
+        probe = json.loads(rp.probe_path(self.root, 'iteration-fake').read_text())
+        self.assertTrue(probe['isolated']); self.assertEqual(probe['tools'], 'none'); self.assertEqual(probe['harness_version'], 'fake 0.0')
+        attempts = self.attempts()
+        self.assertEqual(len(attempts), expected); self.assertEqual({a['status'] for a in attempts}, {'recorded'})
+        self.assertTrue(all(a['output_sha256'] and a['stdout_sha256'] and a['when'] for a in attempts))
 
     def test_config_order_is_seeded(self):
         deps = rp.load_deps(self.root, Path(self.args.deps)); evals = rp.pilot_evals(self.root, deps)
@@ -95,6 +119,45 @@ class PilotRunnerTests(unittest.TestCase):
         with patch.dict(os.environ, {'FAKE_EMPTY': '1'}):
             with self.assertRaisesRegex(ValueError, 'empty'): rp.run_pilot(self.args, self.root)
         self.assertEqual(self.metas(), [])
+        attempts = self.attempts()
+        self.assertEqual(len(attempts), 1); self.assertEqual(attempts[0]['status'], 'failed'); self.assertIn('empty', attempts[0]['error'])
+        self.assertTrue((Path(attempts[0]['cwd']) / 'harness_stdout.txt').exists()); self.assertTrue((Path(attempts[0]['cwd']) / 'harness_stderr.txt').exists())
+
+    def test_isolation_probe_fails_closed(self):
+        with patch.dict(os.environ, {'FAKE_UNISOLATED': '1'}):
+            with self.assertRaisesRegex(ValueError, 'isolation probe'): rp.run_pilot(self.args, self.root)
+            self.assertEqual(self.metas(), []); self.assertEqual(self.attempts(), [])
+            probe = json.loads(rp.probe_path(self.root, 'iteration-fake').read_text())
+            self.assertFalse(probe['isolated']); self.assertEqual(probe['tools'], 'Bash, Read')
+            self.args.allow_unisolated = True; self.args.skill = self.skills[2]
+            recorded = rp.run_pilot(self.args, self.root)
+        self.assertTrue(recorded)
+        prov = json.loads((recorded[0] / 'provenance.json').read_text()); self.assertFalse(prov['isolation_probe']['isolated'])
+        self.assertEqual(rp.parse_probe('TOOLS: none.\nINSTRUCTIONS: None')['isolated'], True)
+        self.assertEqual(rp.parse_probe('I have no tools.')['isolated'], False)
+
+    def test_unverified_version_refused_unless_smoke(self):
+        self.unlist_version()
+        with self.assertRaisesRegex(ValueError, 'verified_harness_versions'): rp.run_pilot(self.args, self.root)
+        self.assertEqual(self.metas(), [])
+        skill = self.skills[2]; name = json.loads((self.root / 'skills' / skill / 'evals/evals.json').read_text())['evals'][0]['name']
+        self.args.skill = skill; self.args.eval = name
+        self.assertEqual(len(rp.run_pilot(self.args, self.root)), 2)
+        self.args.eval = None; self.args.skip_recorded = True; self.args.allow_unverified = True
+        self.assertTrue(rp.run_pilot(self.args, self.root))
+
+    def test_sidecar_is_bound_to_validation(self):
+        self.args.skill = self.skills[2]
+        recorded = rp.run_pilot(self.args, self.root)
+        target = next(t for t in recorded if t.name == 'with_skill')
+        meta = json.loads((target / 'meta.json').read_text()); spec = rr.eval_spec(self.root, meta['skill'], meta['eval_name'])
+        rr.validate_run(target, meta['skill'], spec, 'with_skill')
+        sidecar = target / 'provenance.json'; original = sidecar.read_text()
+        for field, value, message in (('output_sha256', 'a' * 64, 'output_sha256'), ('payload', 'edited payload', 'payload_sha256'), ('loaded_files', [], 'SKILL.md')):
+            prov = json.loads(original); prov[field] = value; sidecar.write_text(json.dumps(prov))
+            with self.subTest(field=field), self.assertRaisesRegex(ValueError, message): rr.validate_run(target, meta['skill'], spec, 'with_skill')
+        sidecar.write_text(original)
+        rr.validate_run(target, meta['skill'], spec, 'with_skill')
 
     def test_refuses_mixed_harness_before_running(self):
         output = self.root / 'seed.md'; output.write_text('Synthetic pipeline fixture; not model evidence.')
@@ -123,6 +186,7 @@ class PilotRunnerTests(unittest.TestCase):
         self.assertEqual(rp.run_pilot(self.args, self.root), [])
         self.assertEqual(list(self.root.glob('skills/*/workspace')), [])
         self.assertFalse((Path(self.tmp.name) / 'work').exists())
+        self.assertFalse(rp.attempts_path(self.root, 'iteration-fake').exists()); self.assertFalse(rp.probe_path(self.root, 'iteration-fake').exists())
 
     def test_codex_event_stream_parsed(self):
         skill = self.skills[1]; name = json.loads((self.root / 'skills' / skill / 'evals/evals.json').read_text())['evals'][0]['name']

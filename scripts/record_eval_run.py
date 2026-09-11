@@ -52,6 +52,27 @@ def validate_run(directory, skill, spec, config):
             raise ValueError(f'{key} must be a nonnegative integer or null')
     if not output.decode('utf-8').strip():
         raise ValueError('output must be nonempty UTF-8')
+    sidecar = directory/'provenance.json'
+    if sidecar.exists():
+        # The runner's sidecar is evidence only while it describes this run: same output,
+        # a payload that hashes to what it claims, and the SKILL.md the meta names.
+        prov = json.loads(sidecar.read_text(encoding='utf-8'))
+        if not isinstance(prov, dict):
+            raise ValueError('provenance sidecar must be an object')
+        if prov.get('output_sha256') != meta['output_sha256']:
+            raise ValueError('provenance sidecar mismatch: output_sha256')
+        payload = prov.get('payload')
+        if not isinstance(payload, str) or digest(payload.encode('utf-8')) != prov.get('payload_sha256'):
+            raise ValueError('provenance sidecar mismatch: payload_sha256')
+        loaded = prov.get('loaded_files')
+        if not isinstance(loaded, list):
+            raise ValueError('provenance sidecar mismatch: loaded_files')
+        if config == 'with_skill':
+            first = loaded[0] if loaded and isinstance(loaded[0], dict) else {}
+            if first.get('path') != f'skills/{skill}/SKILL.md' or first.get('sha256') != meta['skill_sha256']:
+                raise ValueError('provenance sidecar mismatch: loaded SKILL.md')
+        elif loaded:
+            raise ValueError('provenance sidecar mismatch: without_skill lists loaded files')
     return meta
 
 

@@ -11,6 +11,20 @@ sidecar next to each meta.json keeps argv, harness version, seed, config order,
 loaded files and the raw envelope. Nothing here fabricates an output: an empty
 result, a failed process, a dirty tree or a mixed iteration stops the run.
 
+What the pilot measures: the effect of an instruction bundle (SKILL.md plus the listed
+references) on one response to a fixed prompt, with no tools, no project memory and no
+hooks. It does not measure the toolkit at runtime: routing, progressive loading, hooks,
+memory and MCP stay out of scope. with_skill is compared against without_skill inside
+one harness; two harnesses running different models differ by model, never by harness.
+
+Three guards make the measurement auditable. An isolation probe runs first and records
+what the harness reports as available tools and loaded instructions; anything but
+"none" stops the run unless --allow-unisolated. Every harness invocation, recorded or
+failed, appends one line to docs/benchmarks/<iteration>/attempts.jsonl, so failures
+are never dropped from the record. The harness version must be listed under
+verified_harness_versions in the dependency manifest, which happens only after a smoke
+run (--eval) has parsed that version's envelope; until then a full run is refused.
+
 Usage:
     python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-claude-1 --model <model> --dry-run
     python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-claude-1 --model <model> --seed 7
@@ -20,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+from datetime import datetime
 import hashlib
 import json
 import os
@@ -29,6 +44,7 @@ import re
 import secrets
 import shlex
 import subprocess
+import sys
 import tempfile
 import types
 
@@ -47,6 +63,12 @@ DEFAULT_CMDS = {
 }
 PREAMBLE = ("The files below are the skill and its references, loaded for this task. "
             "Apply them. The task follows the last file.")
+PROBE_PROMPT = ("Reply with exactly two lines and nothing else.\n"
+                "TOOLS: <comma-separated names of the tools you can call in this session, or none>\n"
+                "INSTRUCTIONS: <one line naming any project, user or system instructions you were given "
+                "before this message, or none>")
+PROBE_SCHEMA = 1
+PROVENANCE_SCHEMA = 2
 CLAUDE_TOKEN_FIELDS = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 CODEX_TOKEN_FIELDS = ("input_tokens", "cached_input_tokens", "output_tokens")
 
@@ -66,7 +88,7 @@ def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def load_deps(root: Path, path: Path) -> dict[str, list[str]]:
+def load_manifest(root: Path, path: Path) -> dict:
     data = json.loads((root / path).read_text(encoding="utf-8"))
     if not isinstance(data, dict) or data.get("schema") != 1 or not isinstance(data.get("skills"), dict):
         raise ValueError(f"{path}: expected {{\"schema\": 1, \"skills\": {{...}}}}")
@@ -76,7 +98,21 @@ def load_deps(root: Path, path: Path) -> dict[str, list[str]]:
         for rel in (f"skills/{skill}/SKILL.md", *files):
             if not (root / rel).is_file():
                 raise ValueError(f"{path}: {rel} does not exist")
-    return data["skills"]
+    versions = data.get("verified_harness_versions", {})
+    if not isinstance(versions, dict) or any(h not in HARNESSES or not isinstance(v, list) or not all(isinstance(s, str) for s in v)
+                                             for h, v in versions.items()):
+        raise ValueError(f"{path}: verified_harness_versions must map a harness to a list of version strings")
+    return data
+
+
+def load_deps(root: Path, path: Path) -> dict[str, list[str]]:
+    return load_manifest(root, path)["skills"]
+
+
+def verified_versions(root: Path, path: Path, harness: str) -> list[str]:
+    """Versions whose flags and result envelope a smoke run on a pilot machine has parsed.
+    The list starts empty for every harness; the runbook says when to add one."""
+    return list(load_manifest(root, path).get("verified_harness_versions", {}).get(harness, []))
 
 
 def pilot_evals(root: Path, deps: dict[str, list[str]], only_skill: str | None = None,
@@ -142,16 +178,79 @@ def harness_version(argv: list[str]) -> str | None:
     return out.splitlines()[0] if out else None
 
 
+def _keep(cwd: Path, name: str, data) -> None:
+    if isinstance(data, bytes):
+        data = data.decode("utf-8", errors="replace")
+    (cwd / name).write_text(data or "", encoding="utf-8")
+
+
 def run_harness(argv: list[str], payload: str, cwd: Path, timeout: int) -> str:
+    """Run the harness once. stdout and stderr are kept in the run directory whether the
+    process succeeded or not, so a failed attempt leaves the same evidence as a recorded one."""
     try:
         res = subprocess.run(argv, input=payload, cwd=cwd, text=True, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as exc:
+        _keep(cwd, "harness_stdout.txt", exc.stdout)
+        _keep(cwd, "harness_stderr.txt", exc.stderr)
         raise RuntimeError(f"harness timed out after {timeout}s in {cwd}") from exc
     except OSError as exc:
         raise RuntimeError(f"cannot start harness {argv[0]!r}: {exc}") from exc
+    _keep(cwd, "harness_stdout.txt", res.stdout)
+    _keep(cwd, "harness_stderr.txt", res.stderr)
     if res.returncode != 0:
         raise RuntimeError(f"harness exited {res.returncode} in {cwd}: {res.stderr.strip()[-2000:]}")
     return res.stdout
+
+
+def attempts_path(root: Path, iteration: str) -> Path:
+    return root / "docs" / "benchmarks" / iteration / "attempts.jsonl"
+
+
+def log_attempt(root: Path, iteration: str, record: dict) -> None:
+    """One line per harness invocation, recorded or failed, appended before anything else
+    is decided about the result. The file is tracked so the report can state attempts
+    against recorded runs; a pilot that hides its failures is not a pilot."""
+    path = attempts_path(root, iteration)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"when": datetime.now().astimezone().isoformat(), **record}, sort_keys=True) + "\n")
+
+
+def probe_path(root: Path, iteration: str) -> Path:
+    return root / "docs" / "benchmarks" / iteration / "isolation-probe.json"
+
+
+def parse_probe(text: str) -> dict:
+    """Two lines, TOOLS and INSTRUCTIONS; isolated only when both say none. An answer in
+    any other shape counts as not isolated: the probe fails closed."""
+    fields = {}
+    for line in text.splitlines():
+        m = re.match(r"\s*(tools|instructions)\s*:\s*(.*)$", line, re.IGNORECASE)
+        if m and m.group(1).lower() not in fields:
+            fields[m.group(1).lower()] = m.group(2).strip().strip(".").strip("`'\"").strip()
+    isolated = set(fields) == {"tools", "instructions"} and all(v.lower() in ("none", "none.", "nothing") for v in fields.values())
+    return {"tools": fields.get("tools"), "instructions": fields.get("instructions"), "isolated": isolated}
+
+
+def probe_isolation(root: Path, args, template: str, work_dir: Path, version: str | None) -> dict:
+    """Ask the harness, through the same argv the runs use, what it can call and what it
+    was told before the prompt. The answer is kept in docs/benchmarks/<iteration>/ and
+    referenced from every provenance sidecar of the iteration."""
+    cwd = work_dir / "isolation-probe"
+    cwd.mkdir(parents=True, exist_ok=True)
+    prompt_file = cwd / "prompt.md"
+    prompt_file.write_text(PROBE_PROMPT, encoding="utf-8")
+    output_file = cwd / "last_message.md"
+    argv = harness_argv(template, model=args.model, cwd=str(cwd), prompt_file=str(prompt_file), output_file=str(output_file))
+    raw = run_harness(argv, PROBE_PROMPT, cwd, args.timeout)
+    result = parse_claude_json(raw, args.model) if args.harness == "claude-code" else parse_codex_jsonl(raw, output_file, args.model)
+    probe = {"schema": PROBE_SCHEMA, "harness": args.harness, "harness_version": version, "model": result.model,
+             "argv": argv, "prompt": PROBE_PROMPT, "text": result.text, **parse_probe(result.text),
+             "checked_at": datetime.now().astimezone().isoformat(), "harness_result": result.raw}
+    path = probe_path(root, args.iteration)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(probe, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+    return {"path": path.relative_to(root).as_posix(), "sha256": sha256_bytes(path.read_bytes()), "isolated": probe["isolated"]}
 
 
 def parse_claude_json(raw: str, model_flag: str) -> HarnessResult:
@@ -234,7 +333,7 @@ def run_target(root: Path, iteration: str, entry: dict, config: str) -> Path:
 
 def record_result(root: Path, args, entry: dict, config: str, result: HarnessResult, payload: str,
                   loaded: list[dict], order: list[str], argv: list[str], version: str | None,
-                  seed: int, cwd: Path) -> Path:
+                  seed: int, cwd: Path, probe: dict | None = None) -> Path:
     import record_eval_run as rr
     output = cwd / "output.md"
     output.write_text(result.text, encoding="utf-8")
@@ -245,11 +344,12 @@ def record_result(root: Path, args, entry: dict, config: str, result: HarnessRes
         output=output, tokens=result.total_tokens, duration_ms=result.duration_ms)
     target = rr.record(namespace, root)
     provenance = {
-        "schema": 1, "runner": "scripts/run_eval_pilot.py", "harness": args.harness,
+        "schema": PROVENANCE_SCHEMA, "runner": "scripts/run_eval_pilot.py", "harness": args.harness,
         "harness_version": version, "argv": argv, "cwd": str(cwd), "seed": seed,
         "config_order": order, "model_source": result.model_source,
         "payload_sha256": sha256_bytes(payload.encode("utf-8")), "payload": payload,
-        "loaded_files": loaded, "harness_result": result.raw,
+        "output_sha256": sha256_bytes(result.text.encode("utf-8")),
+        "loaded_files": loaded, "isolation_probe": probe, "harness_result": result.raw,
     }
     (target / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
                                             encoding="utf-8")
@@ -299,6 +399,21 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
     work_dir = Path(args.work_dir) if args.work_dir else Path(tempfile.mkdtemp(prefix="pilot-"))
     work_dir.mkdir(parents=True, exist_ok=True)
     version = harness_version(harness_argv(template, model=args.model, cwd="", prompt_file="", output_file=""))
+    if version not in verified_versions(root, deps_path, args.harness):
+        message = (f"harness version {version!r} is not listed under verified_harness_versions for {args.harness} in "
+                   f"{deps_path}; run one --eval smoke, confirm the envelope parsed, then add the version")
+        if not (args.eval or getattr(args, "allow_unverified", False)):
+            raise ValueError(message)
+        print(f"WARN {message}", file=sys.stderr)
+    probe = None
+    if not getattr(args, "skip_probe", False):
+        probe = probe_isolation(root, args, template, work_dir, version)
+        if not probe["isolated"]:
+            message = (f"isolation probe reports tools or instructions in the harness session; see {probe['path']}. "
+                       "Fix the isolation (flags, CODEX_HOME, working directory) or pass --allow-unisolated to record anyway")
+            if not getattr(args, "allow_unisolated", False):
+                raise ValueError(message)
+            print(f"WARN {message}", file=sys.stderr)
     recorded = []
     for entry, config, order in planned:
         cwd = work_dir / f"{entry['skill']}-{entry['id']}-{config}"
@@ -308,17 +423,27 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
         prompt_file.write_text(payload, encoding="utf-8")
         output_file = cwd / "last_message.md"
         argv = harness_argv(template, model=args.model, cwd=str(cwd), prompt_file=str(prompt_file), output_file=str(output_file))
-        raw = run_harness(argv, payload, cwd, args.timeout)
-        (cwd / "harness_stdout.txt").write_text(raw, encoding="utf-8")
-        result = parse_claude_json(raw, args.model) if args.harness == "claude-code" else parse_codex_jsonl(raw, output_file, args.model)
-        if identity is None:
-            identity = (args.harness, result.model)
-        elif result.model != identity[1]:
-            raise ValueError(f"model changed inside the iteration: {identity[1]} then {result.model}; stop and use a new iteration")
-        target = record_result(root, args, entry, config, result, payload, loaded, order, argv, version, seed, cwd)
+        attempt = {"harness": args.harness, "skill": entry["skill"], "eval_id": entry["id"], "eval_name": entry["name"],
+                   "config": config, "seed": seed, "cwd": str(cwd), "harness_version": version}
+        try:
+            raw = run_harness(argv, payload, cwd, args.timeout)
+            result = parse_claude_json(raw, args.model) if args.harness == "claude-code" else parse_codex_jsonl(raw, output_file, args.model)
+            if identity is None:
+                identity = (args.harness, result.model)
+            elif result.model != identity[1]:
+                raise ValueError(f"model changed inside the iteration: {identity[1]} then {result.model}; stop and use a new iteration")
+            target = record_result(root, args, entry, config, result, payload, loaded, order, argv, version, seed, cwd, probe)
+        except (RuntimeError, ValueError, OSError, KeyError, json.JSONDecodeError) as exc:
+            stdout = cwd / "harness_stdout.txt"
+            log_attempt(root, args.iteration, {**attempt, "status": "failed", "error": str(exc)[:500],
+                                                "stdout_sha256": sha256_bytes(stdout.read_bytes()) if stdout.exists() else None})
+            raise
+        log_attempt(root, args.iteration, {**attempt, "status": "recorded", "error": None, "model": result.model,
+                                            "stdout_sha256": sha256_bytes((cwd / "harness_stdout.txt").read_bytes()),
+                                            "output_sha256": sha256_bytes(result.text.encode("utf-8"))})
         recorded.append(target)
         print(f"recorded {target.relative_to(root).as_posix()} model={result.model} tokens={result.total_tokens}")
-    print(f"seed={seed}; {len(recorded)} run(s) recorded in {args.iteration}")
+    print(f"seed={seed}; {len(recorded)} run(s) recorded in {args.iteration}; attempts in {attempts_path(root, args.iteration).relative_to(root).as_posix()}")
     return recorded
 
 
@@ -336,6 +461,9 @@ def main():
     p.add_argument("--skip-recorded", action="store_true", help="resume an interrupted iteration; recorded runs are skipped, never overwritten")
     p.add_argument("--allow-dirty", action="store_true", help="run with uncommitted changes under skills/ (the recorded commit will not describe the payload)")
     p.add_argument("--timeout", type=int, default=900, help="seconds per harness run")
+    p.add_argument("--skip-probe", action="store_true", help="do not run the isolation probe first (the provenance records the gap)")
+    p.add_argument("--allow-unisolated", action="store_true", help="record even when the probe reports tools or instructions in the session")
+    p.add_argument("--allow-unverified", action="store_true", help="run a full iteration on a harness version not yet listed in verified_harness_versions")
     p.add_argument("--work-dir", help="parent directory for the per-run working directories; a fresh temporary directory outside the repo by default")
     args = p.parse_args()
     try:

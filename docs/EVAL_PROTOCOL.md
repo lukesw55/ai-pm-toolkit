@@ -23,6 +23,20 @@ Use identical tool access in both configurations and record any unavoidable
 harness differences. Randomize which configuration runs first. A paired single
 run is a smoke pilot, not a statistical estimate of general effectiveness.
 
+## What the pilot measures
+
+The runner injects the skill and its references into the prompt, disables tools and runs in an
+empty directory outside the repository. What it measures is therefore the effect of an
+instruction bundle on one response to a fixed prompt, and only that. It does not measure the
+toolkit at runtime: routing to the right skill, progressive loading, hooks, memory and MCP
+connectors stay outside the pilot, and a result here says nothing about them. Comparisons are
+paired inside one harness (with_skill against without_skill on the same model, commit and
+prompt); two harnesses running different models differ by model, and no difference between
+their iterations may be attributed to the harness. A fake-harness test suite validates the
+runner's code paths, not compatibility with the real CLIs; compatibility for a given version is
+established by the smoke run below and recorded in `verified_harness_versions` in
+`docs/benchmarks/pilot-deps.json`.
+
 ## Run the pilot with the runner
 
 `scripts/run_eval_pilot.py` drives one harness through the whole pilot and records every
@@ -35,8 +49,19 @@ in a fresh empty directory outside the repository with the payload on stdin, ran
 configuration runs first per eval from a seed it prints, and hands the text to
 `scripts/record_eval_run.py` with the model, session and timing the harness itself reported.
 A `provenance.json` beside each `meta.json` keeps argv, harness version, seed, order, loaded
-files with hashes and the raw envelope. An empty result, a failed process, a dirty tree under
-`skills/`, a mixed iteration or an already-recorded run stops it; nothing is fabricated.
+files with hashes, the raw envelope and the output hash the recorder wrote, and `validate_run`
+checks the sidecar against the run (same output hash, a payload that hashes to what it claims,
+the SKILL.md the meta names), so a sidecar that describes another run fails grading and
+labelling. Three guards precede the runs: the harness version must be listed under
+`verified_harness_versions` in the manifest, which only a parsed `--eval` smoke run earns; an
+isolation probe asks the harness, through the same argv, what tools it can call and what
+instructions it was given, writes the answer to `docs/benchmarks/<iteration>/isolation-probe.json`
+and stops unless both answers are "none" (`--allow-unisolated` records anyway and the sidecar
+carries the probe result); and every invocation, recorded or failed, appends one line to
+`docs/benchmarks/<iteration>/attempts.jsonl` with its status, error and stdout hash, while
+`harness_stdout.txt` and `harness_stderr.txt` stay in the run directory either way. An empty
+result, a failed process, a dirty tree under `skills/`, a mixed iteration or an already-recorded
+run stops it; nothing is fabricated and no failure disappears from the record.
 
 ```bash
 python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-claude-1 --model <model> --dry-run
@@ -47,7 +72,10 @@ python3 scripts/run_eval_pilot.py --harness codex --iteration iteration-codex-1 
 
 Order of work on the pilot machine: `--dry-run` to see the thirty planned runs and the argv;
 one `--eval` smoke run to confirm the harness envelope has the shape the parser expects
-(session id, model, usage); the full iteration; then grading. `--skip-recorded` resumes an
+(session id, model, usage) and that the isolation probe reports "none" twice; add the version
+the runner printed to `verified_harness_versions` in the manifest and commit it; the full
+iteration; then grading. Until the version is listed, a full iteration is refused
+(`--allow-unverified` overrides and the sidecar shows the unlisted version). `--skip-recorded` resumes an
 interrupted iteration without overwriting anything. Total tokens are the sum of input, output,
 cache-creation and cache-read tokens for Claude Code, and input, cached-input and output tokens
 for Codex; the recorded model is the one the envelope names, never an inferred alias.
@@ -143,7 +171,9 @@ per skill and overall; superseded labels are counted, and labels whose run is no
 machine are counted and warned about, never an error.
 
 Commit a concise report under docs/benchmarks with run date, exact commit and
-model, loaded dependencies, number of complete pairs, per-skill pass rates for
+model, harness version and the isolation probe result, attempts against recorded runs
+(from `attempts.jsonl`; a report that counts only the recorded runs is incomplete),
+loaded dependencies, number of complete pairs, per-skill pass rates for
 each configuration and harness, paired delta, labelled runs with the human and grader
 disagreement rates per skill and overall, split runs, the `investigate_grader` flag and,
 from the second iteration on, the comparison against the previous iteration's rate (that
@@ -161,7 +191,16 @@ then `scripts/grade_evals.py --iteration <iteration>`; keep `benchmark_all.json`
 `eval-report.html` for one harness before grading the other, because both live at the repo
 root and are replaced. Never mix harnesses or models in one iteration; start a new one.
 
-Claude Code (flags confirmed in `claude -p --help` 2.1.267): the default template is
+Isolation checklist, verified by the probe and recorded in the sidecar: no tool available to
+the model (`TOOLS: none`), no project, user or system instruction loaded before the prompt
+(`INSTRUCTIONS: none`), the working directory outside the repository and empty, no plugin or
+MCP server attached, the same flags for both configurations. A probe that names a tool or an
+instruction means the isolation is broken for that harness on that machine; fix the flags or
+the environment before recording, and never compare a run recorded under a broken probe with
+one recorded under a clean one.
+
+Claude Code (flags confirmed in `claude -p --help` 2.1.267; the envelope is not confirmed until
+the smoke run parses it, so 2.1.267 is not yet listed as verified): the default template is
 `claude -p --output-format json --model <model> --safe-mode --strict-mcp-config --tools ""
 --permission-prompts none`. `--safe-mode` disables CLAUDE.md, skills, plugins, hooks, MCP
 servers, custom commands and agents while keeping authentication and model selection, which is

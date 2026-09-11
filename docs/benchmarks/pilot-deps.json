@@ -23,5 +23,9 @@
       "skills/pm-prioritization-regua-comum/references/templates.md",
       "skills/pm-prioritization-regua-comum/references/workshop.md"
     ]
+  },
+  "verified_harness_versions": {
+    "claude-code": [],
+    "codex": []
   }
 }
