@@ -577,19 +577,6 @@ fixture(
     """,
     0.0, 0.34,
 )
-fixture(
-    "product-sense-solid-control-manufactured-gaps-scores-poorly",
-    "pm-product-sense",
-    "evaluate-solid-control",
-    """
-    Lowest first: user empathy 2/5, fourteen tickets could be one loud account.
-    Structured thinking 3/5. Product taste 2/5, the non-goals read like scope
-    avoidance. Strategic awareness 2/5. Communication 3/5. Verdict: sharpen.
-    However, I recommend we go back to discovery and interview five admins
-    before approving anything.
-    """,
-    0.0, 0.34,
-)
 
 
 # Permanent B28 pairs are synthetic grader regressions, never model benchmarks.

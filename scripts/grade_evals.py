@@ -142,12 +142,14 @@ def no_manufactured_objection(window: int = 120):
 def all_named_scores_at_least(dimensions: list[str], minimum: int):
     """Require every named rubric dimension to carry an explicit score at
     or above the threshold. A single high score must not satisfy a claim that
-    the response scored strongly across all dimensions."""
+    the response scored strongly across all dimensions. The score must follow
+    the dimension name through a separator (colon, dash, bar, bracket, "scores",
+    "is"), so a list of names followed by numbers does not count."""
     patterns = []
     for name in dimensions:
         flexible_name = r"\s+".join(re.escape(part) for part in name.split())
         patterns.append(re.compile(
-            rf"{flexible_name}[\s\S]{{0,80}}?([1-5])\s*/\s*5",
+            rf"{flexible_name}\s*(?::|—|–|-|\||\(|scores?|at|is|gets|=)\s*([1-5])\s*/\s*5",
             re.IGNORECASE,
         ))
 
@@ -513,19 +515,20 @@ ASSERTIONS = {
             ("Cuts to an MVP with explicit scope and a success metric", hasr(r"mvp|in scope|out of scope|non.goal|success metric|measure success")),
         ],
         "evaluate-pet-feature": [
-            ("Scores user empathy low — no specific evidenced user/pain named", hasr(r"user empathy.*(?:1|2)\s*/\s*5|(?:1|2)\s*/\s*5.*user empathy")),
-            ("Scores product taste low — no MVP cut, unscoped feature bundle", hasr(r"product taste.*(?:1|2)\s*/\s*5|(?:1|2)\s*/\s*5.*product taste")),
-            ("Reports the lowest score first rather than leading with a strength", hasr(r"lowest.scoring|lowest score|weakest dimension")),
-            ("Verdict is sharpen or back-to-discovery, not proceed", hasr(r"sharpen|back.to.discovery")),
-            ("Does not simply endorse the pitch as a clean proceed", lambda t: not re.search(r"verdict:?\s*proceed", t)),
+            ("Lands on a non-proceed verdict with the reason", hasr(r"verdict:?[ \t]*(?:sharpen|back.to.discovery)|(?:sharpen|back.to.discovery)[^.\n;]{0,60}\b(?:under|because|given|since|as|rule)\b")),
+            ("Scores empathy low for the reason the rubric names", hasr(r"user empathy[^.\n;]{0,10}(?::|—|–|-|\||\(|scores?|at|is|gets|=)\s*[12]\s*/\s*5[^.\n;]{0,80}\b(?:no specific|no named|generic|not evidence|nobody|unnamed|no evidenced|no user|no pain|users will love)\b")),
+            ("Scores taste low for the reason the rubric names", hasr(r"product taste[^.\n;]{0,10}(?::|—|–|-|\||\(|scores?|at|is|gets|=)\s*[12]\s*/\s*5[^.\n;]{0,80}\b(?:no mvp|bundle|bundled|unscoped|no (?:rejected )?alternative|all four|everything at once|no cut)\b")),
+            ("Opens with the weakest dimension", lambda t: (lambda m: bool(m) and int(m.group(1)) <= 2)(re.search(r"(?:user empathy|product taste|structured thinking|strategic awareness|communication)[^.\n;]{0,10}(?::|—|–|-|\||\(|scores?|at|is|gets|=)\s*([1-5])\s*/\s*5", t)) and bool(re.search(r"lowest|weakest|first", t))),
+            ("Applies the low-score cap to the verdict", hasr(r"(?:≤ ?2|<= ?2|2 or (?:below|lower)|score of 2|a 2|any 2|below 3)[^.\n;]{0,60}\b(?:limits|caps|forces|means|blocks|sets|drives|decides|rules)\b[^.\n;]{0,40}verdict|verdict[^.\n;]{0,40}(?:≤ ?2|<= ?2|any 2|a 2|two or below)[^.\n;]{0,30}(?:limit|rule|cap)|(?:limit|rule|cap)[^.\n;]{0,30}\b(?:for|on) (?:a |any )?(?:≤ ?2|2s?|twos?)\b")),
+            ("Refuses enthusiasm as evidence", hasr(r"(?:ceo|enthusiasm|excitement|clear writing|fun|loved it|love it)[^.\n;]{0,60}\b(?:is|are|isn't|does not|doesn't|not|supplies|supply|counts?)\b[^.\n;]{0,30}(?:evidence|a user|substitute|research|data|demand)")),
+            ("Does not endorse the pitch as a clean proceed", lambda t: not re.search(r"verdict:?[ \t]*proceed|\bproceed\b(?:[.!]|\s*$)|approve (?:for|it for) build", t)),
         ],
         "evaluate-solid-control": [
-            ("Scores strongly across dimensions given the evidence", all_named_scores_at_least([
-                "user empathy", "structured thinking", "product taste",
-                "strategic awareness", "communication",
-            ], 4)),
-            ("Verdict is proceed", hasr(r"verdict:?\s*proceed|proceed\b")),
-            ("Does not manufacture a fabricated gap or unwarranted caveat", lambda t: no_manufactured_objection()(t) and not re.search(r"however,? (?:we|i) (?:recommend|suggest|would|should) (?:sharpen|go back)", t)),
+            ("Lands on proceed", hasr(r"verdict:?[ \t]*proceed")),
+            ("Scores strongly across dimensions given the evidence", all_named_scores_at_least(["user empathy", "structured thinking", "product taste", "strategic awareness", "communication"], 4)),
+            ("Ties at least one high score to what the artefact shows", hasr(r"[45]\s*/\s*5[\s\S]{0,120}?\b(?:identifies|names|cites|is backed|rests on|shows|with|has|comes with|ties|tied|because|since)\b[\s\S]{0,60}?\b(?:14 (?:support )?tickets|signed|rejected|scim|non.goals?|25 ?%|30 days|5.50 seat|one at a time|researched segment|quantified pain|success metric|evidenced pain|target user|team admins)\b")),
+            ("Opens with the lowest score, which is still high", lambda t: (lambda m: bool(m) and int(m.group(1)) >= 4)(re.search(r"(?:user empathy|product taste|structured thinking|strategic awareness|communication)[^.\n;]{0,10}(?::|—|–|-|\||\(|scores?|at|is|gets|=)\s*([1-5])\s*/\s*5", t)) and bool(re.search(r"lowest|weakest|first", t))),
+            ("Does not manufacture a fabricated gap or unwarranted caveat", lambda t: no_manufactured_objection()(t) and not re.search(r"however,? (?:we|i) (?:recommend|suggest|would|should)(?: we| you)? (?:sharpen|go back|interview|wait|hold)", t)),
         ],
     },
     "pm-transversal-docs": {
