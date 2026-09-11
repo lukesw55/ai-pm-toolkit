@@ -3,26 +3,33 @@
 
 Labels are the ground truth the assertions are checked against. One JSON object per
 line in docs/benchmarks/<iteration>/labels.jsonl, tracked in git (the workspace runs
-are not), bound to the exact output by its sha256, appended and never edited. A run
-carries at most one label per labeler; a second opinion is a second line.
+are not). A label names the run it judges, iteration + skill + eval_id + config, and
+binds to the exact output by its sha256; the hash alone is not the identity, because
+the same text can come back for two prompts or for both configurations. The file is
+appended, never edited: a labeler who changes their mind appends a correcting record
+with --supersede, the loader keeps the latest record per run and labeler, and the
+history stays in the file. A tie between labelers is reported as a split awaiting
+resolution, never resolved to the worse verdict.
 
 Usage:
     python3 scripts/label_eval_run.py <skill> <eval-name> --config with_skill \
         --iteration iteration-claude-1 --verdict weak --classification skipped-method \
         --reason "Ranks opportunities but never scores evidence strength" --labeler <role>
+    python3 scripts/label_eval_run.py ... --supersede   # same labeler, same run: a correction
 """
 from __future__ import annotations
 
 import argparse
 from datetime import datetime
+import hashlib
 import json
 from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
+SCHEMA = 2
 CONFIGS = ("with_skill", "without_skill")
 VERDICTS = ("good", "weak", "fail")
-VERDICT_RANK = {"good": 0, "weak": 1, "fail": 2}
 CLASSIFICATIONS = (
     "sycophancy",              # accepts a weak premise or caves under pressure with no new argument
     "manufactured-objection",  # invents a reservation against a sound premise
@@ -35,12 +42,28 @@ CLASSIFICATIONS = (
     "eval-defect",             # the prompt or the assertion block is at fault, not the output
     "review-needed",           # the labeler wants a second opinion; the verdict still stands
 )
+# The run a label judges. The output hash binds the label to the exact text; the other
+# three say which run produced it, because one text can appear under two prompts or in
+# both configurations. The iteration is the file.
+RUN_KEY = ("skill", "eval_id", "config", "output_sha256")
 ITERATION_RE = re.compile(r"iteration-[a-z0-9-]+")
 SHA_RE = re.compile(r"[a-f0-9]{64}")
+RUBRIC_RE = re.compile(r"[a-f0-9]{12}")
 
 
 def labels_path(root: Path, iteration: str) -> Path:
     return root / "docs" / "benchmarks" / iteration / "labels.jsonl"
+
+
+def rubric_version(spec: dict) -> str:
+    """Twelve hex characters of the eval's prompt and expected output, the rubric the
+    labeler read. A changed prompt or expectation is a different rubric."""
+    text = spec["prompt"] + "\n" + spec.get("expected_output", "")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
+def run_key(record: dict) -> tuple:
+    return tuple(record[k] for k in RUN_KEY)
 
 
 def parse_label(line: str, iteration: str) -> dict:
@@ -48,8 +71,8 @@ def parse_label(line: str, iteration: str) -> dict:
         record = json.loads(line)
     except json.JSONDecodeError as exc:
         raise ValueError(f"label line is not JSON: {exc}") from exc
-    if not isinstance(record, dict) or record.get("schema") != 1:
-        raise ValueError("label must be an object with schema 1")
+    if not isinstance(record, dict) or record.get("schema") != SCHEMA:
+        raise ValueError(f"label must be an object with schema {SCHEMA}")
     if record.get("iteration") != iteration:
         raise ValueError(f"label belongs to iteration {record.get('iteration')!r}, not {iteration!r}")
     for key in ("skill", "eval_name", "verdict_reason", "labeler"):
@@ -61,6 +84,8 @@ def parse_label(line: str, iteration: str) -> dict:
         raise ValueError("label config must be with_skill or without_skill")
     if not isinstance(record.get("output_sha256"), str) or not SHA_RE.fullmatch(record["output_sha256"]):
         raise ValueError("label output_sha256 must be 64 hex characters")
+    if not isinstance(record.get("rubric_version"), str) or not RUBRIC_RE.fullmatch(record["rubric_version"]):
+        raise ValueError("label rubric_version must be 12 hex characters")
     if record.get("verdict") not in VERDICTS:
         raise ValueError(f"label verdict must be one of {', '.join(VERDICTS)}")
     classification = record.get("classification")
@@ -68,37 +93,72 @@ def parse_label(line: str, iteration: str) -> dict:
         raise ValueError(f"label classification must be a list drawn from {', '.join(CLASSIFICATIONS)}")
     if record["verdict"] != "good" and not classification:
         raise ValueError("weak and fail labels need at least one classification handle")
+    if type(record.get("supersedes", False)) is not bool:
+        raise ValueError("label supersedes must be a boolean")
     stamp = datetime.fromisoformat(str(record.get("labeled_at", "")))
     if stamp.tzinfo is None:
         raise ValueError("labeled_at must include a timezone")
     return record
 
 
-def load_labels(path: Path, iteration: str) -> dict[str, list[dict]]:
-    """output_sha256 -> labels. A missing file is an empty set, never an error."""
-    labels: dict[str, list[dict]] = {}
+def read_labels(path: Path, iteration: str) -> list[dict]:
+    """Every record in file order, validated. A missing file is an empty list."""
+    records: list[dict] = []
     if not path.is_file():
-        return labels
+        return records
     for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         if not line.strip():
             continue
         try:
-            record = parse_label(line, iteration)
+            records.append(parse_label(line, iteration))
         except ValueError as exc:
             raise ValueError(f"{path}:{number}: {exc}") from exc
-        labels.setdefault(record["output_sha256"], []).append(record)
-    return labels
+    return records
 
 
-def human_verdict(labels: list[dict]) -> str | None:
-    """Majority verdict; a tie resolves to the worse verdict; no labels is None."""
-    if not labels:
-        return None
+def load_labels(path: Path, iteration: str) -> dict[tuple, list[dict]]:
+    """run key -> current labels, the latest record per labeler. Earlier records by the
+    same labeler are history: they stay in the file and superseded_count() counts them.
+    A missing file is {}, never an error."""
+    current: dict[tuple, dict[str, dict]] = {}
+    for record in read_labels(path, iteration):
+        current.setdefault(run_key(record), {})[record["labeler"]] = record
+    return {key: list(by_labeler.values()) for key, by_labeler in current.items()}
+
+
+def superseded_count(path: Path, iteration: str) -> int:
+    records = read_labels(path, iteration)
+    return len(records) - len({(run_key(r), r["labeler"]) for r in records})
+
+
+def _verdict_counts(labels: list[dict]) -> dict[str, int]:
     counts = {v: 0 for v in VERDICTS}
     for record in labels:
         counts[record["verdict"]] += 1
+    return counts
+
+
+def is_split(labels: list[dict]) -> bool:
+    """Two or more labelers whose verdicts tie at the top: a disagreement awaiting a
+    resolution, reported as such rather than resolved to the worse verdict."""
+    if len(labels) < 2:
+        return False
+    counts = _verdict_counts(labels)
     top = max(counts.values())
-    return max((v for v, n in counts.items() if n == top), key=VERDICT_RANK.__getitem__)
+    return sum(1 for n in counts.values() if n == top) > 1
+
+
+def is_mixed(labels: list[dict]) -> bool:
+    """Two or more labelers who did not all give the same verdict."""
+    return len(labels) >= 2 and len({r["verdict"] for r in labels}) > 1
+
+
+def human_verdict(labels: list[dict]) -> str | None:
+    """Majority verdict; None without labels and None on a split (see is_split)."""
+    if not labels or is_split(labels):
+        return None
+    counts = _verdict_counts(labels)
+    return max(counts, key=counts.__getitem__)
 
 
 def binarize(labels: list[dict]) -> bool | None:
@@ -130,14 +190,19 @@ def label(args, root: Path = ROOT) -> Path:
     if not reason or not labeler:
         raise ValueError("--reason and --labeler must not be empty")
     path = Path(args.labels_file) if getattr(args, "labels_file", None) else labels_path(root, args.iteration)
-    existing = load_labels(path, args.iteration)
-    if any(prior["labeler"] == labeler for prior in existing.get(meta["output_sha256"], [])):
-        raise ValueError(f"run already labeled by {labeler}; labels are appended, never replaced")
+    key = (args.skill, spec["id"], args.config, meta["output_sha256"])
+    prior = [r for r in load_labels(path, args.iteration).get(key, []) if r["labeler"] == labeler]
+    supersede = bool(getattr(args, "supersede", False))
+    if prior and not supersede:
+        raise ValueError(f"run already labeled by {labeler}; pass --supersede to append a correcting record (the earlier one stays in the file)")
+    if supersede and not prior:
+        raise ValueError(f"--supersede given but {labeler} has no label on this run yet")
     record = {
-        "schema": 1, "iteration": args.iteration, "skill": args.skill, "eval_id": spec["id"],
+        "schema": SCHEMA, "iteration": args.iteration, "skill": args.skill, "eval_id": spec["id"],
         "eval_name": spec["name"], "config": args.config, "output_sha256": meta["output_sha256"],
-        "verdict": args.verdict, "classification": classification, "verdict_reason": reason,
-        "labeler": labeler, "labeled_at": datetime.now().astimezone().isoformat(),
+        "rubric_version": rubric_version(spec), "verdict": args.verdict, "classification": classification,
+        "verdict_reason": reason, "labeler": labeler, "labeled_at": datetime.now().astimezone().isoformat(),
+        "supersedes": supersede,
     }
     parse_label(json.dumps(record), args.iteration)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -156,6 +221,7 @@ def main():
     p.add_argument("--classification", action="append", default=[], help="handle; repeat for several")
     p.add_argument("--reason", required=True, help="one line on why")
     p.add_argument("--labeler", required=True, help="role or initials of the person labelling")
+    p.add_argument("--supersede", action="store_true", help="append a correcting record for a run this labeler already labeled; the earlier record stays as history")
     p.add_argument("--labels-file", help="override docs/benchmarks/<iteration>/labels.jsonl")
     args = p.parse_args()
     try:

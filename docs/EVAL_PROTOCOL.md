@@ -100,14 +100,28 @@ label-colon runs, banners, padding), `scope-bloat` (answers beyond the ask), `ev
 (the prompt or the assertion block is at fault, not the output) and `review-needed` (the
 labeler wants a second opinion; the verdict still stands).
 
-Labels live in `docs/benchmarks/<iteration>/labels.jsonl`, one JSON object per line, bound
-to the output by its sha256 and tracked in git because runs under `workspace/` are not. The
-file is only appended; a run carries one label per labeler, and a second opinion is a second
-line. The grader binarises both sides: an assertion pass rate at or above 0.8 is a pass, a
-human `good` is a pass, and a run where the two differ is a disagreement. Above 10%
-disagreement across the labelled runs the report flags `grader_drift`: recalibrate the
-assertions (or the eval itself, when the handle is `eval-defect`) before trusting the pass
-rates.
+Labels live in `docs/benchmarks/<iteration>/labels.jsonl`, one JSON object per line, tracked
+in git because runs under `workspace/` are not. A label names the run it judges (iteration,
+skill, eval id, configuration) and binds to the exact output by its sha256; the hash alone is
+not the identity, because the same text can come back for two prompts or for both
+configurations. It also carries `rubric_version`, twelve hex characters of the eval's prompt
+and expected output, so a label can be traced to the rubric its author read. The file is only
+appended: a run carries one current label per labeler, a second opinion is a second line, and
+a labeler who changes their mind appends a correcting record with `--supersede`; the loader
+keeps the latest record per labeler, the earlier one stays as history and the report counts
+it. The consolidated human verdict is the majority; a tie between labelers is a split awaiting
+resolution, reported as such and left out of the grader comparison rather than resolved to
+the worse verdict.
+
+The grader binarises both sides: an assertion pass rate at or above 0.8 is a pass, a human
+`good` is a pass, and a run where the two differ is a grader disagreement. Two rates are
+reported separately: human disagreement (runs with two or more labelers who did not agree)
+and grader disagreement (grader against the consolidated human verdict). Above the
+disagreement threshold set before the run (0.10 by default, a starting point adapted from
+Peters' judge verification, not a sufficiency guarantee) the report flags `investigate_grader`:
+recalibrate the assertions (or the eval itself, when the handle is `eval-defect`) before
+trusting the pass rates. Call it drift only when the rate rose against the previous
+iteration's report; one rate is a signal to investigate, not a trend.
 
 ## Grade and report
 
@@ -123,14 +137,17 @@ Old manually created runs must be recorded with provenance before grading. Keep
 the JSON/HTML report for each harness before running the other, because root
 benchmark_all.json and eval-report.html are replaced. Skill workspace outputs
 remain ignored by Git. When `docs/benchmarks/<iteration>/labels.jsonl` exists the grader
-reads it by default (`--labels` overrides the path), attaches the human verdict to every
-graded run and reports the disagreement rate per skill and overall; labels whose run is
-not on this machine are counted and warned about, never an error.
+reads it by default (`--labels` overrides the path), attaches the consolidated human verdict
+and the split flag to every graded run and reports the human and grader disagreement rates
+per skill and overall; superseded labels are counted, and labels whose run is not on this
+machine are counted and warned about, never an error.
 
 Commit a concise report under docs/benchmarks with run date, exact commit and
 model, loaded dependencies, number of complete pairs, per-skill pass rates for
-each configuration and harness, paired delta, labelled runs with the disagreement rate
-per skill and overall and the `grader_drift` flag, the classification histogram, failures
+each configuration and harness, paired delta, labelled runs with the human and grader
+disagreement rates per skill and overall, split runs, the `investigate_grader` flag and,
+from the second iteration on, the comparison against the previous iteration's rate (that
+comparison, not one rate, is what drift means), the classification histogram, failures
 and limitations. Cite
 transcript identifiers so the run is auditable. Review failed assertions against
 the output; a regex score is a proxy, not proof of factual correctness. Do not

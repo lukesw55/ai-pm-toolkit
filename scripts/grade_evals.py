@@ -22,13 +22,15 @@ SKILLS_DIR = REPO / "skills"
 
 # Human labels (scripts/label_eval_run.py) are the ground truth the assertions are
 # checked against. A run counts as an assertion pass at or above PASS_THRESHOLD and a
-# human verdict of "good" is the matching pass; a run where the two differ is a
-# disagreement. Above DRIFT_THRESHOLD of the labelled runs the grader has drifted
-# from the humans and its pass rates stop being trusted until the assertions are
-# recalibrated. The 0.10 line is the owner's choice, adapted from the judge
-# verification protocol in Dean Peters' evals-for-product-managers.
+# consolidated human verdict of "good" is the matching pass; a run where the two differ
+# is a grader disagreement. Above DISAGREEMENT_THRESHOLD of the labelled runs the report
+# flags the grader for investigation: recalibrate the assertions (or the eval, when the
+# handle is eval-defect) before trusting the pass rates. The 0.10 line is set before the
+# run as a starting point adapted from the judge verification protocol in Dean Peters'
+# evals-for-product-managers; it is not a sufficiency guarantee, and "drift" is claimed
+# only when the rate rose against the previous iteration's report.
 PASS_THRESHOLD = 0.8
-DRIFT_THRESHOLD = 0.10
+DISAGREEMENT_THRESHOLD = 0.10
 
 # Assertions per (skill, eval_name) — each is (label, callable taking normalised text → bool)
 def has(p: str):
@@ -954,10 +956,11 @@ def load_timing(path: Path):
 
 
 def grade_all(iteration_name="iteration-1", labels=None, report=None):
-    """labels: output_sha256 -> human labels (label_eval_run.load_labels); report, when
-    given, receives labels_unmatched, the labels whose run is not on this machine."""
+    """labels: run key (skill, eval_id, config, output_sha256) -> current human labels
+    (label_eval_run.load_labels); report, when given, receives labels_unmatched, the
+    labels whose run is not on this machine."""
     from record_eval_run import eval_spec, validate_run
-    from label_eval_run import human_verdict
+    from label_eval_run import human_verdict, is_split
     results_by_skill = {}
     iteration_identity = None
     matched = set()
@@ -999,10 +1002,12 @@ def grade_all(iteration_name="iteration-1", labels=None, report=None):
                 if grading is None:
                     continue
                 sha = metadata[0 if config == "with_skill" else 1]["output_sha256"]
-                grading["labels"] = list((labels or {}).get(sha, []))
+                key = (skill, eval_id, config, sha)
+                grading["labels"] = list((labels or {}).get(key, []))
                 grading["human_verdict"] = human_verdict(grading["labels"])
+                grading["human_split"] = is_split(grading["labels"])
                 if grading["labels"]:
-                    matched.add(sha)
+                    matched.add(key)
                 grading_path = eval_dir / config / "grading.json"
                 grading_path.write_text(json.dumps(grading, indent=2))
                 run = {
@@ -1018,15 +1023,16 @@ def grade_all(iteration_name="iteration-1", labels=None, report=None):
                 skill_runs.append(run)
         results_by_skill[skill] = skill_runs
     unmatched = sorted(set(labels or {}) - matched)
-    for sha in unmatched:
-        print(f"WARN label for output {sha[:12]} has no recorded run in {iteration_name} on this machine", file=sys.stderr)
+    for key in unmatched:
+        print(f"WARN label for {key[0]} eval {key[1]} {key[2]} output {key[3][:12]} has no recorded run in {iteration_name} on this machine", file=sys.stderr)
     if report is not None:
         report["labels_unmatched"] = len(unmatched)
     return results_by_skill
 
 
 def agreement(grading):
-    """True when the assertions and the human verdict agree, None without a label."""
+    """True when the assertions and the consolidated human verdict agree; None without
+    a label and None on a split, which carries no verdict to compare against."""
     verdict = grading.get("human_verdict")
     if verdict is None:
         return None
@@ -1034,12 +1040,22 @@ def agreement(grading):
 
 
 def disagreement(entries):
-    """(labelled runs, disagreement rate, drift flag) over config entries carrying agrees."""
-    judged = [e["agrees"] for e in entries if e.get("agrees") is not None]
-    if not judged:
-        return 0, None, None
-    rate = judged.count(False) / len(judged)
-    return len(judged), rate, rate > DRIFT_THRESHOLD
+    """Label statistics over config entries: labelled runs, human splits, the human
+    disagreement rate (runs with two or more labelers who did not agree), the grader
+    disagreement rate (grader against the consolidated human verdict) and the
+    investigate flag. A rate is None when nothing feeds it."""
+    labeled = [e for e in entries if e.get("labelers")]
+    multi = [e for e in labeled if e["labelers"] >= 2]
+    judged = [e["agrees"] for e in labeled if e.get("agrees") is not None]
+    human_rate = (sum(1 for e in multi if e.get("human_mixed")) / len(multi)) if multi else None
+    grader_rate = (judged.count(False) / len(judged)) if judged else None
+    return {
+        "labeled_runs": len(labeled),
+        "human_split_runs": sum(1 for e in labeled if e.get("human_split")),
+        "human_disagreement_rate": human_rate,
+        "grader_disagreement_rate": grader_rate,
+        "investigate_grader": None if grader_rate is None else grader_rate > DISAGREEMENT_THRESHOLD,
+    }
 
 
 def config_entry(run):
@@ -1051,6 +1067,9 @@ def config_entry(run):
         "duration_ms": run["timing"].get("duration_ms"),
         "word_count": run["grading"].get("word_count"),
         "human_verdict": run["grading"].get("human_verdict"),
+        "human_split": run["grading"].get("human_split", False),
+        "labelers": len(run["grading"].get("labels", [])),
+        "human_mixed": len({r["verdict"] for r in run["grading"].get("labels", [])}) > 1,
         "agrees": agreement(run["grading"]),
     }
 
@@ -1100,14 +1119,11 @@ def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
         skill_bs = [e["without_skill"]["pass_rate"] for e in skill_entry["evals"] if "without_skill" in e]
         skill_configs = [e[c] for e in skill_entry["evals"] for c in ("with_skill", "without_skill") if c in e]
         all_entries.extend(skill_configs)
-        labeled, rate, drift = disagreement(skill_configs)
         skill_entry["summary"] = {
             "with_skill_pass_rate": statistics.mean(skill_ws) if skill_ws else None,
             "without_skill_pass_rate": statistics.mean(skill_bs) if skill_bs else None,
             "delta": (statistics.mean(skill_ws) - statistics.mean(skill_bs)) if skill_ws and skill_bs else None,
-            "labeled_runs": labeled,
-            "disagreement_rate": rate,
-            "grader_drift": drift,
+            **disagreement(skill_configs),
         }
         benchmark["skills"][skill] = skill_entry
         # write per-skill benchmark.json
@@ -1125,8 +1141,7 @@ def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
         "baseline_avg_duration_s": (statistics.mean(baseline_durations) / 1000) if baseline_durations else None,
         "n_evals": len(with_skill_rates),
     }
-    labeled, rate, drift = disagreement(all_entries)
-    benchmark["overall"].update({"labeled_runs": labeled, "disagreement_rate": rate, "grader_drift": drift,
+    benchmark["overall"].update({**disagreement(all_entries),
                                  "classification_counts": dict(sorted(classification_counts.items()))})
     return benchmark
 
@@ -1138,8 +1153,12 @@ def render_html(benchmark, results_by_skill, output_path: Path, iteration_name="
     def human_cell(summary):
         if not summary.get("labeled_runs"):
             return "— (no labels)"
-        badge = " <span class='badge badge-fail'>drift</span>" if summary.get("grader_drift") else ""
-        return f"{pct(summary['disagreement_rate'])} disagreement over {summary['labeled_runs']} labelled run(s){badge}"
+        badge = " <span class='badge badge-fail'>investigate</span>" if summary.get("investigate_grader") else ""
+        grader = (f"{pct(summary['grader_disagreement_rate'])} grader disagreement" if summary.get("grader_disagreement_rate") is not None
+                  else "no consolidated verdict")
+        splits = f"; {summary['human_split_runs']} split" if summary.get("human_split_runs") else ""
+        humans = f"; humans disagree on {pct(summary['human_disagreement_rate'])}" if summary.get("human_disagreement_rate") is not None else ""
+        return f"{grader} over {summary['labeled_runs']} labelled run(s){splits}{humans}{badge}"
 
     def delta_cell(ws, bs):
         if ws is None or bs is None:
@@ -1184,7 +1203,7 @@ def render_html(benchmark, results_by_skill, output_path: Path, iteration_name="
     if ov.get("with_skill_avg_duration_s"):
         html_parts.append(f"<tr><td>Avg duration</td><td>{ov['with_skill_avg_duration_s']:.1f}s</td><td>{ov['baseline_avg_duration_s']:.1f}s</td><td>+{(ov['with_skill_avg_duration_s']-ov['baseline_avg_duration_s'])/ov['baseline_avg_duration_s']*100:.0f}%</td></tr>")
     html_parts.append(f"<tr><td>N evals</td><td colspan='3'>{ov['n_evals']}</td></tr>")
-    html_parts.append(f"<tr><td>Human disagreement</td><td colspan='3'>{human_cell(ov)}</td></tr>")
+    html_parts.append(f"<tr><td>Human labels</td><td colspan='3'>{human_cell(ov)}</td></tr>")
     if ov.get("classification_counts"):
         counts = ", ".join(f"{escape(k)} {v}" for k, v in ov["classification_counts"].items())
         html_parts.append(f"<tr><td>Label handles</td><td colspan='3'>{counts}</td></tr>")
@@ -1210,7 +1229,8 @@ def render_html(benchmark, results_by_skill, output_path: Path, iteration_name="
             html_parts.append(f"<td>{pct(ws_rate)} ({ws.get('passed','—')}/{ws.get('total','—')})</td>")
             html_parts.append(f"<td>{pct(bs_rate)} ({bs.get('passed','—')}/{bs.get('total','—')})</td>")
             html_parts.append(f"<td>{delta_cell(ws_rate, bs_rate)}</td>")
-            html_parts.append(f"<td>{escape(str(ws.get('human_verdict') or '—'))} / {escape(str(bs.get('human_verdict') or '—'))}</td>")
+            human = lambda c: "split" if c.get("human_split") else (c.get("human_verdict") or "—")
+            html_parts.append(f"<td>{escape(str(human(ws)))} / {escape(str(human(bs)))}</td>")
             html_parts.append(f"<td>{tok_line}</td>")
             html_parts.append(f"<td>{dur_line}</td></tr>")
         html_parts.append("</table>")
@@ -1262,16 +1282,18 @@ def main():
     args = parser.parse_args()
     if not re.fullmatch(r"iteration-[a-z0-9-]+", args.iteration):
         parser.error("invalid iteration name")
-    from label_eval_run import labels_path, load_labels
+    from label_eval_run import labels_path, load_labels, superseded_count
     labels_file = args.labels or labels_path(REPO, args.iteration)
     report = {}
     try:
         labels = load_labels(labels_file, args.iteration) if labels_file.is_file() else None
+        superseded = superseded_count(labels_file, args.iteration) if labels_file.is_file() else 0
         results = grade_all(args.iteration, labels=labels, report=report)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         parser.exit(1, f"Invalid recorded eval: {exc}\n")
     benchmark = aggregate_benchmark(results, args.iteration)
     benchmark["overall"]["labels_unmatched"] = report.get("labels_unmatched", 0)
+    benchmark["overall"]["labels_superseded"] = superseded
     # Master benchmark file
     master_path = REPO / "benchmark_all.json"
     master_path.write_text(json.dumps(benchmark, indent=2))
@@ -1292,10 +1314,17 @@ def main():
     print(f"Baseline mean pass rate:      {ov['without_skill_pass_rate']*100:.1f}%")
     print(f"Delta:                        {(ov['with_skill_pass_rate']-ov['without_skill_pass_rate'])*100:+.1f}pp")
     if ov.get("labeled_runs"):
-        flag = " (grader drift: recalibrate the assertions before trusting the pass rates)" if ov.get("grader_drift") else ""
-        print(f"Human disagreement:           {ov['disagreement_rate']*100:.0f}% over {ov['labeled_runs']} labelled run(s){flag}")
+        if ov.get("grader_disagreement_rate") is not None:
+            flag = " (investigate: recalibrate the assertions before trusting the pass rates)" if ov.get("investigate_grader") else ""
+            print(f"Grader disagreement:          {ov['grader_disagreement_rate']*100:.0f}% over {ov['labeled_runs']} labelled run(s){flag}")
+        if ov.get("human_split_runs"):
+            print(f"Human splits:                 {ov['human_split_runs']} run(s) awaiting a resolution")
+        if ov.get("human_disagreement_rate") is not None:
+            print(f"Human disagreement:           {ov['human_disagreement_rate']*100:.0f}% of runs with two or more labelers")
     if ov.get("labels_unmatched"):
         print(f"Labels without a run here:    {ov['labels_unmatched']}")
+    if ov.get("labels_superseded"):
+        print(f"Labels superseded:            {ov['labels_superseded']}")
     print(f"Master benchmark: {master_path}")
     print(f"HTML viewer:      {viewer_path}")
 
