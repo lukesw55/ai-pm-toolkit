@@ -39,7 +39,7 @@ Do not skip phases when uncertainty is high: Discover when facts are thin, Defin
 
 ## Memory rules
 
-Layered, never read wholesale: Hot (the `active-context.md` pointer + `index.md`, injected at session start; project state is read separately), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it), Cold (archives, raw evidence, transcripts — never read wholesale, retrieved grep-first through the archive index and then one block). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
+Layered, never read wholesale: Hot (the `active-context.md` pointer + `index.md`, injected at session start; project state is read separately), Warm (that project's kickoff/state/decisions/recent changelog, read only when working on it, plus the shared org layer `.ai/memory/org/` when the task needs company context, personas, competitors or goals; for a project's own decisions the project files win, and a divergence is recorded in that project's `decisions.md` before the org file changes), Cold (archives, raw evidence, transcripts — never read wholesale, retrieved grep-first through the archive index and then one block). Writing memory goes through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`); rotation and distillation archive content, never delete it; PII paths are never rotated, distilled, or ingested.
 
 ## Decision rules, stop conditions, definition of done
 
@@ -67,6 +67,8 @@ Shared product logic lives once, at the top level — neither harness is the "re
 
 **Known degradation**: the optional `.pptx` render step in `pm-storytelling` (see `skills/pm-storytelling/references/deck-storyline.md`) hands off to the Anthropic `pptx` skill, which Claude Code sessions may offer and Codex does not — Claude Code-only for now. The storyline is the deliverable on both harnesses.
 
+**Known degradation**: the review panel in `skills/pm-transversal-stakeholder/references/review-panel.md` and the batch interview synthesis in `skills/pm-transversal-analysis/references/batch-interview-synthesis.md` fan out one subagent per lens or per transcript where the harness offers subagents; on Codex, whose subagent support this repo has not verified, run them sequentially as the references describe. The output is identical; only wall-clock time differs.
+
 **Stage-awareness**: both harnesses inject the current workflow stage into every turn via a `UserPromptSubmit` hook reading `.ai/memory/active-context.md` (see `scripts/stage_context.py`). If hooks are disabled or not yet trusted, read `active-context.md` manually before substantial work — it's the source of truth for pipeline position either way.
 
 ## Repository memory files
@@ -78,6 +80,7 @@ Shared product logic lives once, at the top level — neither harness is the "re
 | `.ai/memory/inbox.md` | Optional manual scratch for raw notes; no script creates, reads, or rotates it |
 | `.ai/memory/projects/` | Durable project memory |
 | `.ai/memory/people/` | Optional, manual-only PII notes (gitignored); never created or touched by scripts — stakeholder maps default to `projects/<slug>/stakeholders.md` |
+| `.ai/memory/org/` | Shared org layer (company, personas as archetypes, competitors, cycle goals); `init_context.py --org`; ignored upstream, versioned in a fork |
 | `.ai/memory/_templates/` | Reusable memory templates |
 
 ## Agents

@@ -21,6 +21,11 @@ This system is inspired by navigable memory structures: information is easier to
 ├── inbox.md                 # manual scratch — no script reads or writes it
 ├── context-events.jsonl     # context-switch log (memory.py + context_watch.py)
 ├── people/                  # optional, manual-only PII notes; no script creates or touches it
+├── org/                     # shared org layer: init_context.py --org; ignored upstream, versioned in a fork
+│   ├── company.md           # what we sell, business model, strategy pillars, binding constraints, vocabulary
+│   ├── personas.md          # archetypes with JTBD and evidence locators, never named people
+│   ├── competitors.md       # organisations and substitutes
+│   └── goals.md             # current-cycle objectives with owner role and review date
 ├── projects/
 │   └── <slug>/
 │       ├── state.md             # read FIRST on resume; park/close blocks
@@ -30,12 +35,16 @@ This system is inspired by navigable memory structures: information is easier to
 │       ├── state-archive.md     # oldest state blocks, folded verbatim by memory.py distill
 │       ├── decisions-archive.md # same, for decisions.md
 │       ├── .distill/            # transient fold package: manifest.json, blocks.md, synthesis.md
+│       ├── app.md               # project brief: problem, users, definition, solution direction
+│       ├── design.md            # project design rules
+│       ├── tasks.md             # project task list by phase
 │       ├── profile.md
 │       ├── decisions.md
 │       ├── experiments.md
+│       ├── insights.md          # ranked themes with locators; per-topic memos live in discovery/<topic>/
 │       ├── glossary.md
 │       └── retrospective.md
-└── _templates/
+└── _templates/                  # project templates, plus org/ for the shared layer
 ```
 
 Every `*-archive.md` opens with an index block, one line per archived block, regenerated on every append and rebuilt by `memory.py index <slug>`. It is the entry point for cold-layer retrieval: the index answers "what is in there" without opening a block.
@@ -50,6 +59,9 @@ One line per known project, appended by `init_context.py`.
 
 ### `inbox.md`
 Temporary raw notes, copied facts, rough observations, meeting snippets, or loose findings that are not yet organized. Manual only: no script creates, reads, or rotates it.
+
+### `org/`
+The shared org layer: `company.md` (what we sell, business model, strategy pillars, constraints that bind every project, vocabulary), `personas.md` (archetypes with a job to be done and evidence locators), `competitors.md` (organisations and substitutes) and `goals.md` (current-cycle objectives with an owner role and a review date). Created by `python3 scripts/init_context.py --org` from `_templates/org/`, never overwritten, never injected by a hook: a skill opens the one file the task needs. Precedence: the layer is shared context, not a project fact; for a project's decisions the project files win, a contradiction is recorded in that project's `decisions.md` (what the org file says, what the evidence says, who decides), and the org file changes only when the evidence holds beyond one project, logged with `memory.py log`. Content rule, checked rather than assumed: roles, archetypes and organisations only; `doctor` warns on e-mail and phone patterns in `org/*.md`, a person's name is a review rule no pattern catches, and pseudonymisation lowers but does not remove re-identification risk, so a real person belongs in `people/`. Upstream keeps the layer ignored; a fork versions its real content (see the bootstrap section). A project may be called `org`: `projects/org/` and `org/` are different directories.
 
 ### `projects/<slug>/state.md`
 Where things stand. Newest-first park/close blocks written by `memory.py park`; the pointer names it as the first file to read on resume.
@@ -88,6 +100,12 @@ Experiment log with:
 - confidence
 - next decision
 
+### `projects/<slug>/app.md`, `design.md`, `tasks.md`
+The project brief, its design rules and its task list by phase, created from the tracked templates (decision "Context files belong to a project" in `docs/DECISIONS.md`).
+
+### `projects/<slug>/insights.md`
+Ranked-themes repository across the project's research topics: one `## Theme:` block per theme with frequency in participants, segments, evidence strength, confidence, locators, counter-evidence, implication and a quant check. Locators only, so the warm file stays small and PII-light; verbatim quotes stay in the excerpt logs and per-topic memos live in `discovery/<topic>/synthesis.md`. 12 KB soft cap, prose: demote stale themes to their memo by hand.
+
 ### `projects/<slug>/glossary.md`
 Terms, acronyms, product language, domain vocabulary.
 
@@ -102,6 +120,7 @@ The layering in `CLAUDE.md` maps onto these files. Nothing in the cold layer is 
 |---|---|---|
 | Hot | `active-context.md` (pointer, ≤2 KB) plus `index.md` | injected at session start by `hooks/memory-context.sh` |
 | Warm | `projects/<slug>/state.md`, `session-kickoff.md`, `decisions.md`, `profile.md`, the 3 newest `changelog.md` entries | working on that project |
+| Shared org (warm) | `.ai/memory/org/company.md`, `personas.md`, `competitors.md`, `goals.md` | when the task needs company context, personas, competitors or goals; one file at a time, never injected by hooks |
 | Cold | `changelog-archive.md`, `state-archive.md`, `decisions-archive.md`, `raw-evidence/`, transcripts | grep-first: the archive index (`memory.py index <slug>`) or `grep -n` for a term or date, then only the matching block |
 
 ## Caps and consolidation
@@ -115,6 +134,8 @@ Warm files carry soft caps. `memory.py doctor` warns above them; `memory.py dist
 | `decisions.md` | 12 KB | `distill --prepare --file decisions` → `decisions-archive.md` |
 | `session-kickoff.md` | 4 KB | prose: rewrite by hand when flagged |
 | `profile.md` | 12 KB | prose: rewrite by hand when flagged |
+| `insights.md` | 12 KB | prose: demote stale themes to their per-topic memo |
+| `org/*.md` | 12 KB each | prose: trim by hand; `doctor` warns only when the layer exists |
 
 The fold is model-assisted and two-step so nothing is summarised silently:
 
@@ -126,7 +147,7 @@ Guarantees: content is moved, never deleted; the archive is rebuilt into a sibli
 
 ## PII denylist
 
-`memory.py` refuses, in code, any path with a segment in `PII_DENY = ("raw-evidence", "people", "data")` relative to the repo root: `log`, `park`, `activate`, rotation, `distill --prepare/--apply`, and the archive writes all pass through `guard()`. `doctor` skips such projects with a WARN. A project literally named `data` is therefore unusable through the scripts by design.
+`memory.py` refuses, in code, any path with a segment in `PII_DENY = ("raw-evidence", "people", "data")` relative to the repo root: `log`, `park`, `activate`, rotation, `distill --prepare/--apply`, and the archive writes all pass through `guard()`. `doctor` skips such projects with a WARN. A project literally named `data` is therefore unusable through the scripts by design. The shared org layer is checked, not assumed, to be free of personal data: `doctor` warns on e-mail and phone patterns in `org/*.md`; a name is a review rule; a real person's notes belong in `people/`.
 
 ## Retrieval protocol
 
@@ -135,6 +156,7 @@ Before a task:
 1. read `active-context.md`
 2. read the active project's `state.md`, then `session-kickoff.md`
 3. scan `profile.md`, `decisions.md`, `experiments.md`, and the newest `changelog.md` entries
+4. when the task needs company context, personas, competitors or goals, read the one file under `org/` that answers it, never all four
 
 From the cold layer (grep-first, read-before-reasoning):
 
@@ -185,6 +207,16 @@ For an existing workspace, explicitly run `python3 scripts/init_context.py --mig
 to copy legacy repo-level app/design/tasks into missing project files. It keeps the
 sources and never replaces a destination. Review existing destinations manually
 when both versions contain work. Park the current project before initializing another.
+
+`python3 scripts/init_context.py --org` creates the shared org layer `.ai/memory/org/` from
+`.ai/memory/_templates/org/` without overwriting existing files, with or without a project
+name in the same call; a project may be called `org`, since `projects/org/` and `org/` do not
+collide. The bootstrap checks confinement before creating anything: when `.ai/memory` or
+`.ai/memory/org` is, or sits behind, a symlink, `--org` exits 1 and writes nothing, the same
+policy the project scripts apply. Upstream keeps the layer ignored because its
+real content is confidential; a fork that versions it adds `!.ai/memory/org/` and
+`!.ai/memory/org/**` to `.gitignore`. Changes to org files are tracked by git in the fork and
+logged in the project changelog that produced the evidence.
 
 Toolkit changes belong in the versioned changelog through `python3 scripts/memory.py log repo "<change and validation>"`.
 Project activity belongs in the project's changelog. Binding toolkit decisions live

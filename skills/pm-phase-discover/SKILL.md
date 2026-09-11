@@ -100,13 +100,13 @@ Anti-patterns: feature-parity obsession, treating competitor launches as strateg
 
 Use this flow when invoked. Tailor depth to the phase — Lean Double Diamond still applies.
 
-1. **Read active context** — `.ai/memory/active-context.md` and any existing `.ai/memory/projects/<slug>/profile.md`. Do not redo discovery that has already been done; build on top.
+1. **Read active context** — `.ai/memory/active-context.md` and any existing `.ai/memory/projects/<slug>/profile.md`. Do not redo discovery that has already been done; build on top. When present, read `.ai/memory/org/personas.md` and `competitors.md` before framing: existing archetypes and known competitors are prior evidence, not conclusions.
 2. **Classify the ask** — problem-framing, research, segmentation, opportunity, competitive, or a mix? State this explicitly to the user in one line before producing artefacts.
 3. **Produce the smallest useful artefact** — prefer a problem brief + assumptions list over a 10-page research plan. If the decision can be made with what's already known, say so and stop.
 4. **Keep the Impact Brief live** — update only the commercial claims the evidence strengthened, weakened or invalidated.
 5. **Test feasibility early when it is material** — involve a tech lead or architect, record the constraint and use the cheapest spike or review that can change the decision. Do not turn Discovery into architecture design.
 6. **Name what would change the answer** — every discovery output must end with "this would flip to a different conclusion if X".
-7. **Update memory** — append insights to `.ai/memory/projects/<slug>/` (experiments.md, glossary.md, or a new `discovery.md` note) and update `active-context.md` if the project focus changes.
+7. **Update memory** — append insights to `.ai/memory/projects/<slug>/` (experiments.md, glossary.md, or a new `discovery.md` note) and update `active-context.md` if the project focus changes. If the evidence changes a persona or a competitor, update the matching `.ai/memory/org/` file (versioned in a fork) and log it with `memory.py log`.
 
 ## Output contract
 

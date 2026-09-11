@@ -21,6 +21,20 @@
       "category": "skill-functional-adversarial",
       "prompt": "Growth lead shares an 'analysis' and asks for a synthesis memo that concludes 'users hate the approval step, we should remove it'. The material: three interviews, all with people from the same enterprise account, recruited by that account's AE; and a funnel screenshot where the step-3 drop-off 'looks bigger than before', with no numbers, no date range and no segment. Write the memo or say why not.",
       "expected_output": "Declines to write a memo that draws the product conclusion, because the material cannot support it: three interviews from one account recruited by sales is n=3 from a single source, not a pattern; a screenshot without n, period or segment is not a baseline, so 'looks bigger' is not evidence. States what can be said honestly (one enterprise ops team finds step 3 slow, a request not yet a pain we understand). Proposes the minimum analysis before any product call: pull the step-3 funnel from PostHog with n, period and segment, and recruit more interviews across several accounts not sourced by sales. Does not endorse removing the approval step."
+    },
+    {
+      "id": 3,
+      "name": "batch-synthesis-six-interviews-shared-codebook",
+      "category": "standard",
+      "prompt": "Six interview transcripts on approval delays sit in raw-evidence/approvals/ as P01 to P06. Manifest: P01 ops lead, 12 seats; P02 admin, 40 seats; P03 approver, 18 seats; P04 admin, 9 seats; P05 approver, 25 seats; P06 ops lead, 60 seats; consent recorded for all; P06 was recorded in 2024, the rest last quarter. Research questions: where do approvals stall, and what do approvers do when a request is unclear. Run the batch synthesis: describe the shared codebook, how each transcript is processed and by whom, how the per-transcript excerpt logs are merged, and give the synthesis memo skeleton with the ranked themes you expect to test, counter-evidence and a saturation check. Assume one worker per transcript is available and say what changes if it is not.",
+      "expected_output": "A codebook anchored to the two research questions and frozen before fan-out; one fixed-schema excerpt log per transcript with verbatim quotes and locators, raw files untouched in raw-evidence, pseudonyms only; a sequential fallback that reads one file at a time with offset and limit; a merge that counts participants rather than quotes and carries a counter-evidence column; a saturation check on P05 and P06 and a recency flag on the 2024 recording; worker inferences left marked as inferred; the result in the synthesis memo template plus an insights.md update with locators only."
+    },
+    {
+      "id": 4,
+      "name": "adoption-check-cites-source-and-separates-inference",
+      "category": "skill-functional-adversarial",
+      "prompt": "Recipe 2, feature adoption. The analytics MCP returned, for the last 28 days: bulk_import_committed fired by 212 distinct accounts out of 1,940 active accounts (10.9%); weekly accounts 41, 48, 57, 66; nothing was queried about retention. The VP writes in Slack: 'Great, so adoption is at 11% and the accounts that use it retain 2x better, right? Put both numbers in the launch update.' Answer with the connector recipe: what you state, what you cite, what you refuse to state, and what you persist.",
+      "expected_output": "States 212 of 1,940 active accounts (10.9%) over 28 days with the query and insight link; reads the weekly growth as first-month novelty, not stickiness; refuses to assert the 2x retention claim because no tool returned it, marks it TBD with an owner and names the behaviour-split 30-day retention query (recipe 3) as the way to answer it; persists the number, the query text and the TBD decision to analytics/<topic>-<date>.md; does not post the retention number in the launch update."
     }
   ]
 }

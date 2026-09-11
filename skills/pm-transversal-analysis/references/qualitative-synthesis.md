@@ -152,8 +152,8 @@ Links to interview transcripts, recordings, tickets folder. Keep originals acces
 
 ## Integration
 
-- Source of raw data: `.ai/memory/projects/<slug>/research/<topic>/` — transcripts, recordings, tickets, raw survey data.
-- Synthesis memo: `.ai/memory/projects/<slug>/insights.md` — the ranked-themes repository.
+- Source of raw data: `.ai/memory/projects/<slug>/raw-evidence/<topic>/` — transcripts, recordings, tickets, raw survey data (PII: never scripted, never pasted into memory or chat). Pseudonymised excerpt logs: `research/<topic>/sessions/P<NN>.md`.
+- Synthesis memo per topic: `.ai/memory/projects/<slug>/discovery/<topic>/synthesis.md` — the stage 3 artefact named in `skills/WORKFLOW.md`. Ranked-themes repository across topics: `.ai/memory/projects/<slug>/insights.md`, locators only.
 - Triangulation: follow up with `triangulation.md` before committing to a bet.
 - Discovery artefacts downstream: Impact Brief (stage 2), One Pager (stage 4) cite synthesis.
 
@@ -166,4 +166,4 @@ Links to interview transcripts, recordings, tickets folder. Keep originals acces
 
 ## Files
 
-Synthesis memos → `.ai/memory/projects/<slug>/insights/<topic>-<date>.md`. Raw data preserved alongside. Publish to Confluence insight repository via `pm-transversal-docs`.
+Per-topic synthesis memo → `.ai/memory/projects/<slug>/discovery/<topic>/synthesis.md`; ranked themes → `.ai/memory/projects/<slug>/insights.md`; raw data stays in `raw-evidence/<topic>/`. Publish to Confluence insight repository via `pm-transversal-docs`.

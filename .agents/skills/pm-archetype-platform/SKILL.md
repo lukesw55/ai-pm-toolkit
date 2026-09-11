@@ -43,6 +43,7 @@ Any of these in a request points here: "platform", "API contract", "SDK", "CLI",
 
 - `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior contracts and ADRs are load-bearing**; platforms accumulate decisions that constrain future work
+- shared org context in `.ai/memory/org/` when present (`personas.md`, `competitors.md`, `goals.md`); open the file the task needs, not all four
 
 ## References this skill chains to
 

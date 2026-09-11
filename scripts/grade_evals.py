@@ -20,6 +20,18 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO / "skills"
 
+# Human labels (scripts/label_eval_run.py) are the ground truth the assertions are
+# checked against. A run counts as an assertion pass at or above PASS_THRESHOLD and a
+# consolidated human verdict of "good" is the matching pass; a run where the two differ
+# is a grader disagreement. Above DISAGREEMENT_THRESHOLD of the labelled runs the report
+# flags the grader for investigation: recalibrate the assertions (or the eval, when the
+# handle is eval-defect) before trusting the pass rates. The 0.10 line is set before the
+# run as a starting point adapted from the judge verification protocol in Dean Peters'
+# evals-for-product-managers; it is not a sufficiency guarantee, and "drift" is claimed
+# only when the rate rose against the previous iteration's report.
+PASS_THRESHOLD = 0.8
+DISAGREEMENT_THRESHOLD = 0.10
+
 # Assertions per (skill, eval_name) — each is (label, callable taking normalised text → bool)
 def has(p: str):
     return lambda t: p.lower() in t
@@ -67,6 +79,32 @@ def absent_from_prose(phrase: str):
     phrase_l = phrase.lower()
     return lambda t: phrase_l not in quoted.sub("", t.lower())
 
+
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+|\n+")
+
+
+def in_one_sentence(*patterns: str):
+    """True when one sentence matches every pattern. Two or three anchors in
+    the same sentence separate an answer from a list of the right words: a
+    keyword-only reply names the terms, an answer relates them. Semicolons do
+    not split, so a clause list still counts as one statement."""
+    rxs = [re.compile(pat, re.IGNORECASE) for pat in patterns]
+
+    def check(t: str) -> bool:
+        return any(all(rx.search(s) for rx in rxs) for s in _SENTENCE_SPLIT.split(t))
+
+    return check
+
+
+def count_at_least(pattern: str, n: int):
+    rx = re.compile(pattern, re.IGNORECASE | re.MULTILINE)
+    return lambda t: len(rx.findall(t)) >= n
+
+
+def anchors(patterns: list[str], n: int):
+    """True when at least n of the patterns appear anywhere in the text."""
+    rxs = [re.compile(pat, re.IGNORECASE) for pat in patterns]
+    return lambda t: sum(1 for rx in rxs if rx.search(t)) >= n
 
 # A negative control fails when the answer agrees in the first sentence and
 # invents an objection in the second. Matching "however" alone is too narrow
@@ -323,6 +361,14 @@ ASSERTIONS = {
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
             ("Does not expand scope into SCIM, HR sync or field mapping", lambda t: not re.search(r"(?:add|include|bring in|pull in) (?:scim|hr sync|(?:the )?field.?mapping)|should (?:also )?(?:cover|include) scim", t)),
         ],
+        "choose-prototype-tier-for-billing-change": [
+            ("Recommends a throwaway tier-A prototype for the comprehension question", in_one_sentence(r"tier[ -]?a\b|throwaway|hosted builder|web prototype", r"first|start|recommend|choose|go with|answers|comprehension|understand")),
+            ("Rules tier C out with the reason: core billing logic another team owns", in_one_sentence(r"tier[ -]?c\b|ship (?:it|the change) (?:myself|yourself)|my own pr|pm-authored", r"\bnot\b|\bout\b|\bno\b|rule[sd]? out|wrong|never", r"core logic|another team|real money|proration|billing team")),
+            ("A branch prototype is disposable, never merged as-is, dropped once the question is answered", in_one_sentence(r"branch|code prototype|tier[ -]?b\b", r"disposable|never merged|not merged|thrown away|discard|deleted", r"after|once|when|question|decision|answered|as.is")),
+            ("Asks the owning team for a sandbox with mock data and no backend", in_one_sentence(r"sandbox", r"mock(?:ed)? data|no backend|no environment variables|no env", r"ask|request|billing team|owning team|from|provide")),
+            ("Says who builds what: a role, a verb and its object", hasr(r"(?:design|billing team|engineering)[^.\n]{0,40}\b(?:builds?|provides?|owns?|runs?|sets? up|reviews?)\b[^.\n]{0,40}\b(?:prototype|sandbox|test|session|branch|components)")),
+            ("Feeds the stage-6 gate with the tier decision and findings recorded", in_one_sentence(r"stage[ -]?6|prototype validated|kick.?off", r"gate|feeds|before|record", r"prd|prototypes/|decision|findings|participants")),
+        ],
     },
     "pm-phase-deliver": {
         "pricing-v2-launch-package": [
@@ -376,6 +422,22 @@ ASSERTIONS = {
             ("Names the backdated, pre-decided shape of the request", hasr(r"already decided|backdat|after the fact|pre.?decided|written after|announcement|decision record")),
             ("Does not fill in the form as asked", lambda t: not re.search(r"driver:? ?(?:@?vp|you)[^\n]{0,40}approver:? ?(?:@?vp|you)|filled (?:it )?in as (?:asked|requested)|as you asked|page created", t)),
             ("Offers a legitimate alternative artefact", hasr(r"instead|alternative|announcement|decision record|decision memo|propose|honest artefact")),
+        ],
+        "surface-hidden-commercial-risk-in-one-pager": [
+            ("Runs the commercial lens the author excluded, because the artefact touches pricing", in_one_sentence(r"commercial|revenue|sales", r"\blens", r"despite|although|even though|because|touches|pric|discount|contract|excluded|skip|still run|must run")),
+            ("Names the exposure the one-pager omitted: 62% discounted revenue moving to list price", lambda t: in_one_sentence(r"62 ?%|negotiated discount", r"list.?price|mid.?contract|full price")(t) and bool(re.search(r"omit|left out|leaves out|not in the one-pager|missing from|frames? (?:it|this|a)", t))),
+            ("States the evidence gap as a question and the owner by role", in_one_sentence(r"evidence gap|would need|to settle|to confirm|needs a number", r"how many|which|what|whether|expected|number of|how much", r"owner|sales ops|finance|revops|sales lead|head of")),
+            ("A lens that clears says so next to its name, with a reason", hasr(r"(?:commercial|customer success|marketing|exec|finance|user advocate)[^.\n;]{0,20}no objection[,:]? [^.\n;]{8,}")),
+            ("Decision: the one-pager does not go up as written; the objection is routed", lambda t: in_one_sentence(r"not (?:send|go|clear|approve|forward)|does not go up|as written|as is|hold", r"revenue|number|answer|exposure|objection")(t) and bool(re.search(r"dissent|daci|assumption (?:row|map)|non.?blocking", t))),
+            ("Does not wave the one-pager through as a small support-cost feature", lambda t: not re.search(r"wave(?:d|s)? (?:it |this )?through|approve(?:d)? as is|no (?:commercial|revenue) (?:risk|concern|exposure) here|does not need the other lenses", t)),
+        ],
+        "panel-clears-solid-prd-without-invented-objection": [
+            ("Each lens clears next to its name, with a reason", count_at_least(r"(?:commercial|customer success|marketing|exec|finance|user advocate)[^.\n;]{0,20}no objection[,:]? [^.\n;]{8,}", 3)),
+            ("Reasons cite the evidence supplied", anchors([r"14 (?:support )?tickets", r"signed (?:enterprise )?commit", r"same arr", r"\bq3\b", r"(?:5|five) admins", r"playbook", r"internal[ -]only"], 3)),
+            ("Decision: the PRD goes to kickoff as written", in_one_sentence(r"\bprd\b|one-pager|artefact", r"hands? on|goes? to|proceeds? to|ready for|moves? to", r"kick.?off|engineering|build", r"as written|as is|unchanged|no changes")),
+            ("Names the lenses run", anchors([r"commercial", r"customer success|support lens", r"marketing", r"exec|finance", r"user advocate|user lens"], 4)),
+            ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
+            ("Does not request more evidence or a delay", lambda t: not re.search(r"more (?:tickets|interviews|evidence|admins|testing) (?:before|first)|extend the (?:test|pilot|beta)|delay (?:the )?kick.?off|wait (?:for|until)|reopen (?:the )?scope|just to be safe", t)),
         ],
     },
     "pm-transversal-comms": {
@@ -488,6 +550,25 @@ ASSERTIONS = {
             ("Flags the missing quant (no n, period, segment; screenshot is not a baseline)", hasr(r"no (?:numbers|n\b|date range|period|segment)|unquantified|without (?:a )?baseline|not a baseline|is not evidence")),
             ("Proposes the minimum analysis before a product call", hasr(r"minimum|next step|pull the (?:step.?3 )?funnel|posthog|recruit|\d+ more interviews|with n, period")),
             ("Does not endorse removing the approval step", lambda t: not re.search(r"(?:recommend|should) remov(?:e|ing) the approval step|remove the approval step\.", t)),
+        ],
+        "batch-synthesis-six-interviews-shared-codebook": [
+            ("Codebook anchored to the research questions and frozen before coding", in_one_sentence(r"codebook|code list|shared codes", r"stall|unclear|research question", r"before|first|frozen|shared|prior")),
+            ("One excerpt log per transcript in a fixed schema with locators", in_one_sentence(r"excerpt log|per transcript|one worker per|each transcript", r"timestamp|line number|locator|verbatim", r"schema|fixed|field|quote|code")),
+            ("Theme frequency counts participants with a denominator", in_one_sentence(r"\b[1-6] ?(?:/|of) ?6\b", r"participant|user|ops lead|admin|approver")),
+            ("Counter-evidence names a participant and what they did differently", in_one_sentence(r"counter.?evidence|contradict|disconfirm|does not fit", r"p0[1-6]", r"never|\bno\b|\bnot\b|only|\bbut\b|despite|contradict|does not")),
+            ("Recency flag on P06, the 2024 recording", in_one_sentence(r"p06", r"2024|recency|older|stale|weight|age")),
+            ("Saturation check names the transcripts it rests on and what they added", in_one_sentence(r"saturat", r"p0[1-6]", r"no new|new codes|added|last|nothing new")),
+            ("Sequential fallback reads one file at a time with offset and limit", in_one_sentence(r"sequential|one (?:transcript|file) at a time|without subagents|no subagents|fall.?back", r"offset|limit|read")),
+            ("PII stays in raw-evidence; the memo carries pseudonyms and locators", in_one_sentence(r"raw.?evidence", r"pseudonym|never names|no names|locator|stay|untouched")),
+        ],
+        "adoption-check-cites-source-and-separates-inference": [
+            ("States 212 of 1,940 active accounts (10.9%) over the 28-day window in one sentence", in_one_sentence(r"\b212\b", r"1,?940", r"28.?day", r"accounts|10\.9 ?%")),
+            ("Cites the source as an artefact: a URL, the query text or an insight id", in_one_sentence(r"query|insight|source", r"https?://\S+|/insights?/\S+|\bselect\b[^.\n]+\bfrom\b|hogql|insight id[: ]+\w+")),
+            ("Reads the weekly numbers as first-month novelty, not stickiness", lambda t: in_one_sentence(r"\b41\b|\b48\b|\b57\b|\b66\b", r"novelty|first month|early", r"\bnot\b|rather than|until|proof|stick")(t) and len(re.findall(r"\b(?:41|48|57|66)\b", t)) >= 2),
+            ("Names the behaviour-split retention query with its cohorts as the follow-up", in_one_sentence(r"behaviou?r.?split|recipe 3|30.?day retention|retention (?:query|cohort)", r"\brun\b|next|would answer|answer it|follow.?up|before", r"import|versus|\bvs\b|cohort|non-")),
+            ("Persists the number, the query text and the decision to a named file", in_one_sentence(r"persist|durable|goes? to|written to|saved", r"analytics/[\w.-]+\.md", r"query|decision|tbd")),
+            ("Does not assert the 2x retention claim as fact", hedged("2x", near=["not", "no tool", "unverified", "tbd", "did not return", "cannot", "can't", "refuse", "won't", "unsupported", "to confirm", "claim"])),
+            ("Does not post the unverified retention number into the launch update", lambda t: not re.search(r"both numbers[^.\n]{0,40}(?:launch )?update|2x[^.\n]{0,50}confirm|include the 2x", t)),
         ],
     },
     "data-science-analyst": {
@@ -754,6 +835,15 @@ ASSERTIONS = {
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
             ("Does not extend the canary or demand more cases first", lambda t: not re.search(r"extend the canary|another (?:week|month|quarter) of canary|run the canary longer|more (?:eval )?cases (?:before|first)|wait for another", t)),
         ],
+        "design-golden-set-and-block-rule-for-summariser": [
+            ("Hazard list names the real incident as a failure mode", in_one_sentence(r"hazard|failure mode", r"hallucinat|invented|fabricated", r"refund|commitment|promise")),
+            ("Limits are numeric and each carries a rationale", in_one_sentence(r"\d{1,3} ?%", r"because|since|so that|otherwise|rationale")),
+            ("Block rule sits above the pass rate, in explicit words", in_one_sentence(r"invented|hallucinated|fabricated", r"block", r"regardless|even if|independent|whatever|no matter")),
+            ("Golden set holds the real refund incident labelled fail and spans the four languages", lambda t: in_one_sentence(r"golden|rows?", r"refund|real incident|the incident", r"\bfail")(t) and bool(re.search(r"four languages|per language|each language|en, pt, de", t))),
+            ("Validation runs the incident through the rubric", in_one_sentence(r"validat", r"incident|worst case", r"rubric|tighten|through")),
+            ("Verification: blind re-grading against a disagreement threshold set beforehand", in_one_sentence(r"blind|two (?:people|humans|reviewers|graders)", r"disagree", r"before|beforehand|in advance|up front|ahead of")),
+            ("Synthetic rows are practice; real traces decide", in_one_sentence(r"synthetic", r"practice|rehears|not (?:for |a )?release", r"real|trace")),
+        ],
     },
     "pm-archetype-enterprise": {
         "rbac-and-audit-for-shared-dashboards": [
@@ -865,10 +955,16 @@ def load_timing(path: Path):
         return None
 
 
-def grade_all(iteration_name="iteration-1"):
+def grade_all(iteration_name="iteration-1", labels=None, report=None):
+    """labels: run key (skill, eval_id, config, output_sha256) -> current human labels
+    (label_eval_run.load_labels); report, when given, receives labels_unmatched, the
+    labels whose run is not on this machine."""
     from record_eval_run import eval_spec, validate_run
+    from label_eval_run import human_verdict, is_split, rubric_version, split_by_rubric
     results_by_skill = {}
     iteration_identity = None
+    matched = set()
+    stale_total = 0
     for skill_dir in sorted(SKILLS_DIR.iterdir()):
         # Any skill with recorded runs is gradable — the old pm-* prefix
         # filter silently skipped anti-slop, humanizer, and friends.
@@ -906,6 +1002,21 @@ def grade_all(iteration_name="iteration-1"):
                 grading = grade_run(out, skill, eval_name)
                 if grading is None:
                     continue
+                sha = metadata[0 if config == "with_skill" else 1]["output_sha256"]
+                key = (skill, eval_id, config, sha)
+                attached = list((labels or {}).get(key, []))
+                current, stale = split_by_rubric(attached, rubric_version(spec))
+                for record in stale:
+                    print(f"WARN label by {record['labeler']} on {skill} eval {eval_id} {config} was made against rubric "
+                          f"{record['rubric_version']}, current is {rubric_version(spec)}; it is stale and not counted, relabel the run",
+                          file=sys.stderr)
+                stale_total += len(stale)
+                grading["labels"] = current
+                grading["stale_labels"] = [{"labeler": r["labeler"], "rubric_version": r["rubric_version"], "verdict": r["verdict"]} for r in stale]
+                grading["human_verdict"] = human_verdict(current)
+                grading["human_split"] = is_split(current)
+                if attached:
+                    matched.add(key)
                 grading_path = eval_dir / config / "grading.json"
                 grading_path.write_text(json.dumps(grading, indent=2))
                 run = {
@@ -916,14 +1027,68 @@ def grade_all(iteration_name="iteration-1"):
                     "grading": grading,
                     "timing": timing or {},
                     "output_path": str(out.relative_to(REPO)),
+                    "output_sha256": sha,
                 }
                 skill_runs.append(run)
         results_by_skill[skill] = skill_runs
+    unmatched = sorted(set(labels or {}) - matched)
+    for key in unmatched:
+        print(f"WARN label for {key[0]} eval {key[1]} {key[2]} output {key[3][:12]} has no recorded run in {iteration_name} on this machine", file=sys.stderr)
+    if report is not None:
+        report["labels_unmatched"] = len(unmatched)
+        report["labels_stale"] = stale_total
     return results_by_skill
+
+
+def agreement(grading):
+    """True when the assertions and the consolidated human verdict agree; None without
+    a label and None on a split, which carries no verdict to compare against."""
+    verdict = grading.get("human_verdict")
+    if verdict is None:
+        return None
+    return (grading["pass_rate"] >= PASS_THRESHOLD) == (verdict == "good")
+
+
+def disagreement(entries):
+    """Label statistics over config entries: labelled runs, human splits, the human
+    disagreement rate (runs with two or more labelers who did not agree), the grader
+    disagreement rate (grader against the consolidated human verdict) and the
+    investigate flag. A rate is None when nothing feeds it."""
+    labeled = [e for e in entries if e.get("labelers")]
+    multi = [e for e in labeled if e["labelers"] >= 2]
+    judged = [e["agrees"] for e in labeled if e.get("agrees") is not None]
+    human_rate = (sum(1 for e in multi if e.get("human_mixed")) / len(multi)) if multi else None
+    grader_rate = (judged.count(False) / len(judged)) if judged else None
+    return {
+        "labeled_runs": len(labeled),
+        "human_split_runs": sum(1 for e in labeled if e.get("human_split")),
+        "human_disagreement_rate": human_rate,
+        "grader_disagreement_rate": grader_rate,
+        "investigate_grader": None if grader_rate is None else grader_rate > DISAGREEMENT_THRESHOLD,
+    }
+
+
+def config_entry(run):
+    return {
+        "pass_rate": run["grading"]["pass_rate"],
+        "passed": run["grading"]["passed"],
+        "total": run["grading"]["total"],
+        "tokens": run["timing"].get("total_tokens"),
+        "duration_ms": run["timing"].get("duration_ms"),
+        "word_count": run["grading"].get("word_count"),
+        "human_verdict": run["grading"].get("human_verdict"),
+        "human_split": run["grading"].get("human_split", False),
+        "stale_labels": len(run["grading"].get("stale_labels", [])),
+        "labelers": len(run["grading"].get("labels", [])),
+        "human_mixed": len({r["verdict"] for r in run["grading"].get("labels", [])}) > 1,
+        "agrees": agreement(run["grading"]),
+    }
 
 
 def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
     benchmark = {"skills": {}, "overall": {}}
+    all_entries = []
+    classification_counts = {}
     with_skill_rates = []
     baseline_rates = []
     with_skill_tokens = []
@@ -941,41 +1106,35 @@ def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
             bs = configs.get("without_skill")
             entry = {"eval_id": eval_id, "eval_name": eval_name}
             if ws:
-                entry["with_skill"] = {
-                    "pass_rate": ws["grading"]["pass_rate"],
-                    "passed": ws["grading"]["passed"],
-                    "total": ws["grading"]["total"],
-                    "tokens": ws["timing"].get("total_tokens"),
-                    "duration_ms": ws["timing"].get("duration_ms"),
-                    "word_count": ws["grading"].get("word_count"),
-                }
+                entry["with_skill"] = config_entry(ws)
                 with_skill_rates.append(ws["grading"]["pass_rate"])
                 if ws["timing"].get("total_tokens"):
                     with_skill_tokens.append(ws["timing"]["total_tokens"])
                 if ws["timing"].get("duration_ms"):
                     with_skill_durations.append(ws["timing"]["duration_ms"])
             if bs:
-                entry["without_skill"] = {
-                    "pass_rate": bs["grading"]["pass_rate"],
-                    "passed": bs["grading"]["passed"],
-                    "total": bs["grading"]["total"],
-                    "tokens": bs["timing"].get("total_tokens"),
-                    "duration_ms": bs["timing"].get("duration_ms"),
-                    "word_count": bs["grading"].get("word_count"),
-                }
+                entry["without_skill"] = config_entry(bs)
                 baseline_rates.append(bs["grading"]["pass_rate"])
                 if bs["timing"].get("total_tokens"):
                     baseline_tokens.append(bs["timing"]["total_tokens"])
                 if bs["timing"].get("duration_ms"):
                     baseline_durations.append(bs["timing"]["duration_ms"])
+            for run in (ws, bs):
+                if run:
+                    for record in run["grading"].get("labels", []):
+                        for handle in record.get("classification", []):
+                            classification_counts[handle] = classification_counts.get(handle, 0) + 1
             skill_entry["evals"].append(entry)
         # skill-level aggregates
         skill_ws = [e["with_skill"]["pass_rate"] for e in skill_entry["evals"] if "with_skill" in e]
         skill_bs = [e["without_skill"]["pass_rate"] for e in skill_entry["evals"] if "without_skill" in e]
+        skill_configs = [e[c] for e in skill_entry["evals"] for c in ("with_skill", "without_skill") if c in e]
+        all_entries.extend(skill_configs)
         skill_entry["summary"] = {
             "with_skill_pass_rate": statistics.mean(skill_ws) if skill_ws else None,
             "without_skill_pass_rate": statistics.mean(skill_bs) if skill_bs else None,
             "delta": (statistics.mean(skill_ws) - statistics.mean(skill_bs)) if skill_ws and skill_bs else None,
+            **disagreement(skill_configs),
         }
         benchmark["skills"][skill] = skill_entry
         # write per-skill benchmark.json
@@ -993,12 +1152,24 @@ def aggregate_benchmark(results_by_skill, iteration_name="iteration-1"):
         "baseline_avg_duration_s": (statistics.mean(baseline_durations) / 1000) if baseline_durations else None,
         "n_evals": len(with_skill_rates),
     }
+    benchmark["overall"].update({**disagreement(all_entries),
+                                 "classification_counts": dict(sorted(classification_counts.items()))})
     return benchmark
 
 
-def render_html(benchmark, results_by_skill, output_path: Path):
+def render_html(benchmark, results_by_skill, output_path: Path, iteration_name="iteration-1"):
     def pct(x):
         return f"{x*100:.0f}%" if x is not None else "—"
+
+    def human_cell(summary):
+        if not summary.get("labeled_runs"):
+            return "— (no labels)"
+        badge = " <span class='badge badge-fail'>investigate</span>" if summary.get("investigate_grader") else ""
+        grader = (f"{pct(summary['grader_disagreement_rate'])} grader disagreement" if summary.get("grader_disagreement_rate") is not None
+                  else "no consolidated verdict")
+        splits = f"; {summary['human_split_runs']} split" if summary.get("human_split_runs") else ""
+        humans = f"; humans disagree on {pct(summary['human_disagreement_rate'])}" if summary.get("human_disagreement_rate") is not None else ""
+        return f"{grader} over {summary['labeled_runs']} labelled run(s){splits}{humans}{badge}"
 
     def delta_cell(ws, bs):
         if ws is None or bs is None:
@@ -1026,7 +1197,7 @@ def render_html(benchmark, results_by_skill, output_path: Path):
         ".badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.8em;margin-right:0.4em}",
         ".badge-pass{background:#dafbe1;color:#1a7f37}.badge-fail{background:#ffe3e3;color:#cf222e}",
         "</style></head><body>",
-        "<h1>PM Toolkit — Eval Report — Iteration 1</h1>",
+        f"<h1>PM Toolkit — Eval Report — {escape(iteration_name)}</h1>",
         f"<p>Static report. {len(benchmark['skills'])} skill(s), {benchmark['overall'].get('n_evals') or 0} eval(s) × 2 configs "
         "(with_skill / baseline). Assertions are keyword-based programmatic checks (see scripts/grade_evals.py).</p>",
     ]
@@ -1043,6 +1214,10 @@ def render_html(benchmark, results_by_skill, output_path: Path):
     if ov.get("with_skill_avg_duration_s"):
         html_parts.append(f"<tr><td>Avg duration</td><td>{ov['with_skill_avg_duration_s']:.1f}s</td><td>{ov['baseline_avg_duration_s']:.1f}s</td><td>+{(ov['with_skill_avg_duration_s']-ov['baseline_avg_duration_s'])/ov['baseline_avg_duration_s']*100:.0f}%</td></tr>")
     html_parts.append(f"<tr><td>N evals</td><td colspan='3'>{ov['n_evals']}</td></tr>")
+    html_parts.append(f"<tr><td>Human labels</td><td colspan='3'>{human_cell(ov)}</td></tr>")
+    if ov.get("classification_counts"):
+        counts = ", ".join(f"{escape(k)} {v}" for k, v in ov["classification_counts"].items())
+        html_parts.append(f"<tr><td>Label handles</td><td colspan='3'>{counts}</td></tr>")
     html_parts.append("</table>")
     html_parts.append("</div>")
 
@@ -1050,10 +1225,10 @@ def render_html(benchmark, results_by_skill, output_path: Path):
     for skill_name, skill_entry in benchmark["skills"].items():
         html_parts.append(f"<h2>{escape(skill_name)}</h2>")
         s = skill_entry["summary"]
-        html_parts.append(f"<p><b>Skill-level pass rate:</b> with skill {pct(s['with_skill_pass_rate'])} vs baseline {pct(s['without_skill_pass_rate'])} &nbsp; {delta_cell(s['with_skill_pass_rate'], s['without_skill_pass_rate'])}</p>")
+        html_parts.append(f"<p><b>Skill-level pass rate:</b> with skill {pct(s['with_skill_pass_rate'])} vs baseline {pct(s['without_skill_pass_rate'])} &nbsp; {delta_cell(s['with_skill_pass_rate'], s['without_skill_pass_rate'])} &nbsp; <b>Human:</b> {human_cell(s)}</p>")
 
         html_parts.append("<table>")
-        html_parts.append("<tr><th>Eval</th><th>With skill</th><th>Baseline</th><th>Δ pass</th><th>Tokens (w/b)</th><th>Duration (w/b)</th></tr>")
+        html_parts.append("<tr><th>Eval</th><th>With skill</th><th>Baseline</th><th>Δ pass</th><th>Human (w/b)</th><th>Tokens (w/b)</th><th>Duration (w/b)</th></tr>")
         for e in skill_entry["evals"]:
             ws = e.get("with_skill", {})
             bs = e.get("without_skill", {})
@@ -1065,6 +1240,8 @@ def render_html(benchmark, results_by_skill, output_path: Path):
             html_parts.append(f"<td>{pct(ws_rate)} ({ws.get('passed','—')}/{ws.get('total','—')})</td>")
             html_parts.append(f"<td>{pct(bs_rate)} ({bs.get('passed','—')}/{bs.get('total','—')})</td>")
             html_parts.append(f"<td>{delta_cell(ws_rate, bs_rate)}</td>")
+            human = lambda c: "split" if c.get("human_split") else (c.get("human_verdict") or "—")
+            html_parts.append(f"<td>{escape(str(human(ws)))} / {escape(str(human(bs)))}</td>")
             html_parts.append(f"<td>{tok_line}</td>")
             html_parts.append(f"<td>{dur_line}</td></tr>")
         html_parts.append("</table>")
@@ -1089,10 +1266,6 @@ def render_html(benchmark, results_by_skill, output_path: Path):
             html_parts.append("</table>")
 
             # Output excerpts
-            identity = tuple(metadata[0][k] for k in ("harness", "model", "repo_commit"))
-            if iteration_identity is not None and identity != iteration_identity:
-                raise ValueError(f"mixed harness, model or revision in iteration: {eval_dir}")
-            iteration_identity = identity
             for config in ["with_skill", "without_skill"]:
                 r = configs.get(config)
                 if r:
@@ -1101,7 +1274,9 @@ def render_html(benchmark, results_by_skill, output_path: Path):
                         content = out_path.read_text(encoding="utf-8", errors="replace")
                     except Exception:
                         content = "(could not read)"
-                    html_parts.append(f"<details><summary>{config} output ({r['grading']['word_count']} words)</summary>")
+                    verdict = r["grading"].get("human_verdict")
+                    verdict_note = f", human verdict {escape(verdict)}" if verdict else ""
+                    html_parts.append(f"<details><summary>{config} output ({r['grading']['word_count']} words{verdict_note})</summary>")
                     html_parts.append(f"<pre>{escape(content)}</pre>")
                     html_parts.append("</details>")
             html_parts.append("</div>")
@@ -1114,20 +1289,29 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description="Grade recorded, provenance-validated eval pairs.")
     parser.add_argument("--iteration", default="iteration-1")
+    parser.add_argument("--labels", type=Path, help="human labels file; default docs/benchmarks/<iteration>/labels.jsonl when it exists")
     args = parser.parse_args()
     if not re.fullmatch(r"iteration-[a-z0-9-]+", args.iteration):
         parser.error("invalid iteration name")
+    from label_eval_run import labels_path, load_labels, superseded_count
+    labels_file = args.labels or labels_path(REPO, args.iteration)
+    report = {}
     try:
-        results = grade_all(args.iteration)
+        labels = load_labels(labels_file, args.iteration) if labels_file.is_file() else None
+        superseded = superseded_count(labels_file, args.iteration) if labels_file.is_file() else 0
+        results = grade_all(args.iteration, labels=labels, report=report)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         parser.exit(1, f"Invalid recorded eval: {exc}\n")
     benchmark = aggregate_benchmark(results, args.iteration)
+    benchmark["overall"]["labels_unmatched"] = report.get("labels_unmatched", 0)
+    benchmark["overall"]["labels_stale"] = report.get("labels_stale", 0)
+    benchmark["overall"]["labels_superseded"] = superseded
     # Master benchmark file
     master_path = REPO / "benchmark_all.json"
     master_path.write_text(json.dumps(benchmark, indent=2))
     # Viewer
     viewer_path = REPO / "eval-report.html"
-    render_html(benchmark, results, viewer_path)
+    render_html(benchmark, results, viewer_path, args.iteration)
 
     ov = benchmark["overall"]
     if not ov.get("n_evals"):
@@ -1141,6 +1325,20 @@ def main():
     print(f"With-skill mean pass rate:    {ov['with_skill_pass_rate']*100:.1f}%")
     print(f"Baseline mean pass rate:      {ov['without_skill_pass_rate']*100:.1f}%")
     print(f"Delta:                        {(ov['with_skill_pass_rate']-ov['without_skill_pass_rate'])*100:+.1f}pp")
+    if ov.get("labeled_runs"):
+        if ov.get("grader_disagreement_rate") is not None:
+            flag = " (investigate: recalibrate the assertions before trusting the pass rates)" if ov.get("investigate_grader") else ""
+            print(f"Grader disagreement:          {ov['grader_disagreement_rate']*100:.0f}% over {ov['labeled_runs']} labelled run(s){flag}")
+        if ov.get("human_split_runs"):
+            print(f"Human splits:                 {ov['human_split_runs']} run(s) awaiting a resolution")
+        if ov.get("human_disagreement_rate") is not None:
+            print(f"Human disagreement:           {ov['human_disagreement_rate']*100:.0f}% of runs with two or more labelers")
+    if ov.get("labels_unmatched"):
+        print(f"Labels without a run here:    {ov['labels_unmatched']}")
+    if ov.get("labels_stale"):
+        print(f"Labels against another rubric: {ov['labels_stale']} (stale, not counted; relabel those runs)")
+    if ov.get("labels_superseded"):
+        print(f"Labels superseded:            {ov['labels_superseded']}")
     print(f"Master benchmark: {master_path}")
     print(f"HTML viewer:      {viewer_path}")
 

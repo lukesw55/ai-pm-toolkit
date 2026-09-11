@@ -22,6 +22,7 @@ Resolve `<slug>` from the active pointer; read this project only. Missing or unf
 - `.ai/changelog.md`
 - `.ai/memory/active-context.md`
 - relevant project memory for decisions and past pitfalls
+- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
 
 ## Operating modes
 

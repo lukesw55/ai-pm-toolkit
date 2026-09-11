@@ -181,4 +181,4 @@ Session replays (FullStory, Hotjar, LogRocket) often lack a verbal transcript. F
 
 ## Files
 
-Individual excerpt logs → `.ai/memory/projects/<slug>/research/<topic>/sessions/P<NN>.md`. Cross-source syntheses → `.ai/memory/projects/<slug>/research/<topic>/synthesis-<date>.md`. Raw sources kept in a linked folder (not committed to git if privacy-sensitive; use external storage + link).
+Individual excerpt logs → `.ai/memory/projects/<slug>/research/<topic>/sessions/P<NN>.md`. Cross-source syntheses → `.ai/memory/projects/<slug>/discovery/<topic>/synthesis.md` (the stage 3 artefact; ranked themes roll up into `insights.md`). Raw sources stay in `raw-evidence/<topic>/` (PII, never scripted); when they must live outside the repo, keep only a link there.

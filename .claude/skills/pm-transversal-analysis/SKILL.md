@@ -7,7 +7,8 @@ description: >-
   recordings, call notes, survey free-text, support tickets, session replays,
   analytics queries, or funnel/cohort data — and expects insight, not just a summary.
   Trigger on "sintetize essas entrevistas", "triangule quali e quant", "analyse these
-  transcripts", "cohort analysis", "funnel interpretation". Produces thematic
+  transcripts", "cohort analysis", "funnel interpretation", "batch synthesis", "fecha a
+  tarefa via MCP". Produces thematic
   syntheses with evidence quotes, cohort/funnel interpretations, and triangulated
   findings that make the team act differently. For interviews at the very start of a
   discovery (problem still soft, JTBD undefined), use `pm-phase-discover` first to
@@ -86,15 +87,35 @@ Anti-patterns: "I watched the video and vibed with it", summarising before codin
 
 → Deep-dive: `references/media-transcript-parsing.md`
 
+### 5. Batch interview synthesis (5-10 transcripts)
+
+The many-transcript case: fix one shared codebook first, give every transcript its own fixed-schema excerpt log (one worker per transcript where the harness offers subagents, one file at a time otherwise), then merge by participants, never by quotes, with a counter-evidence column and a saturation check. Raw transcripts stay in `raw-evidence/`; worker lines marked inferred stay inferred in the memo.
+
+Outputs: frozen codebook, one excerpt log per transcript, merge table, synthesis memo at `discovery/<topic>/synthesis.md`, ranked themes in `insights.md`.
+
+Anti-patterns: no codebook before fan-out, counting quotes, the lead reading raw transcripts, names in the memo, worker inference promoted by paraphrase.
+
+→ Deep-dive: `references/batch-interview-synthesis.md`
+
+### 6. Connector task recipes (Jira and analytics MCP)
+
+Close a routine PM task end to end through MCP connectors: launch retro from tickets, feature adoption from analytics, behaviour-split retention. Each recipe fixes the question, the tools by suffix name, the discovery step before the query, the query shape, the output with numerator, denominator, window (with its time zone) and source link, completeness (results paged to the end), the unit of analysis and its deduplication key, where it persists, and what stays TBD because no tool returned it.
+
+Outputs: the number with its link and query text persisted in project memory; TBD claims named with an owner.
+
+Anti-patterns: stating a number no tool returned, percentage without denominator or window, a count from the first page, a cohort defined with information from the window it is measured in, adoption read as retention, ephemeral result without the query.
+
+→ Deep-dive: `references/connector-task-recipes.md`
+
 ## Workflow
 
-1. **Load the raw data** — transcripts, recordings, dashboards, exports. If media is provided, confirm transcript is available or request one; use Read on provided text files.
+1. **Load the raw data** — transcripts, recordings, dashboards, exports. If media is provided, confirm transcript is available or request one; use Read on provided text files. When present, `.ai/memory/org/personas.md` supplies the segment labels the coding scheme should reuse. For five or more transcripts follow `references/batch-interview-synthesis.md`: shared codebook first, one excerpt log per transcript, merge by participants.
 2. **Classify the ask** — quali, quant, triangulation, or media-first?
 3. **Sampling discipline** — for quali, check sample size and segment coverage. For quant, check cohort definitions and exclusion rules.
 4. **Code then synthesise** — for quali, resist the urge to summarise before coding. For quant, define the hypothesis before slicing.
 5. **Triangulate** — always ask "what does the *other* type of evidence say about this claim?"
 6. **State confidence and implication** — every insight ends with "confidence: low/med/high; implication: X".
-7. **Persist** — insight repo → `.ai/memory/projects/<slug>/insights.md`; experiment plan if needed → `experiments.md`; raw signal preserved (links or copies) — don't lose originals.
+7. **Persist** — ranked themes → `.ai/memory/projects/<slug>/insights.md` (locators only); per-topic memo → `discovery/<topic>/synthesis.md`; connector results → `analytics/<topic>-<date>.md` with the query text; experiment plan if needed → `experiments.md`; raw signal stays in `raw-evidence/` (PII, never copied into memory or chat).
 
 ## Output contract
 
@@ -125,7 +146,7 @@ Anti-patterns: "I watched the video and vibed with it", summarising before codin
 - `pm-phase-discover` — feeds research synthesis, segment models, opportunity ranking.
 - `pm-phase-deliver` — interprets post-launch metrics, A/B results with quali context.
 - Transversais: `pm-transversal-docs` (synthesis published in Confluence insight repo), `pm-transversal-stakeholder` (exec memo citing triangulated evidence).
-- MCP tools: when PostHog MCP is available (product analytics), this skill can query directly (`query-run`, `insights-list`, etc.; the `mcp__<server>__` prefix varies by environment) for quantitative inputs. When the team uses Zoom/Gong/Otter, transcript files come in via Read.
+- MCP tools: when analytics (PostHog) or Jira connectors are available, this skill queries them directly for quantitative inputs (tool names by suffix, such as `query-run` and `searchJiraIssuesUsingJql`; the `mcp__<server>__` prefix varies by environment) following `references/connector-task-recipes.md`: numbers only from tool results, source links in the output, query text and decision persisted. When the team uses Zoom/Gong/Otter, transcript files come in via Read.
 
 Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-skill: Lean (default) is ranked findings + implications + confidence; Standard is the full synthesis memo with method + findings + quotes; Caveman is the top 3 findings in 2 lines each.
 

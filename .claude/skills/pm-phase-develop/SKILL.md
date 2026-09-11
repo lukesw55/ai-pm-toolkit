@@ -6,7 +6,8 @@ description: >-
   structure, dependency & risk management, cross-functional orchestration, and the **measurement
   instrumentation** that must be in place before launch. Trigger on "write a PRD", "escreva a spec",
   "quebre esse épico", "quais dependências?", "tracking plan", "event schema", "instrumentation",
-  "acceptance criteria", "feature flag strategy", or when the team is about to code without a
+  "acceptance criteria", "feature flag strategy", "which prototype tier?", "posso abrir o PR eu
+  mesmo?", or when the team is about to code without a
   measurement plan. Also covers the PM lens on technical fluency for software products. Bridges to
   `pm-phase-deliver` for post-launch monitoring and A/B interpretation.
 ---
@@ -107,14 +108,24 @@ Anti-patterns: cargo-cult jargon, promising incoherent solutions, ignoring NFRs,
 
 → Deep-dive: `references/technical-fluency.md`
 
+### 7. Prototyping ladder (stage 6)
+
+Pick where the stage-6 prototype lives by the question it must answer, the risk if it is wrong and the engineering cost tolerated: a throwaway prototype outside the codebase for comprehension and desirability, a code prototype on a disposable branch of the real codebase (built with a coding agent, never merged as-is) for interaction and integration fidelity, or a small PM-authored change shipped as a reviewed pull request for copy, configuration, flags and minor UI. Never core logic, data model, billing, auth, permissions or migrations: the PM does not ship code inferior to the team's next to the team's.
+
+Outputs: prototype decision record, sandbox repo request, validated-prototype evidence with participants and locators for the stage-6 gate.
+
+Anti-patterns: demo mistaken for feasibility, merging the prototype branch, PM as junior engineer, a shipped change without a flag or rollback, polishing before the risk is resolved.
+
+→ Deep-dive: `references/prototyping-ladder.md`
+
 ## Workflow
 
-1. **Load context** — `.ai/memory/active-context.md`, PRD/spec if present, priorities from `pm-phase-define`, tracking plan if any.
+1. **Load context** — `.ai/memory/active-context.md`, PRD/spec if present, priorities from `pm-phase-define`, tracking plan if any. When present, `.ai/memory/org/personas.md` names the archetype the PRD serves.
 2. **Classify the ask** — PRD, slicing, dependency/risk, orchestration, instrumentation, or tech fluency?
 3. **Anchor on the wedge** — restate the problem + success criteria + non-goals from Define. If missing, loop back.
 4. **Draft the smallest useful artefact** — PRD that fits on ~3 pages, not 20; tracking plan that tracks the 5 events that matter, not 50.
 5. **Name dependencies and risks explicitly** — each with owner and mitigation.
-6. **Persist** — PRD → `.ai/memory/projects/<slug>/prds/<name>.md`; dependencies → `.ai/memory/projects/<slug>/raid.md`; tracking plan → `tracking.md`.
+6. **Persist** — PRD → `.ai/memory/projects/<slug>/prds/<name>.md`; dependencies → `.ai/memory/projects/<slug>/raid.md`; tracking plan → `tracking.md`; prototype decision → `prototypes/<name>.md`.
 
 ## Output contract
 

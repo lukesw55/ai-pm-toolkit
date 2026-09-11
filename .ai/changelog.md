@@ -4,15 +4,15 @@
 
 > Active log keeps the most recent entries; older entries in `changelog-archive.md`.
 
-## 2026-09-10: B31 matcher review correction
+## 2026-09-11: Round 3 closing: review section and recounts
 
-PR #20 review: separate Claude exact-name/list matcher semantics from Codex regex semantics. Pass the harness through contract validation and test partial names, comma lists, alternation and anchors.
+Round 3 of PR #21 closed: backlog gained the 'Revisão do head 23fd183' section mapping the five reproduced findings to commits dad9608, 994632b, d917af4, 9d955e2 and a4d009c, with the counts recounted (runner 15, labels 13, context 12, 24 punctuation variants); tasks updated. The five reproductions were re-run on the fixed tree and none reproduces. Validation: validate_repo both parsers, doctor, git diff --check.
 
-## 2026-09-10: B31 pontas soltas da execução consolidada
+## 2026-09-11: Org bootstrap confines the destination before writing
 
-B31: pontas soltas da execução consolidada (PRs #16 a #19). Actions fixadas por SHA completo; cobertura de fixtures NC/adversarial derivada dos manifests, com 7 fixtures novas (39/39 blocos cobertos, 94 fixtures); código morto removido e semântica de matcher dos harnesses no validador; name do SKILL.md igual ao diretório; regressões novas no contrato de hooks e no frontmatter; README, REPO_HEALTH e AGENTS.md alinhados com as suítes reais; travessão literal no adapter Codex; título default do log derivado da entrada. Validação local em Python 3.11: preflight, py_compile, bash -n por hook, 132 espelhos, validador verde com e sem PyYAML, hooks 33, contrato 8, grader 94, memória 41, contexto 8, gravador 5, validador 54, frontmatter 5, smoke do grader exit 0, doctor verde.
+Round 3 of PR #21, finding 5: init_context.py --org checks confinement before creating anything: when .ai/memory or .ai/memory/org is, or sits behind, a symlink, it exits 1 and writes nothing (the old guard only resolved the path once org/ existed, so a symlinked ancestor let the four files land outside the repository). Regression relocates .ai/memory behind a symlink and requires exit 1 with nothing created outside. MEMORY_SYSTEM states the rule. Validation: test_context_scripts 12, full REPO_HEALTH battery green.
 
-## 2026-09-10: Remaining backlog implementation
+## 2026-09-11: Codex results need a completed turn; one directory per attempt
 
-Implemented B24, B22, B28, B26, B27 and B30 in one consolidated change. Added B25 recorder and protocol; the real 60-output pilot remains pending because authenticated Claude Code and Codex runners are unavailable. B21 and B23 recorded as already integrated. Validation results are recorded in the PR; binding decisions are in docs/DECISIONS.md.
+Round 3 of PR #21, finding 4: parse_codex_jsonl accepts a stream only when its turn completed (turn.failed or error refused, missing turn.completed refused), and every harness attempt runs in its own attempt-NN directory so a resume with --skip-recorded in the same work directory records the pair while the failed attempt's stdout and stderr stay in place; attempts.jsonl carries the attempt number. Validation: test_run_eval_pilot 15 (partial stream with turn.failed refused, fail then resume keeps attempt-01), recorder and label suites, full REPO_HEALTH battery green.
 

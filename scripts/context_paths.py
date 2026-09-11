@@ -4,6 +4,8 @@ from pathlib import Path
 
 SLUG_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
 PII_DENY = ("raw-evidence", "people", "data")
+ORG_DIR_NAME = "org"  # .ai/memory/org/, the shared layer every skill may read
+ORG_FILES = ("company.md", "personas.md", "competitors.md", "goals.md")
 
 
 def validate_slug(slug):

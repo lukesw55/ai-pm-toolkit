@@ -25,6 +25,7 @@ Resolve `<slug>` from the active pointer; read this project only. Missing or unf
 - `.ai/changelog.md`
 - `.ai/memory/active-context.md`
 - active project memory if it exists
+- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
 
 ## Workflow
 

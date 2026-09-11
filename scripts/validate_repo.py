@@ -746,7 +746,8 @@ def check_memory_bootstrap(errors: list[str]) -> None:
     # clone ships and init_context.py depends on, so this excludes local
     # state by exact relative path rather than by directory basename.
     local_state = {".ai/memory/active-context.md", ".ai/memory/index.md", ".ai/memory/inbox.md",
-                   ".ai/memory/context-events.jsonl", ".ai/memory/projects", ".ai/memory/people", ".ai/gates"}
+                   ".ai/memory/context-events.jsonl", ".ai/memory/projects", ".ai/memory/people",
+                   ".ai/memory/org", ".ai/gates"}
 
     def ignore(dirpath: str, names: list[str]) -> set[str]:
         rel_dir = os.path.relpath(dirpath, ROOT)
@@ -763,6 +764,7 @@ def check_memory_bootstrap(errors: list[str]) -> None:
         py = sys.executable  # "python3" is not on PATH in every environment (e.g. Windows)
         cmds = [
             [py, "scripts/init_context.py", "Validation Demo"],
+            [py, "scripts/init_context.py", "--org"],
             [py, "scripts/memory.py", "doctor"],
             [py, "scripts/stage_context.py"],
         ]

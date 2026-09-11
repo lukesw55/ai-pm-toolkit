@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import argparse
-from context_paths import project_path, pointer_slug
+from context_paths import ORG_DIR_NAME, ORG_FILES, project_path, pointer_slug
 
 import re
 import sys
@@ -13,6 +13,23 @@ ROOT = Path(__file__).resolve().parents[1]
 MEMORY = ROOT / ".ai" / "memory"
 PROJECTS = MEMORY / "projects"
 TEMPLATES = MEMORY / "_templates"
+ORG = MEMORY / ORG_DIR_NAME
+ORG_TEMPLATES = TEMPLATES / "org"
+
+# destination -> template under _templates/; tests derive the expected file set from this map
+PROJECT_FILES = {
+    "app.md": "app.md",
+    "design.md": "design.md",
+    "tasks.md": "tasks.md",
+    "profile.md": "context-profile.md",
+    "decisions.md": "decision-log.md",
+    "experiments.md": "experiment-log.md",
+    "glossary.md": "glossary.md",
+    "retrospective.md": "retrospective.md",
+    "state.md": "state.md",
+    "session-kickoff.md": "session-kickoff.md",
+    "insights.md": "insights.md",
+}
 
 
 def slugify(value: str) -> str:
@@ -40,11 +57,48 @@ def append_if_missing(path: Path, line: str) -> None:
             handle.write(line + "\n")
 
 
+def init_org() -> int:
+    """Create the shared org layer from _templates/org/ without overwriting anything."""
+    # Confinement before anything is created: a symlinked ancestor would send the four
+    # files outside the repository while org/ itself does not exist yet, so the check
+    # cannot wait for ORG.exists(). Same policy as context_paths.project_path.
+    for path in (MEMORY, ORG):
+        if path.is_symlink() or path.resolve() != path.absolute():
+            print(f"init_context.py: {path.relative_to(ROOT).as_posix()} must not be, or sit behind, a symlink", file=sys.stderr)
+            return 1
+    missing = [name for name in ORG_FILES if not (ORG_TEMPLATES / name).is_file()]
+    if missing:
+        print(f"init_context.py: missing template .ai/memory/_templates/org/{missing[0]}", file=sys.stderr)
+        return 1
+    ORG.mkdir(parents=True, exist_ok=True)
+    created, kept = [], []
+    for name in ORG_FILES:
+        target = ORG / name
+        if target.is_symlink():
+            print(f"init_context.py: {target.relative_to(ROOT).as_posix()} must not be a symlink", file=sys.stderr)
+            return 1
+        if target.exists():
+            kept.append(name)
+            continue
+        target.write_text(render_template(f"org/{name}", ORG_DIR_NAME, "Shared org context"), encoding="utf-8")
+        created.append(name)
+    print(f"Initialized org context at {ORG.relative_to(ROOT).as_posix()} "
+          f"(created: {', '.join(created) or 'none'}; kept: {', '.join(kept) or 'none'})")
+    return 0
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Initialize a project without overwriting its state.")
+    parser = argparse.ArgumentParser(description="Initialize a project, or the shared org layer, without overwriting state.")
     parser.add_argument("--migrate-legacy", action="store_true", help="copy legacy app/design/tasks into missing project files; keep sources")
-    parser.add_argument("name", nargs="+")
+    parser.add_argument("--org", action="store_true", help="create the shared org layer .ai/memory/org/ from _templates/org/ without overwriting")
+    parser.add_argument("name", nargs="*")
     args = parser.parse_args()
+    if args.org:
+        code = init_org()
+        if code or not args.name:
+            return code
+    if not args.name:
+        parser.error("a project name is required unless --org is given")
     title = " ".join(args.name).strip()
     try:
         slug = slugify(title)
@@ -68,20 +122,14 @@ def main() -> int:
             print(f"Refusing to overwrite active-context.md: '{current}' is still active; park it first", file=sys.stderr)
             return 2
 
+    missing = [t for t in PROJECT_FILES.values() if not (TEMPLATES / t).is_file()]
+    if missing:
+        print(f"init_context.py: missing template .ai/memory/_templates/{missing[0]}", file=sys.stderr)
+        return 1
+
     project_dir.mkdir(parents=True, exist_ok=True)
 
-    files = {
-        "app.md": "app.md",
-        "design.md": "design.md",
-        "tasks.md": "tasks.md",
-        "profile.md": "context-profile.md",
-        "decisions.md": "decision-log.md",
-        "experiments.md": "experiment-log.md",
-        "glossary.md": "glossary.md",
-        "retrospective.md": "retrospective.md",
-        "state.md": "state.md",
-        "session-kickoff.md": "session-kickoff.md",
-    }
+    files = PROJECT_FILES
 
     # Validate all destinations before creating files, including symlink targets.
     try:
