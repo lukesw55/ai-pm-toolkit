@@ -216,41 +216,90 @@ def log_attempt(root: Path, iteration: str, record: dict) -> None:
         handle.write(json.dumps({"when": datetime.now().astimezone().isoformat(), **record}, sort_keys=True) + "\n")
 
 
-def probe_path(root: Path, iteration: str) -> Path:
-    return root / "docs" / "benchmarks" / iteration / "isolation-probe.json"
+def probe_dir(root: Path, iteration: str) -> Path:
+    return root / "docs" / "benchmarks" / iteration / "probes"
 
 
 def parse_probe(text: str) -> dict:
-    """Two lines, TOOLS and INSTRUCTIONS; isolated only when both say none. An answer in
-    any other shape counts as not isolated: the probe fails closed."""
-    fields = {}
-    for line in text.splitlines():
-        m = re.match(r"\s*(tools|instructions)\s*:\s*(.*)$", line, re.IGNORECASE)
-        if m and m.group(1).lower() not in fields:
-            fields[m.group(1).lower()] = m.group(2).strip().strip(".").strip("`'\"").strip()
-    isolated = set(fields) == {"tools", "instructions"} and all(v.lower() in ("none", "none.", "nothing") for v in fields.values())
-    return {"tools": fields.get("tools"), "instructions": fields.get("instructions"), "isolated": isolated}
+    """Exactly two non-empty lines, TOOLS then INSTRUCTIONS, each saying none. An extra
+    line, a repeated field, a contradiction or any other shape is not isolated: the probe
+    fails closed and records format_ok so the report can tell a bad answer from a bad
+    session."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    fields: dict[str, str] = {}
+    format_ok = len(lines) == 2
+    for index, line in enumerate(lines):
+        m = re.match(r"(tools|instructions)\s*:\s*(.*)$", line, re.IGNORECASE)
+        name = m.group(1).lower() if m else None
+        if not m or name in fields or name != ("tools", "instructions")[min(index, 1)]:
+            format_ok = False
+        if m and name not in fields:
+            fields[name] = m.group(2).strip().strip(".").strip("`'\"").strip()
+    isolated = format_ok and set(fields) == {"tools", "instructions"} and all(v.lower() in ("none", "nothing") for v in fields.values())
+    return {"tools": fields.get("tools"), "instructions": fields.get("instructions"), "format_ok": format_ok, "isolated": isolated}
 
 
-def probe_isolation(root: Path, args, template: str, work_dir: Path, version: str | None) -> dict:
+def _flag_value(argv: list[str], flag: str) -> str | None:
+    return argv[argv.index(flag) + 1] if flag in argv and argv.index(flag) + 1 < len(argv) else None
+
+
+def isolation_config(harness: str, argv: list[str], cwd: Path, root: Path, env: dict | None = None) -> dict[str, bool]:
+    """Explicit, verifiable process configuration: the flags the harness documents for a
+    session without customisations, and a working directory outside the repository. This
+    is the isolation guarantee; the probe is a diagnostic on top of it, because a model's
+    statement about its own tools does not prove what the process loaded."""
+    env = os.environ if env is None else env
+    outside = not cwd.resolve().is_relative_to(root.resolve())
+    if harness == "claude-code":
+        return {
+            "safe_mode": "--safe-mode" in argv,
+            "strict_mcp_config": "--strict-mcp-config" in argv,
+            "no_tools": _flag_value(argv, "--tools") == "",
+            "no_permission_prompts": _flag_value(argv, "--permission-prompts") == "none",
+            "cwd_outside_repo": outside,
+        }
+    home = env.get("CODEX_HOME")
+    home_path = Path(home) if home else None
+    clean = bool(home_path and home_path.is_dir() and not any((home_path / name).exists() for name in ("AGENTS.md", "skills", "hooks")))
+    return {
+        "read_only_sandbox": _flag_value(argv, "--sandbox") == "read-only",
+        "skip_git_repo_check": "--skip-git-repo-check" in argv,
+        "codex_home_set": bool(home),
+        "codex_home_clean": clean,
+        "cwd_outside_repo": outside,
+    }
+
+
+def probe_isolation(root: Path, args, template: str, work_dir: Path, version: str | None, attempt: int) -> dict:
     """Ask the harness, through the same argv the runs use, what it can call and what it
-    was told before the prompt. The answer is kept in docs/benchmarks/<iteration>/ and
-    referenced from every provenance sidecar of the iteration."""
-    cwd = work_dir / "isolation-probe"
-    cwd.mkdir(parents=True, exist_ok=True)
+    was told before the prompt. Every invocation writes its own probe file under
+    docs/benchmarks/<iteration>/probes/ and never overwrites an earlier one, so a sidecar
+    that references a probe keeps pointing at evidence that still exists."""
+    cwd = work_dir / "isolation-probe" / f"attempt-{attempt:02d}"
+    cwd.mkdir(parents=True, exist_ok=False)
     prompt_file = cwd / "prompt.md"
     prompt_file.write_text(PROBE_PROMPT, encoding="utf-8")
     output_file = cwd / "last_message.md"
     argv = harness_argv(template, model=args.model, cwd=str(cwd), prompt_file=str(prompt_file), output_file=str(output_file))
+    config = isolation_config(args.harness, argv, cwd, root)
     raw = run_harness(argv, PROBE_PROMPT, cwd, args.timeout)
     result = parse_claude_json(raw, args.model) if args.harness == "claude-code" else parse_codex_jsonl(raw, output_file, args.model)
     probe = {"schema": PROBE_SCHEMA, "harness": args.harness, "harness_version": version, "model": result.model,
              "argv": argv, "prompt": PROBE_PROMPT, "text": result.text, **parse_probe(result.text),
-             "checked_at": datetime.now().astimezone().isoformat(), "harness_result": result.raw}
-    path = probe_path(root, args.iteration)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(probe, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
-    return {"path": path.relative_to(root).as_posix(), "sha256": sha256_bytes(path.read_bytes()), "isolated": probe["isolated"]}
+             "isolation_config": config, "checked_at": datetime.now().astimezone().isoformat(), "harness_result": result.raw}
+    body = (json.dumps(probe, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
+    sha = sha256_bytes(body)
+    directory = probe_dir(root, args.iteration)
+    directory.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().astimezone().strftime("%Y%m%dT%H%M%S%z")
+    path = directory / f"{stamp}-{sha[:8]}.json"
+    counter = 2
+    while path.exists():
+        path = directory / f"{stamp}-{sha[:8]}-{counter}.json"
+        counter += 1
+    path.write_bytes(body)
+    return {"path": path.relative_to(root).as_posix(), "sha256": sha, "isolated": probe["isolated"],
+            "format_ok": probe["format_ok"], "isolation_config": config}
 
 
 def parse_claude_json(raw: str, model_flag: str) -> HarnessResult:
@@ -349,7 +398,10 @@ def record_result(root: Path, args, entry: dict, config: str, result: HarnessRes
         "config_order": order, "model_source": result.model_source,
         "payload_sha256": sha256_bytes(payload.encode("utf-8")), "payload": payload,
         "output_sha256": sha256_bytes(result.text.encode("utf-8")),
-        "loaded_files": loaded, "isolation_probe": probe, "harness_result": result.raw,
+        "loaded_files": loaded, "harness_result": result.raw,
+        "isolation_probe": None if probe is None else {k: probe[k] for k in ("path", "sha256", "isolated", "format_ok")},
+        "isolation_config": None if probe is None else probe["isolation_config"],
+        "skip_probe": probe is None,
     }
     (target / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
                                             encoding="utf-8")
@@ -407,9 +459,17 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
         print(f"WARN {message}", file=sys.stderr)
     probe = None
     if not getattr(args, "skip_probe", False):
-        probe = probe_isolation(root, args, template, work_dir, version)
+        probe_attempt = 1 + len(list((work_dir / "isolation-probe").glob("attempt-*"))) if (work_dir / "isolation-probe").exists() else 1
+        probe = probe_isolation(root, args, template, work_dir, version, probe_attempt)
+        failed_checks = sorted(name for name, ok in probe["isolation_config"].items() if not ok)
+        if failed_checks:
+            message = (f"isolation configuration incomplete for {args.harness}: {', '.join(failed_checks)}; see {probe['path']}. "
+                       "Fix the template, CODEX_HOME or the working directory, or pass --allow-unisolated to record anyway")
+            if not getattr(args, "allow_unisolated", False):
+                raise ValueError(message)
+            print(f"WARN {message}", file=sys.stderr)
         if not probe["isolated"]:
-            message = (f"isolation probe reports tools or instructions in the harness session; see {probe['path']}. "
+            message = (f"isolation probe reports tools or instructions, or answered in another shape; see {probe['path']}. "
                        "Fix the isolation (flags, CODEX_HOME, working directory) or pass --allow-unisolated to record anyway")
             if not getattr(args, "allow_unisolated", False):
                 raise ValueError(message)

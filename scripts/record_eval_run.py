@@ -73,6 +73,26 @@ def validate_run(directory, skill, spec, config):
                 raise ValueError('provenance sidecar mismatch: loaded SKILL.md')
         elif loaded:
             raise ValueError('provenance sidecar mismatch: without_skill lists loaded files')
+        probe = prov.get('isolation_probe')
+        if probe is None:
+            if prov.get('skip_probe') is not True:
+                raise ValueError('provenance sidecar mismatch: isolation probe missing without skip_probe')
+        else:
+            # The referenced probe is evidence only while it exists with the recorded hash.
+            resolved = directory.resolve()
+            if len(resolved.parents) < 6 or resolved.parents[4].name != 'skills' or resolved.parents[2].name != 'workspace':
+                raise ValueError('run directory is not <root>/skills/<skill>/workspace/<iteration>/<eval>/<config>')
+            root = resolved.parents[5]
+            if not isinstance(probe, dict) or not isinstance(probe.get('path'), str) or not isinstance(probe.get('sha256'), str):
+                raise ValueError('provenance sidecar mismatch: isolation probe reference')
+            probe_file = root/probe['path']
+            if not probe_file.resolve().is_relative_to(root) or not probe_file.is_file():
+                raise ValueError('provenance sidecar mismatch: isolation probe file missing')
+            if digest(probe_file.read_bytes()) != probe['sha256']:
+                raise ValueError('provenance sidecar mismatch: isolation probe hash')
+            recorded = json.loads(probe_file.read_text(encoding='utf-8'))
+            if not isinstance(recorded, dict) or recorded.get('isolated') != probe.get('isolated') or recorded.get('harness') != meta['harness']:
+                raise ValueError('provenance sidecar mismatch: isolation probe content')
     return meta
 
 

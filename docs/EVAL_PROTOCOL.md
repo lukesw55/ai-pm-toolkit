@@ -51,13 +51,23 @@ configuration runs first per eval from a seed it prints, and hands the text to
 A `provenance.json` beside each `meta.json` keeps argv, harness version, seed, order, loaded
 files with hashes, the raw envelope and the output hash the recorder wrote, and `validate_run`
 checks the sidecar against the run (same output hash, a payload that hashes to what it claims,
-the SKILL.md the meta names), so a sidecar that describes another run fails grading and
-labelling. Three guards precede the runs: the harness version must be listed under
-`verified_harness_versions` in the manifest, which only a parsed `--eval` smoke run earns; an
-isolation probe asks the harness, through the same argv, what tools it can call and what
-instructions it was given, writes the answer to `docs/benchmarks/<iteration>/isolation-probe.json`
-and stops unless both answers are "none" (`--allow-unisolated` records anyway and the sidecar
-carries the probe result); and every invocation, recorded or failed, appends one line to
+the SKILL.md the meta names, and the referenced isolation probe present with its recorded
+hash), so a sidecar that describes another run, or points at a probe that no longer exists,
+fails grading and labelling. Four guards precede the runs: the harness version must be listed
+under `verified_harness_versions` in the manifest, which only a parsed `--eval` smoke run earns;
+the process configuration is checked explicitly and recorded in the sidecar (for Claude Code
+`--safe-mode`, `--strict-mcp-config`, `--tools ""` and `--permission-prompts none` in the argv;
+for Codex `--sandbox read-only`, `--skip-git-repo-check` and a `CODEX_HOME` without AGENTS.md,
+skills or hooks; for both, a working directory outside the repository), and a missing check
+stops the run; an isolation probe then asks the harness, through the same argv, what tools it
+can call and what instructions it was given, and stops unless the answer is exactly two lines
+both saying "none" (a repeated field, an extra line or a contradiction fails closed). The probe
+is a diagnostic on top of the configuration checks, not the guarantee: a model's statement
+about its own tools does not prove what the process loaded. Each invocation writes its own
+probe file under `docs/benchmarks/<iteration>/probes/`, never overwriting an earlier one, so
+every sidecar keeps pointing at evidence that exists (`--allow-unisolated` records anyway and the
+sidecar carries the probe result and the failed checks); and every invocation, recorded or
+failed, appends one line to
 `docs/benchmarks/<iteration>/attempts.jsonl` with its status, error and stdout hash, while
 `harness_stdout.txt` and `harness_stderr.txt` stay in the run directory either way. An empty
 result, a failed process, a dirty tree under `skills/`, a mixed iteration or an already-recorded
@@ -194,13 +204,16 @@ then `scripts/grade_evals.py --iteration <iteration>`; keep `benchmark_all.json`
 `eval-report.html` for one harness before grading the other, because both live at the repo
 root and are replaced. Never mix harnesses or models in one iteration; start a new one.
 
-Isolation checklist, verified by the probe and recorded in the sidecar: no tool available to
-the model (`TOOLS: none`), no project, user or system instruction loaded before the prompt
-(`INSTRUCTIONS: none`), the working directory outside the repository and empty, no plugin or
-MCP server attached, the same flags for both configurations. A probe that names a tool or an
-instruction means the isolation is broken for that harness on that machine; fix the flags or
-the environment before recording, and never compare a run recorded under a broken probe with
-one recorded under a clean one.
+Isolation checklist, in two layers. The configuration layer is what the runner verifies and
+records in every sidecar: the documented flags for a session without customisations (Claude
+Code: `--safe-mode`, `--strict-mcp-config`, `--tools ""`, `--permission-prompts none`; Codex:
+`--sandbox read-only`, `--skip-git-repo-check`, `CODEX_HOME` pointing at a directory that holds
+only the authentication file), the working directory outside the repository and empty, no
+plugin or MCP server attached, the same flags for both configurations. The probe layer is a
+diagnostic: the harness must answer exactly `TOOLS: none` and `INSTRUCTIONS: none`. A failed
+check or a probe that names a tool or an instruction means the isolation is broken for that
+harness on that machine; fix the flags or the environment before recording, and never compare
+a run recorded under a broken probe with one recorded under a clean one.
 
 Claude Code (flags confirmed in `claude -p --help` 2.1.267; the envelope is not confirmed until
 the smoke run parses it, so 2.1.267 is not yet listed as verified): the default template is

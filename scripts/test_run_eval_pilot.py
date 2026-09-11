@@ -56,7 +56,10 @@ class PilotRunnerTests(unittest.TestCase):
         subprocess.run(['git', '-C', str(self.root), 'add', '-A'], check=True)
         subprocess.run(['git', '-C', str(self.root), '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'], check=True)
         self.fake = Path(self.tmp.name) / 'fake_harness.py'; self.fake.write_text(FAKE_HARNESS)
-        self.template = f'{sys.executable} {self.fake} --model {{model}}'
+        # The fake ignores the isolation flags; the runner's configuration check reads them.
+        self.template = f'{sys.executable} {self.fake} -p --output-format json --model {{model}} --safe-mode --strict-mcp-config --tools "" --permission-prompts none'
+        self.codex_template = f'{sys.executable} {self.fake} exec --json --model {{model}} --sandbox read-only --skip-git-repo-check'
+        self.codex_home = Path(self.tmp.name) / 'codex-home'; self.codex_home.mkdir(); (self.codex_home / 'auth.json').write_text('{}')
         self.args = argparse.Namespace(harness='claude-code', iteration='iteration-fake', model='fake-model-1', seed=7,
                                        harness_cmd=self.template, deps='docs/benchmarks/pilot-deps.json', skill=None, eval=None,
                                        dry_run=False, skip_recorded=False, allow_dirty=False, timeout=60,
@@ -88,7 +91,8 @@ class PilotRunnerTests(unittest.TestCase):
             self.assertEqual(prov['seed'], 7); self.assertEqual(prov['model_source'], 'harness'); self.assertEqual(prov['harness_version'], 'fake 0.0')
             self.assertEqual(sorted(prov['config_order']), ['with_skill', 'without_skill'])
             self.assertEqual(prov['output_sha256'], meta['output_sha256']); self.assertEqual(prov['schema'], rp.PROVENANCE_SCHEMA)
-            self.assertTrue(prov['isolation_probe']['isolated']); self.assertEqual(prov['isolation_probe']['path'], 'docs/benchmarks/iteration-fake/isolation-probe.json')
+            self.assertTrue(prov['isolation_probe']['isolated']); self.assertTrue(prov['isolation_probe']['path'].startswith('docs/benchmarks/iteration-fake/probes/'))
+            self.assertTrue(all(prov['isolation_config'].values()), prov['isolation_config']); self.assertFalse(prov['skip_probe'])
             spec = rr.eval_spec(self.root, meta['skill'], meta['eval_name'])
             self.assertEqual(rr.validate_run(meta_path.parent, meta['skill'], spec, meta['config'])['output_sha256'], meta['output_sha256'])
             if meta['config'] == 'with_skill':
@@ -102,8 +106,9 @@ class PilotRunnerTests(unittest.TestCase):
             runs = ge.grade_all('iteration-fake')
             benchmark = ge.aggregate_benchmark(runs, 'iteration-fake')
         self.assertEqual(benchmark['overall']['n_evals'], expected // 2)
-        probe = json.loads(rp.probe_path(self.root, 'iteration-fake').read_text())
-        self.assertTrue(probe['isolated']); self.assertEqual(probe['tools'], 'none'); self.assertEqual(probe['harness_version'], 'fake 0.0')
+        probes = sorted(rp.probe_dir(self.root, 'iteration-fake').glob('*.json')); self.assertEqual(len(probes), 1)
+        probe = json.loads(probes[0].read_text())
+        self.assertTrue(probe['isolated']); self.assertTrue(probe['format_ok']); self.assertEqual(probe['tools'], 'none'); self.assertEqual(probe['harness_version'], 'fake 0.0')
         attempts = self.attempts()
         self.assertEqual(len(attempts), expected); self.assertEqual({a['status'] for a in attempts}, {'recorded'})
         self.assertTrue(all(a['output_sha256'] and a['stdout_sha256'] and a['when'] for a in attempts))
@@ -127,14 +132,54 @@ class PilotRunnerTests(unittest.TestCase):
         with patch.dict(os.environ, {'FAKE_UNISOLATED': '1'}):
             with self.assertRaisesRegex(ValueError, 'isolation probe'): rp.run_pilot(self.args, self.root)
             self.assertEqual(self.metas(), []); self.assertEqual(self.attempts(), [])
-            probe = json.loads(rp.probe_path(self.root, 'iteration-fake').read_text())
+            probes = sorted(rp.probe_dir(self.root, 'iteration-fake').glob('*.json')); self.assertEqual(len(probes), 1)
+            probe = json.loads(probes[0].read_text())
             self.assertFalse(probe['isolated']); self.assertEqual(probe['tools'], 'Bash, Read')
             self.args.allow_unisolated = True; self.args.skill = self.skills[2]
             recorded = rp.run_pilot(self.args, self.root)
         self.assertTrue(recorded)
         prov = json.loads((recorded[0] / 'provenance.json').read_text()); self.assertFalse(prov['isolation_probe']['isolated'])
-        self.assertEqual(rp.parse_probe('TOOLS: none.\nINSTRUCTIONS: None')['isolated'], True)
-        self.assertEqual(rp.parse_probe('I have no tools.')['isolated'], False)
+        self.assertEqual(len(list(rp.probe_dir(self.root, 'iteration-fake').glob('*.json'))), 2)
+        self.assertTrue(rp.parse_probe('TOOLS: none.\nINSTRUCTIONS: None')['isolated'])
+        for text in ('I have no tools.', 'TOOLS: none\nINSTRUCTIONS: none\nTOOLS: Bash\nINSTRUCTIONS: global instructions',
+                     'INSTRUCTIONS: none\nTOOLS: none', 'TOOLS: none\nINSTRUCTIONS: none\nThat is all.', 'TOOLS: none'):
+            with self.subTest(text=text):
+                parsed = rp.parse_probe(text); self.assertFalse(parsed['isolated']); self.assertFalse(parsed['format_ok'])
+
+    def test_configuration_checks_refuse_an_unsafe_template(self):
+        self.args.harness_cmd = f'{sys.executable} {self.fake} --model {{model}}'
+        with self.assertRaisesRegex(ValueError, 'isolation configuration incomplete.*safe_mode'): rp.run_pilot(self.args, self.root)
+        self.assertEqual(self.metas(), [])
+        self.args.allow_unisolated = True; self.args.skill = self.skills[2]
+        recorded = rp.run_pilot(self.args, self.root)
+        prov = json.loads((recorded[0] / 'provenance.json').read_text())
+        self.assertFalse(prov['isolation_config']['safe_mode']); self.assertTrue(prov['isolation_config']['cwd_outside_repo'])
+        config = rp.isolation_config('codex', ['codex', 'exec', '--sandbox', 'read-only', '--skip-git-repo-check'], Path(self.tmp.name) / 'w', self.root, {'CODEX_HOME': str(self.codex_home)})
+        self.assertTrue(all(config.values()), config)
+        (self.codex_home / 'AGENTS.md').write_text('loaded instructions')
+        self.assertFalse(rp.isolation_config('codex', ['codex', 'exec', '--sandbox', 'read-only', '--skip-git-repo-check'], Path(self.tmp.name) / 'w', self.root, {'CODEX_HOME': str(self.codex_home)})['codex_home_clean'])
+
+    def test_probe_is_immutable_per_invocation_and_bound_to_validation(self):
+        self.args.skill = self.skills[1]
+        first = rp.run_pilot(self.args, self.root)
+        self.args.skill = self.skills[2]; self.args.skip_recorded = True
+        second = rp.run_pilot(self.args, self.root)
+        probes = sorted(rp.probe_dir(self.root, 'iteration-fake').glob('*.json')); self.assertEqual(len(probes), 2)
+        for target in (*first, *second):
+            meta = json.loads((target / 'meta.json').read_text()); spec = rr.eval_spec(self.root, meta['skill'], meta['eval_name'])
+            rr.validate_run(target, meta['skill'], spec, meta['config'])
+        prov_first = json.loads((first[0] / 'provenance.json').read_text()); prov_second = json.loads((second[0] / 'provenance.json').read_text())
+        self.assertNotEqual(prov_first['isolation_probe']['path'], prov_second['isolation_probe']['path'])
+        target = first[0]; meta = json.loads((target / 'meta.json').read_text()); spec = rr.eval_spec(self.root, meta['skill'], meta['eval_name'])
+        probe_file = self.root / prov_first['isolation_probe']['path']; original = probe_file.read_bytes()
+        probe_file.write_bytes(original.replace(b'"isolated": true', b'"isolated": false'))
+        with self.assertRaisesRegex(ValueError, 'isolation probe hash'): rr.validate_run(target, meta['skill'], spec, meta['config'])
+        probe_file.unlink()
+        with self.assertRaisesRegex(ValueError, 'isolation probe file missing'): rr.validate_run(target, meta['skill'], spec, meta['config'])
+        probe_file.write_bytes(original)
+        rr.validate_run(target, meta['skill'], spec, meta['config'])
+        sidecar = target / 'provenance.json'; prov = json.loads(sidecar.read_text()); prov['isolation_probe'] = None; sidecar.write_text(json.dumps(prov))
+        with self.assertRaisesRegex(ValueError, 'isolation probe missing'): rr.validate_run(target, meta['skill'], spec, meta['config'])
 
     def test_unverified_version_refused_unless_smoke(self):
         self.unlist_version()
@@ -186,12 +231,13 @@ class PilotRunnerTests(unittest.TestCase):
         self.assertEqual(rp.run_pilot(self.args, self.root), [])
         self.assertEqual(list(self.root.glob('skills/*/workspace')), [])
         self.assertFalse((Path(self.tmp.name) / 'work').exists())
-        self.assertFalse(rp.attempts_path(self.root, 'iteration-fake').exists()); self.assertFalse(rp.probe_path(self.root, 'iteration-fake').exists())
+        self.assertFalse(rp.attempts_path(self.root, 'iteration-fake').exists()); self.assertFalse(rp.probe_dir(self.root, 'iteration-fake').exists())
 
     def test_codex_event_stream_parsed(self):
         skill = self.skills[1]; name = json.loads((self.root / 'skills' / skill / 'evals/evals.json').read_text())['evals'][0]['name']
         self.args.harness = 'codex'; self.args.model = 'fake-codex'; self.args.skill = skill; self.args.eval = name
-        with patch.dict(os.environ, {'FAKE_FORMAT': 'codex'}):
+        self.args.harness_cmd = self.codex_template
+        with patch.dict(os.environ, {'FAKE_FORMAT': 'codex', 'CODEX_HOME': str(self.codex_home)}):
             recorded = rp.run_pilot(self.args, self.root)
         self.assertEqual(len(recorded), 2)
         for target in recorded:
