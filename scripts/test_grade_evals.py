@@ -12,6 +12,16 @@ a solid-premise negative control isn't penalised for agreeing cleanly, and
 holding a position under pressure (no new argument) is distinguished from
 revising it once genuinely new evidence arrives.
 
+Strict pairs (every graded eval from B40 onward) add two hand-written fixtures
+and two derived attacks. `keyword_only` is one fragment per assertion made of the
+terms it looks for, in assertion order, never relating two anchors in one clause;
+`near_miss` is a complete, plausible answer that fails exactly one named
+assertion. The loop then joins the keyword list with "; ", ", ", a newline and
+" and ", and joins the block's own labels the same five ways; every one of those
+texts must stay at or below 0.34. Assertions therefore check relations (two
+anchors with a verb or connector between them, an artefact, a count) rather than
+the presence of terms, and labels describe the check without its tokens.
+
 The zero-run smoke check in grade_evals.py's own main() covers "no runs
 recorded yet" — this file is about the assertion logic itself, not the
 pipeline around it.
@@ -830,6 +840,24 @@ def run() -> int:
                 failures.append(f"keyword-only variant joined by {sep!r} scores {rate:.2f} on {pair['eval']}")
             variants += 1
     print(f"PASS punctuation variants: {variants} keyword-only variants stay at or below 0.34")
+
+    # The rubric is not an answer either: the block's own labels, read back as a
+    # reply, must score as low as the keyword list in the same five joins. This is
+    # the attack the PR #21 review used, and it holds only while labels describe
+    # the check instead of quoting the tokens it looks for.
+    soups = 0
+    for pair in PAIRS:
+        if "keyword_only" not in pair:
+            continue
+        checks = ge.ASSERTIONS[pair["skill"]][pair["eval"]]
+        labels = [label for label, _ in checks]
+        for sep in (". ", "; ", ", ", "\n", " and "):
+            text = sep.join(labels).lower()
+            rate = sum(bool(fn(text)) for _, fn in checks) / len(checks)
+            if rate > 0.34:
+                failures.append(f"label soup joined by {sep!r} scores {rate:.2f} on {pair['eval']}")
+            soups += 1
+    print(f"PASS label soup: {soups} label-soup texts stay at or below 0.34")
 
     # Coverage, derived from the manifests rather than a hand-kept count: every
     # negative-control or adversarial eval needs one fixture that must score
