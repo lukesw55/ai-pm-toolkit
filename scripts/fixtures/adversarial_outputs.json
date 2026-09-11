@@ -295,5 +295,27 @@
       "text": "Update the Impact Brief before any One Pager. Discovery replaces the 8/10 monthly-use claim with 2/6; support evidence is 9 tickets per quarter, not 30. Fewer than half repeat the job monthly, so the original invalidation condition fired. Defer the bet and reframe it around migration-only demand. Batch-service reuse is a feasibility signal, but rollback after partial writes remains an unverified feasibility assumption. Run the smallest technical test: a rollback spike that injects a partial failure and checks whether created users can be reversed cleanly.",
       "fails": "Brings the technical partner in during Discovery, not at the PRD"
     }
+  },
+  {
+    "skill": "pm-phase-deliver",
+    "eval": "challenge-vanity-metric-victory-lap",
+    "good": "I can't write the success memo yet. Welcome-screen page views and likes on the launch post are vanity metrics: they measure exposure, not whether the redesign moved the outcome it was built for, which is activation (completing the core action in the first week) and, downstream, retention. The 8% signup growth has a confound: the paid acquisition campaign started the same week, so the lift may be the campaign's, not the redesign's. Before recommending 100% rollout I need the activation rate for the redesign cohort against the previous one, and a campaign-adjusted read of signups (organic against paid). If you want a memo on Friday regardless, I'll draft it with those two gaps named in the first paragraph rather than declaring victory.",
+    "bad": "Launch close-out memo: the onboarding redesign is a hit. Welcome-screen views are up 300%, the launch post drew 45 likes and 12 reposts, and signups grew 8% week over week even with the paid campaign only starting. Recommendation: roll this out to 100% of users immediately and brief sales on the win. Congrats to the team.",
+    "keyword_only": "Success memo. Page views. Likes. Vanity metrics. Exposure. Activation. Retention. Paid acquisition campaign. Confound. 8% signup growth. Activation rate. Redesign cohort. Campaign-adjusted.",
+    "near_miss": {
+      "text": "I can't write the success memo yet. Welcome-screen page views and likes on the launch post are vanity metrics: they measure exposure, not whether the redesign moved the outcome it was built for, which is activation (completing the core action in the first week) and, downstream, retention. Before recommending 100% rollout I need the activation rate for the redesign cohort against the previous one and the week-2 retention split. If you want a memo on Friday regardless, I'll draft it with those two gaps named in the first paragraph rather than declaring victory.",
+      "fails": "Reads the concurrent marketing push as an alternative explanation for signups"
+    }
+  },
+  {
+    "skill": "pm-phase-deliver",
+    "eval": "solid-ab-rationale-agree",
+    "good": "Recommend the full rollout. SRM passed (49.8/50.2, chi-square p=0.41), N=42,000 per arm is an adequate sample, the +5pp activation lift is statistically and practically significant with the CI clear of zero, guardrails held flat within noise, and no concurrent campaign ran. The evidence supports it without qualification; proceed to 100%.",
+    "bad": "Encouraging numbers, but let's hold the rollout at 50% and gather another three weeks of data before deciding; a bigger sample would make me more comfortable, and we should also extend the test to the mobile cohort just to be safe.",
+    "keyword_only": "Full rollout. SRM. 49.8/50.2. 42,000 per arm. Statistical significance. Practical significance. Guardrails. No qualification.",
+    "near_miss": {
+      "text": "Recommend the full rollout. SRM passed (49.8/50.2, chi-square p=0.41), N=42,000 per arm is an adequate sample, the +5pp activation lift is statistically and practically significant with the CI clear of zero, and no concurrent campaign ran. The evidence supports it without qualification; proceed to 100%.",
+      "fails": "Reads the guardrails as holding"
+    }
   }
 ]

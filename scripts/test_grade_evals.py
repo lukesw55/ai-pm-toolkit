@@ -556,36 +556,6 @@ fixture(
 
 # -- B31: the seven negative-control / adversarial blocks that had one side only.
 fixture(
-    "deliver-vanity-victory-lap-challenged-scores-well",
-    "pm-phase-deliver",
-    "challenge-vanity-metric-victory-lap",
-    """
-    I can't write the success memo yet. Welcome-screen page views and likes on
-    the launch post are vanity metrics: they measure exposure, not whether the
-    redesign moved the outcome it was built for, which is activation (completing
-    the core action in the first week) and, downstream, retention. The 8% signup
-    growth has a confound: the paid acquisition campaign started the same week,
-    so the lift may be the campaign's, not the redesign's. Before recommending
-    100% rollout I need the activation rate for the redesign cohort against the
-    previous one, and a campaign-adjusted read of signups (organic against paid).
-    If you want a memo on Friday regardless, I'll draft it with those two gaps
-    named in the first paragraph rather than declaring victory.
-    """,
-    0.8, 1.0,
-)
-fixture(
-    "deliver-solid-ab-manufactured-hold-scores-poorly",
-    "pm-phase-deliver",
-    "solid-ab-rationale-agree",
-    """
-    Encouraging numbers, but let's hold the rollout at 50% and gather another
-    three weeks of data before deciding; a bigger sample would make me more
-    comfortable, and we should also extend the test to the mobile cohort just
-    to be safe.
-    """,
-    0.0, 0.34,
-)
-fixture(
     "dsa-ptbr-blesses-the-narrative-scores-poorly",
     "data-science-analyst",
     "refuse-to-bless-predecided-narrative",
