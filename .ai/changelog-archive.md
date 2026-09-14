@@ -63,6 +63,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 pm-phase-discover: relations, not terms, in three standard blocks; strict pairs; B12 fixture moved to the JSON
 - 2026-09-14 B41 pm-phase-define: relations, not terms, in two standard blocks; strict pairs
 - 2026-09-14 B41 pm-phase-develop: relations, not terms, in two standard blocks; strict pairs
+- 2026-09-14 B41 pm-phase-deliver: relations, not terms, in two standard blocks; strict pairs
 
 ## 2026-09-08: session log
 
@@ -322,4 +323,8 @@ kpi-tree-for-b2b-onboarding grows from six to seven assertions: the North Star a
 ## 2026-09-14: B41 pm-phase-develop: relations, not terms, in two standard blocks; strict pairs
 
 prd-csv-export-dashboard grows from seven to eight assertions: a TL;DR that carries the metric, goals and non-goals as separate fields, given-when-then acceptance criteria, tracking events with properties, a rollback trigger with a threshold, the primary metric with baseline and target, guardrails with thresholds, and the hand-over to engineering with the open questions. slice-sso-epic-into-stories grows from five to seven: the bet, three releases with user-outcome stories, the MVP sized against the four weeks, epic-level non-goals that are not "none", a learning outcome per release, vertical slices named against layer slicing, and the release sequence with its reason. choose-prototype-tier-for-billing-change already met the contract and is unchanged. Both new pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 pm-phase-deliver: relations, not terms, in two standard blocks; strict pairs
+
+pricing-v2-launch-package grows from seven to eight assertions: four labelled artefacts, a public note led by the benefit, objection handling for the internal team, a customer email with the migration terms and a next step, a monitoring metric with named guardrails, rollback criteria with numbers, the plain statement that some bills go up, and accurate transition terms. interpret-onboarding-ab-test grows from five to seven: the recommendation with its reason, the hypothesis restated, the sample judged adequate, the segment pattern read with a verb, the ticket rise treated as a guardrail that shapes the call, practical separated from statistical significance, and what would change the recommendation. Both pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
 

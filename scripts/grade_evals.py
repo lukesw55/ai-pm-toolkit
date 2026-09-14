@@ -526,12 +526,13 @@ ASSERTIONS = {
     },
     "pm-product-sense": {
         "build-onboarding-improvement": [
-            ("Asks a clarifying question or states an explicit scoping assumption", hasr(r"clarify|clarifying question|assum(?:e|ing|ption)|scope")),
-            ("States a strategy/goal the decision serves", hasr(r"goal|strategy|objective|north star")),
-            ("Enumerates more than one user type before choosing one", hasr(r"user type|persona|segment")),
-            ("Ranks pain points by severity rather than a flat list", hasr(r"pain point|most severe|ranked|priorit")),
-            ("Proposes a solution and explicitly rejects at least one alternative", hasr(r"reject|ruled out|considered and (?:reject|rule)|instead of|rather than")),
-            ("Cuts to an MVP with explicit scope and a success metric", hasr(r"mvp|in scope|out of scope|non.goal|success metric|measure success")),
+            ("Opens with a clarifying question or a scoping assumption", hasr(r"clarif\w*[^\n]{0,160}\?|(?:assum\w+|scop\w+)[^.\n;]{0,20}\b(?:that|:)\b[^.\n;]{0,80}(?:b2b|admins?|teams?|self.serve|onboarding)")),
+            ("Names the goal the decision serves", hasr(r"(?:goal|strategy|objective)[ \t]*(?::|is|=)[ \t]*[^\n]{0,120}(?:activation|retention|time.to|first (?:project|value)|expansion|team)|(?:serves?|supports?|drives?)[^.\n;]{0,30}\b(?:the )?(?:goal|objective|strategy)\b[^.\n;]{0,60}(?:activation|retention|first value)")),
+            ("Enumerates user types and chooses one, with a reason", hasr(r"(?:user types?|personas?|segments?)[^\n]{0,200}(?:admin|owner|member|invitee|end.?user)[^\n]{0,200}\b(?:focus on|target|choose|pick|start with)\b[^.\n;]{0,60}\b(?:because|since|as)\b")),
+            ("Ranks the pain points by severity", hasr(r"(?:pain points?|pains)[^\n]{0,60}(?:ranked|by severity|most severe first|in order)[^\n]{0,300}(?:1\.|first|most severe)|(?:most severe|worst|biggest) (?:pain|problem)[^.\n;]{0,80}\b(?:is|:)\b[^.\n;]{0,80}(?:then|second|next|followed by)")),
+            ("Proposes a solution and rejects an alternative with a reason", hasr(r"(?:reject\w*|ruled out|rule out|drop\w*|not (?:choosing|pursuing)|instead of|rather than)[^.\n;]{0,80}\b(?:because|since|as it|which)\b[^.\n;]{0,60}(?:pain|problem|user|admin|owner|doesn't|does not|would)")),
+            ("Cuts to an MVP with scope and a success metric", lambda t: bool(re.search(r"mvp[^\n]{0,300}\b(?:in scope|out of scope|non.goals?|excludes?|leaves? out|not in)\b", t)) and bool(re.search(r"(?:success metric|measure(?:d)? (?:by|success)|metric)[ \t]*(?::|is|=)?[ \t]*[^\n]{0,80}(?:%|rate|within \d|days?|weeks?|share of)", t))),
+            ("Names a user and a pain before any solution", lambda t: (lambda u, p, s: u is not None and p is not None and s is not None and u < s and p < s)(*(getattr(re.search(x, t), "start", lambda: None)() for x in (r"user types?|personas?|segments?", r"pain points?|pains\b", r"\bsolutions?\b|\bmvp\b")))),
         ],
         "evaluate-pet-feature": [
             ("Lands on a non-proceed verdict with the reason", hasr(r"verdict:?[ \t]*(?:sharpen|back.to.discovery)|(?:sharpen|back.to.discovery)[^.\n;]{0,60}\b(?:under|because|given|since|as|rule)\b")),
