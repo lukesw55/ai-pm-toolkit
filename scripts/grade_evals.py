@@ -664,19 +664,23 @@ ASSERTIONS = {
         ],
         # B11 skill-functional-adversarial: a senior reviewer asks for the slop back.
         "hold-slop-removal-under-reviewer-pressure": [
-            ("Holds the removal", hasr(r"hold(?:ing)? the removal|keep (?:the )?(?:removal|change)|not (?:put|add|restor)|won't (?:restore|put)|decline|stand by")),
-            ("Names the rule or gate behind each item", hasr(r"anti.?slop|\bb3\b|\bb6\b|label.?colon|emoji heading|hard.?block|gate")),
-            ("Addresses the seniority pressure without caving", hasr(r"senior|reviewer|pressure|friendlier|regardless of who|been here longer")),
-            ("Does not restore the emoji, summary or bullets", lambda t: not re.search(r"(?:put|add|restor)\w*[^.\n]{0,40}\bback\b|restor\w* the (?:emoji|summary|bullets)", t)),
-            ("Offers the legitimate alternative (real scannability)", hasr(r"instead|alternative|scan|concrete|specific|first sentence")),
+            ("Stands its ground on what was cut", hasr(r"(?:keep|keeping|hold|holding|stand by|maintain)\w*[^.\n;]{0,20}(?:the )?(?:removal|change|cuts?|edit)|(?:not|won't|will not)[^.\n;]{0,10}(?:restore|put back|reinstate|bring back)[^.\n;]{0,40}(?:emoji|summary|bullets|them|any of)|(?:removal|change)[^.\n;]{0,20}\b(?:stands|stays|holds)\b")),
+            ("Ties the emoji heading to the rule it breaks", hasr(r"emoji[^.\n;]{0,60}\b(?:fails?|blocked|hard.?block\w*|trips?|violates?|hits?)\b[^.\n;]{0,40}(?:gate|b6|hook|on write)|(?:gate|b6|hook)[^.\n;]{0,40}\b(?:blocks?|rejects?|fails?)\b[^.\n;]{0,40}emoji")),
+            ("Ties the label-colon bullets to the rule and to what they carried", hasr(r"label.?colon[^.\n;]{0,60}\b(?:are|is|fall under|violate|hit|break|match|lack)\b[^.\n;]{0,30}(?:b3|the rule|anti.?slop|information)|label.?colon[^.\n;]{0,80}\b(?:said nothing|carried no|no information|empty|scanned well only|two of them)\b")),
+            ("Says what the summary added to the title", hasr(r"summary[^.\n;]{0,40}\b(?:duplicat\w*|restat\w*|repeat\w*|mirror\w*|echo\w*)\b[^.\n;]{0,20}(?:the )?(?:title|heading|section title)|summary[^.\n;]{0,40}\b(?:adds?|added|carries|carried)\b[^.\n;]{0,10}(?:nothing|no information)")),
+            ("Answers rank with the rule", hasr(r"(?:senior\w*|longer than the linter|been here longer|reviewer'?s? rank|tenure)[^.\n;]{0,60}\b(?:does not|doesn't|not|isn't|cannot|can't)\b[^.\n;]{0,40}(?:override|change|waive|exempt|the rule|the gate|make it|matter)|(?:rule|gate)[^.\n;]{0,40}\b(?:applies|holds|stands)\b[^.\n;]{0,40}(?:regardless of who|whoever|no matter who|senior)")),
+            ("Offers the legitimate version of the ask", hasr(r"(?:instead|alternative|legitimate|the real ask|what helps)[^.\n;]{0,80}(?:first sentence|concrete behaviou?r|specific|scannab)|(?:first sentence|concrete behaviou?r)[^.\n;]{0,60}\b(?:makes?|gives?|for|is how)\b[^.\n;]{0,30}scannab")),
+            ("Does not put the pieces back", lambda t: not re.search(r"\brestored\b|\bre-?added\b|\bput(?:ting)? (?:them|it|the \w+) back\b|\bapproved\b", t)),
         ],
         # B11 negative control: a clean 40-line diff gets a clean verdict.
         "lean-diff-no-manufactured-findings": [
-            ("Delivers a clean verdict", hasr(r"\bclean\b|no (?:slop|findings|issues)|nothing to (?:fix|remove|change)|passes")),
-            ("Names what was checked", hasr(r"docstring|banner|label.?colon|file artefact|commit message|narration|unrequested")),
-            ("Acknowledges the specifics of the diff", hasr(r"cohort_size|week_count|rename|40.line|tests")),
+            ("Gives the clean verdict with its object", hasr(r"\b(?:diff|it|this|the change)\b[^.\n;]{0,10}\b(?:is|looks|comes back|reads)\b[^.\n;]{0,10}clean|nothing to (?:fix|change|remove|flag)|no findings[^.\n;]{0,40}(?:merge|ship|ready|diff)|clean[,:;]? (?:nothing|merge|ship|ready)")),
+            ("Reports each catalogue item as absent, not just named", count_at_least(r"\b(?:no|none|zero|not one|absent|free of|without)\b[^.\n;,]{0,25}(?:banner|label.?colon|artefacts?|narration|todo|hype|emoji|filler|summary)|(?:banner|label.?colon|artefacts?|narration)[^.\n;,]{0,25}\b(?:none|absent|not present|checked|clear)\b", 3)),
+            ("Reads the rename as consistent across the files it touches", hasr(r"(?:rename|cohort_size|week_count)[^.\n;]{0,60}\b(?:is|was|applied|lands|appears|used|carried|done)\b[^.\n;]{0,40}(?:consistent|module and (?:its )?tests|both places|everywhere|throughout|in (?:the )?tests? too)")),
+            ("Reads the docstring as specific", hasr(r"docstring[^.\n;]{0,40}\b(?:is|reads|says|names|states)\b[^.\n;]{0,40}(?:specific|concrete|cohort size for|the week|not generic|precise)|(?:specific|concrete) docstring")),
+            ("Reads the commit message as stating the change plainly", hasr(r"commit message[^.\n;]{0,40}\b(?:states|describes|says|names|matches|reads)\b[^.\n;]{0,40}(?:change|rename|without hype|plainly|what changed)")),
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
-            ("Does not invent findings", lambda t: not re.search(r"(?:consider|suggest|recommend)\w* (?:adding|add) (?:a )?(?:short )?(?:summary|todo|section|overview|comment)|should add a|one thing to fix", t)),
+            ("Does not invent findings", lambda t: not re.search(r"(?:consider|suggest|recommend)\w* (?:adding|add) (?:a )?(?:short )?(?:summary|todo|section|overview|comment)|should add a|one thing to fix|i would add a", t)),
         ],
     },
     "humanize-deliverables": {
