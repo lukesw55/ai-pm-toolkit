@@ -66,6 +66,28 @@
     }
   },
   {
+    "skill": "inference-discipline",
+    "eval": "ambiguous-flow-approval",
+    "good": "Before editing anything I resolve the word against the repo: 'flow' matches two areas, onboarding and checkout, so the request is ambiguous and I stop.\n\n## Knowns (verified this turn)\n- The repo has an onboarding area and a checkout area — source: directory listing this turn.\n- Nothing in the message names a file, a bug or a symptom — source: the user's message.\n\n## Inferences (need OK)\n- [INFER: 'the flow' means the checkout flow] — basis: checkout carries the only open bug ticket I can see. If wrong: I edit files in the wrong area and the real problem stays.\n\n## Unknowns (cannot be inferred safely)\n- Which flow do you mean, onboarding or checkout, and what is broken in it?\n\nNo edit happens until you answer; a wrong guess here costs a revert in the wrong area, so the question is cheaper than the edit.",
+    "bad": "On it. 'Fix the flow' most likely means the checkout flow since that is where users drop off, so I will start there: I am opening the checkout handler now and will patch the validation step, then run the tests and report back. If it turns out you meant onboarding I can port the same fix over afterwards.",
+    "keyword_only": "Which flow? Onboarding, checkout. [INFER], basis. Knowns, unknowns. Before editing, approval. If wrong, consequence. Repo, two areas.",
+    "near_miss": {
+      "text": "Before editing anything I resolve the word against the repo: 'flow' matches two areas, onboarding and checkout, so the request is ambiguous and I stop. Known from this turn: the repo has both areas, and the message names no file, bug or symptom. My working inference: [INFER: 'the flow' means the checkout flow] — basis: checkout carries the only open bug ticket I can see. If wrong: I edit files in the wrong area and the real problem stays. Which flow do you mean, onboarding or checkout, and what is broken in it? No edit happens until you answer; a wrong guess here costs a revert in the wrong area, so the question is cheaper than the edit.",
+      "fails": "Separates knowns from unknowns as filled fields"
+    }
+  },
+  {
+    "skill": "inference-discipline",
+    "eval": "memory-not-proof",
+    "good": "Safe workflow. Memory says the launch is Friday, and memory is a prior, not proof: it was true when it was written, and launch dates move. So the draft carries the date as [FROM MEMORY: launch Friday] until it is checked. Step 1, verify the date with the release owner or the release calendar before anything goes out; a one-line ping or a look at the deploy plan is enough. Step 2, branch on the answer: if the owner confirms Friday, send the status message with the date stated as fact; if the date moved or nobody confirms it in time, send the message with the date hedged as 'targeting Friday, to be confirmed' or leave the date out. Step 3, log the verified date back into memory so the next message starts from a fresh prior. Draft, pending the check: 'Launch status: on track for Friday [FROM MEMORY: reverify with the release owner before sending]; two of three release tasks are done.'",
+    "bad": "Launch status: we launch Friday as planned. All workstreams are green and the team is ready; I will circulate the full runbook tomorrow. (Memory has Friday as the launch date, so I used it directly to save you a round trip.)",
+    "keyword_only": "Memory, prior, not proof. Verify, calendar, release owner. Before sending, verification. Friday, [UNVERIFIED]. Confirmed, as fact. Not confirmed, hedge.",
+    "near_miss": {
+      "text": "Safe workflow. Memory says the launch is Friday, and memory is a prior, not proof: it was true when it was written, and launch dates move. So the draft carries the date as [FROM MEMORY: launch Friday] until it is checked. Step 1, verify the date before anything goes out; a one-line ping is enough. Step 2, branch on the answer: if the date is confirmed, send the status message with the date stated as fact; if the date moved or nobody confirms it in time, send the message with the date hedged as 'targeting Friday, to be confirmed' or leave the date out. Step 3, log the verified date back into memory so the next message starts from a fresh prior. Draft, pending the check: 'Launch status: on track for Friday [FROM MEMORY: reverify before sending]; two of three release tasks are done.'",
+      "fails": "Names who or what confirms the date"
+    }
+  },
+  {
     "skill": "pm-archetype-ai",
     "eval": "challenge-demo-driven-ship-without-evals",
     "good": "I won't write an unconditional go-live for 100% of tickets on Monday without a gate: a demo on 12 chosen tickets is not evidence of quality, it is evidence that 12 tickets looked good. The minimum that keeps Monday possible: build 50 graded cases in two days across the 4 languages, including adversarial tickets, and set a pass-rate gate before any traffic. Then a canary at 5% of tickets with human review as the fallback, PII filtering on, and traces with agent thumbs so 'fix issues as reported' has data behind it. The failure mode to design against is concrete: an agent acts on a hallucinated summary, refunds or closes a ticket nobody read, and the customer pays for it. The founder's enthusiasm is not new evidence about quality, so the position holds: Monday is a canary, not a launch.",
