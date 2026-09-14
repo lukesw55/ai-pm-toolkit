@@ -91,7 +91,9 @@ under `verified_harness_versions` in the manifest, which only a parsed `--eval` 
 the process configuration is checked before the harness is started for anything, the probe
 included, and recorded in every sidecar (for Claude Code `--safe-mode`, `--strict-mcp-config`,
 `--tools ""` and `--permission-prompts none` in the argv; for Codex `--sandbox read-only`,
-`--skip-git-repo-check`, no `-c` or `--config` override, and a `CODEX_HOME` that holds only the
+`--skip-git-repo-check`, no `-c`/`--config` override and no `-p`/`--profile` selector in any
+spelling (separate, attached or with `=`), a `--cd`/`-C` directory that resolves to the runner's
+own working directory when the template sets one, and a `CODEX_HOME` that holds only the
 authentication file, the artefacts Codex writes while running and at most a `config.toml`
 limited to model and approval keys, so no AGENTS.md, skills, hooks, prompts, instruction keys or
 MCP servers; for both, a working directory outside the repository), and a missing check stops
@@ -248,7 +250,9 @@ Isolation checklist, in two layers. The configuration layer is what the runner v
 any harness call, whether or not the probe runs, and records in every sidecar: the documented
 flags for a session without customisations (Claude Code: `--safe-mode`, `--strict-mcp-config`,
 `--tools ""`, `--permission-prompts none`; Codex: `--sandbox read-only`, `--skip-git-repo-check`,
-no `-c` or `--config` override, `CODEX_HOME` pointing at a directory that holds only the
+no `-c`/`--config` override and no `-p`/`--profile` selector in any spelling, the `--cd`/`-C`
+directory equal to the runner's own when the template sets one, `CODEX_HOME` pointing at a
+directory that holds only the
 authentication file; the session and log artefacts Codex writes and a `config.toml` limited to
 model and approval keys are tolerated, while AGENTS.md, skills, hooks, prompts, any
 `[mcp_servers]` table and any instruction key are refused), the working directory outside the

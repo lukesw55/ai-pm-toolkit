@@ -57,6 +57,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B40 pm-archetype-enterprise: relations, not terms, in two blocks; strict pairs
 - 2026-09-14 B40 pm-archetype-growth: relations, not terms, in two blocks; strict pairs; in-code fixtures moved to the JSON
 - 2026-09-14 B40 pm-archetype-platform: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 Grader tests: every graded eval carries a strict pair
 
 ## 2026-09-08: session log
 
@@ -292,4 +293,8 @@ challenge-activation-theatre-redefinition grows from five to eight assertions: t
 ## 2026-09-14: B40 pm-archetype-platform: relations, not terms, in two blocks; strict pairs
 
 refuse-hidden-breaking-change-as-minor grows from five to seven assertions: the release refused with its object, the change classified by the promise it breaks, the additive or versioned path, the consumers put on the critical path with a verb, the deprecation window and the contract tests tied to both formats, the anti-pattern named by its consequence, and the negative on waving the patch through. additive-change-ships-as-minor grows from five to seven: the release decision with its version, why the change is additive, the contract tests as proof for the existing fields, the changelog and docs as the notice, the partner machinery kept for the cases it exists for, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: Grader tests: every graded eval carries a strict pair
+
+The coverage check in scripts/test_grade_evals.py, derived from the manifests, now also requires a strict pair (keyword_only plus near_miss) in the fixture JSON for every negative-control and adversarial eval, so the punctuation-variant and label-soup attacks run against every graded block rather than the ones someone remembered to harden. Standard evals may carry a strict pair; graded evals must. 42 of 42 graded evals pass; 45 pairs, all strict; 201 fixtures. Full REPO_HEALTH battery green.
 
