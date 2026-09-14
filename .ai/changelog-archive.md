@@ -78,6 +78,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 repo-doctor: relations, not terms, in one standard block; strict pair
 - 2026-09-14 B41 pm-prioritization-regua-comum: relations, not terms, in two standard blocks; strict pairs; B18/B20 fixtures moved to the JSON
 - 2026-09-14 B41 pm-archetype-ai: relations, not terms, in one standard block; strict pair
+- 2026-09-14 B41 pm-archetype-enterprise: relations, not terms, in one standard block; strict pair
 
 ## 2026-09-08: session log
 
@@ -397,4 +398,8 @@ score-backlog-with-regua-comum grows from seven to eight assertions: the three d
 ## 2026-09-14: B41 pm-archetype-ai: relations, not terms, in one standard block; strict pair
 
 eval-suite-and-release-gate-for-support-summariser grows from five to seven assertions: the release gate as a pass rate with its number and a canary that precedes 100%, the rubric with at least three dimensions and a grading method, the suite sized with cases across the four languages and adversarial rows, low-confidence output routed to a person plus a PII filter with its verb, at least three observability signals each tied to what it is for, the twelve-ticket demo read as an anecdote with the linking verb, and the iteration cadence with its trigger. design-golden-set-and-block-rule-for-summariser already met the contract and is unchanged. The pair carries keyword_only and near_miss fixtures; the bad fixture ships on the demo. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 pm-archetype-enterprise: relations, not terms, in one standard block; strict pair
+
+rbac-and-audit-for-shared-dashboards grows from five to eight assertions: the role matrix with at least three roles carrying a definition and a default scope, a recovery path tied to the lockout it prevents, the audit log with its events, immutability and a retention figure, the controls mapped to SOC 2 with the reviews flagged, the rollout staged with arrows or connectors and per-account activation, what happens to each role's access on exit, the procurement documents updated with the verb adjacent, and at least two stakeholders listed by role with a definition or a verb. The pair carries keyword_only and near_miss fixtures; the bad fixture ships the share button first. Full REPO_HEALTH battery green.
 

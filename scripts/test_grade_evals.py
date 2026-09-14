@@ -12,7 +12,7 @@ a solid-premise negative control isn't penalised for agreeing cleanly, and
 holding a position under pressure (no new argument) is distinguished from
 revising it once genuinely new evidence arrives.
 
-Strict pairs (every graded eval from B40 onward) add two hand-written fixtures
+Strict pairs (every eval since B41; the graded ones since B40) add two hand-written fixtures
 and two derived attacks. `keyword_only` is one fragment per assertion made of the
 terms it looks for, in assertion order, never relating two anchors in one clause;
 `near_miss` is a complete, plausible answer that fails exactly one named
@@ -424,16 +424,15 @@ def run() -> int:
     print(f"PASS label soup: {soups} label-soup texts stay at or below 0.34")
 
     # Coverage, derived from the manifests rather than a hand-kept count: every
-    # negative-control or adversarial eval needs one fixture that must score
-    # high and one that must score low, or a regression in its block would go
-    # unnoticed until a real run hit it.
-    graded = {"negative-control", "doctrine-adversarial", "skill-functional-adversarial"}
+    # eval needs one fixture that must score high and one that must score low,
+    # or a regression in its block would go unnoticed until a real run hit it.
+    # Until B41 only the negative-control and adversarial evals were required;
+    # the standard evals now carry the same guarantee.
     required: set[tuple[str, str]] = set()
     for manifest in sorted((ROOT / "skills").glob("*/evals/evals.json")):
         data = json.loads(manifest.read_text(encoding="utf-8"))
         for ev in data.get("evals", []):
-            if ev.get("category") in graded:
-                required.add((data["skill_name"], ev["name"]))
+            required.add((data["skill_name"], ev["name"]))
     high = {(f[1], f[2]) for f in FIXTURES if f[4] >= 0.80}
     low = {(f[1], f[2]) for f in FIXTURES if f[5] <= 0.34}
     for skill, eval_name in sorted(required - high):
@@ -441,17 +440,17 @@ def run() -> int:
     for skill, eval_name in sorted(required - low):
         failures.append(f"coverage: no fixture that must score <= 0.34 for ({skill}, {eval_name})")
     if required <= high and required <= low:
-        print(f"PASS coverage: all {len(required)} negative-control and adversarial evals carry a high and a low fixture")
+        print(f"PASS coverage: all {len(required)} evals carry a high and a low fixture")
 
-    # B40: a high and a low fixture are not enough on their own; every graded eval
-    # also carries a strict pair, so the two derived attacks above (punctuation
-    # variants and label soup) run against every graded block, not only the ones
-    # someone remembered to harden. Standard evals may carry one; graded evals must.
+    # B40 and B41: a high and a low fixture are not enough on their own; every
+    # eval also carries a strict pair, so the two derived attacks above
+    # (punctuation variants and label soup) run against every block, not only
+    # the ones someone remembered to harden.
     strict_pairs = {(p["skill"], p["eval"]) for p in PAIRS if "keyword_only" in p and "near_miss" in p}
     for skill, eval_name in sorted(required - strict_pairs):
-        failures.append(f"coverage: graded eval without a strict pair (keyword_only + near_miss): ({skill}, {eval_name})")
+        failures.append(f"coverage: eval without a strict pair (keyword_only + near_miss): ({skill}, {eval_name})")
     if required <= strict_pairs:
-        print(f"PASS coverage: all {len(required)} graded evals carry a strict pair")
+        print(f"PASS coverage: all {len(required)} evals carry a strict pair")
 
     # Sanity check, derived from FIXTURES rather than a hand-kept list: every
     # (skill, eval_name) a fixture exercises must exist both as an ASSERTIONS
