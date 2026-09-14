@@ -76,6 +76,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 inference-discipline: relations, not terms, in two standard blocks; strict pairs
 - 2026-09-14 B41 pm-storytelling: relations, not terms, in two standard blocks; strict pairs
 - 2026-09-14 B41 repo-doctor: relations, not terms, in one standard block; strict pair
+- 2026-09-14 B41 pm-prioritization-regua-comum: relations, not terms, in two standard blocks; strict pairs; B18/B20 fixtures moved to the JSON
 
 ## 2026-09-08: session log
 
@@ -387,4 +388,8 @@ turn-synthesis-into-narrative-spine grows from four to eight assertions: the rec
 ## 2026-09-14: B41 repo-doctor: relations, not terms, in one standard block; strict pair
 
 validate-skill-repo-health grows from five to six assertions: at least three checks named with the tool that runs each, the tool name directly followed by its verb; at least two concrete paths tied to a finding state; the read-only stance stated with its verb plus the statement that nothing was applied; the frontmatter check read as a parse result; hooks and settings checked against each other with the outcome, in spans that tolerate the dots of file paths; and each failure given its fix path or command. The pair carries keyword_only and near_miss fixtures; the bad fixture is the plausible wrong answer that fixes things in passing. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 pm-prioritization-regua-comum: relations, not terms, in two standard blocks; strict pairs; B18/B20 fixtures moved to the JSON
+
+score-backlog-with-regua-comum grows from seven to eight assertions: the three dimensions scored per item with a number (at least six dimension-score pairs), confidence applied with its value, the single-account ask flagged against the lock with its reason, effort rated per item, impact plotted against effort as a quadrant attached to an item, the execution order with the first item and its reason, the exception path made explicit, and a negative on ranking by account size. score-with-non-revenue-ruler-configuration grows from eight to nine: D1 for the import from the hours against the limit, D2 from the team count and reuse, D3 for the import as no accessibility angle, D3 for the keyboard item from the audit and the contract, the raw score with the impact band once confidence applies, the lock applied to the one-team item with the exception logged and its fields, the order with the reason for the first, the configured limit used without another threshold, and the existing negative on falling back to revenue. The B18 and B20 in-code fixtures move to the JSON as the good and bad texts of the two strict pairs and leave the test file with their section comments. Both pairs carry keyword_only and near_miss fixtures. Full REPO_HEALTH battery green.
 
