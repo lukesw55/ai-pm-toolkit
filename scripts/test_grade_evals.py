@@ -22,6 +22,14 @@ texts must stay at or below 0.34. Assertions therefore check relations (two
 anchors with a verb or connector between them, an artefact, a count) rather than
 the presence of terms, and labels describe the check without its tokens.
 
+Line breaks are not behaviour either (review of PR #23). For every pair the loop
+derives the good text wrapped at 72 columns, words unchanged, and holds it to the
+same 0.80 floor: the grader reads every assertion through
+grade_evals.unwrap_soft_breaks, which rejoins a break after a full line and keeps
+blank lines, headings, list items, table rows and labelled fields as boundaries.
+The newline joins of the keyword list and of the labels go through the same
+normaliser, so a list of tokens one per line still scores as a list.
+
 The zero-run smoke check in grade_evals.py's own main() covers "no runs
 recorded yet" — this file is about the assertion logic itself, not the
 pipeline around it.
@@ -36,6 +44,7 @@ import json
 import re
 import sys
 import tempfile
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -48,6 +57,14 @@ FIXTURES: list[tuple[str, str, str, str, float, float]] = []
 
 def fixture(name: str, skill: str, eval_name: str, text: str, min_rate: float, max_rate: float) -> None:
     FIXTURES.append((name, skill, eval_name, text, min_rate, max_rate))
+
+
+def wrap_at_72(text: str) -> str:
+    """The same words with line breaks inside the paragraphs: the PR #23 review's attack."""
+    return "\n".join(
+        textwrap.fill(line, width=72, break_long_words=False, break_on_hyphens=False)
+        for line in text.splitlines()
+    )
 
 
 # -- 1. Good calibrated disagreement: challenges a solution-first premise
@@ -356,6 +373,8 @@ fixture(
 PAIRS = json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8"))
 for pair in PAIRS:
     fixture(pair["eval"] + "-good", pair["skill"], pair["eval"], pair["good"], 0.80, 1.0)
+    # Wrapped at 72 columns the good text is the same answer and must stay in band.
+    fixture(pair["eval"] + "-good-wrapped", pair["skill"], pair["eval"], wrap_at_72(pair["good"]), 0.80, 1.0)
     fixture(pair["eval"] + "-bad", pair["skill"], pair["eval"], pair["bad"], 0.0, 0.30)
     # Strict pairs (references batch onward): a reply made only of the right
     # words must score low, and a plausible near miss must stay below full marks.
@@ -363,6 +382,39 @@ for pair in PAIRS:
         fixture(pair["eval"] + "-keyword-only", pair["skill"], pair["eval"], pair["keyword_only"], 0.0, 0.34)
     if "near_miss" in pair:
         fixture(pair["eval"] + "-near-miss", pair["skill"], pair["eval"], pair["near_miss"]["text"], 0.50, 0.99)
+
+# -- 8. The honest zero (review of PR #23): the repo-doctor health review must not
+# demand failures. The controls reuse the good fixture's preamble and checks so they
+# stay in step with it: no finding with an empty table, or one finding with its
+# remedy. A bare all-clear that names no check passes neither branch.
+_REPO_DOCTOR_GOOD = next(
+    p for p in PAIRS if p["skill"] == "repo-doctor" and p["eval"] == "validate-skill-repo-health"
+)["good"]
+assert "\n\nFindings.\n1. " in _REPO_DOCTOR_GOOD and "\n2. " in _REPO_DOCTOR_GOOD
+assert "reports one drifted file" in _REPO_DOCTOR_GOOD
+fixture(
+    "repo-doctor-clean-tree-scores-well",
+    "repo-doctor",
+    "validate-skill-repo-health",
+    _REPO_DOCTOR_GOOD.split("\n\nFindings.")[0].replace("reports one drifted file", "reports both mirrors matching canonical")
+    + "\n\nFindings table: empty. No fixes are needed; every check passed.",
+    0.80, 1.0,
+)
+fixture(
+    "repo-doctor-single-finding-scores-well",
+    "repo-doctor",
+    "validate-skill-repo-health",
+    _REPO_DOCTOR_GOOD.split("\n2. ")[0]
+    + "\n\nNothing else failed. Re-run python3 scripts/validate_repo.py after the fix and the review should come back clean.",
+    0.80, 1.0,
+)
+fixture(
+    "repo-doctor-bare-all-clear-scores-poorly",
+    "repo-doctor",
+    "validate-skill-repo-health",
+    "All green. Everything passed, the tree is clean and ready to commit, and no fixes are needed. Nothing was changed.",
+    0.0, 0.34,
+)
 
 
 def run() -> int:
@@ -484,6 +536,32 @@ def run() -> int:
             names = {e.get("name") for e in json.loads(manifest.read_text(encoding="utf-8")).get("evals", [])}
         if eval_name not in names:
             failures.append(f"sanity check: {skill}/evals/evals.json has no eval named {eval_name!r}")
+
+    # The soft-wrap normaliser joins only the breaks a wrapper made: prose and a
+    # heading wrapped mid-sentence rejoin; a paragraph break, a list, a table, a
+    # field under a heading and a list of short tokens keep every break.
+    unwrap = ge.unwrap_soft_breaks
+    rejoined = [
+        ("the review stays read-only: it reports and suggests, and nothing is\napplied until you say so.",
+         "the review stays read-only: it reports and suggests, and nothing is applied until you say so."),
+        ("## o1 - approvers miss requests buried in email (t1): 11/14 interviews,\nreach 100%, severity high (requests stall 3+ days), on the pillar",
+         "## o1 - approvers miss requests buried in email (t1): 11/14 interviews, reach 100%, severity high (requests stall 3+ days), on the pillar"),
+    ]
+    for text, want in rejoined:
+        if unwrap(text) != want:
+            failures.append(f"unwrap_soft_breaks: a wrapped line did not rejoin: {unwrap(text)!r}")
+    kept = [
+        "the first paragraph ends here and is long enough to be counted as full.\n\nthe second paragraph starts here.",
+        "- first item of a list that is long enough to be counted as a full line\n- second item",
+        "| check | result | a note that is long enough to fill the line |\n| doctor | green | fine |",
+        "## slide 1 — a claim title long enough to be counted as a full line\nevidence (proves the title): 38%",
+        "codebook\nexcerpt log\ncounter-evidence",
+    ]
+    for text in kept:
+        if unwrap(text) != text:
+            failures.append(f"unwrap_soft_breaks: a structural break was folded in {text[:48]!r}")
+    if not any(f.startswith("unwrap_soft_breaks") for f in failures):
+        print("PASS soft-wrap normaliser: wrapped prose rejoins; paragraphs, lists, tables, fields and token lists keep their breaks")
 
     # hedged() must inspect every occurrence. A quoted/negated first mention
     # cannot mask the same claim asserted later without a nearby hedge.

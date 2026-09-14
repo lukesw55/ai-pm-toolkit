@@ -83,6 +83,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 pm-archetype-platform: relations, not terms, in one standard block; strict pair
 - 2026-09-14 Grader tests: every eval carries a strict pair
 - 2026-09-14 B41 closing: protocol, repo health, README, decisions, backlog, tasks
+- 2026-09-14 Round 5: configuration overrides in every spelling; the Codex directory checked is the one the argv asks for
 
 ## 2026-09-08: session log
 
@@ -422,4 +423,8 @@ The coverage check in scripts/test_grade_evals.py stops filtering the manifests 
 ## 2026-09-14: B41 closing: protocol, repo health, README, decisions, backlog, tasks
 
 docs/EVAL_PROTOCOL.md says a strict pair is required for every eval, the standard ones included since B41; docs/REPO_HEALTH.md and the README row for test_grade_evals.py say the same; docs/DECISIONS.md extends the relations-not-terms decision to every eval and names both PRs. .ai/backlog.md marks B41 done with the before and after measurement (30 of 43 standard blocks passed their own label soup, now 0 of 85 with a maximum of 0.33; 45 pairs to 85, one per eval, all strict; 356 fixtures, 340 punctuation variants, 425 label soups), the migrated fixtures, the two tightened deck checks and the new lessons; the consolidated table and the count line follow. .ai/tasks.md closes the B41 line. No code change. Full REPO_HEALTH battery green.
+
+## 2026-09-14: Round 5: configuration overrides in every spelling; the Codex directory checked is the one the argv asks for
+
+The owner's revalidation of dc04879 found two false positives in the isolation configuration check. First, no_config_overrides compared whole tokens, so the attached short form -cdeveloper_instructions=custom passed; _config_override now refuses -c and --config, and the profile selectors -p and --profile, in the separate, attached and equals spellings. Second, check_isolation examined work_dir/isolation-check while a --cd <repo> in the template sent Codex into the repository with cwd_outside_repo still true; _dir_override reads --cd and -C in every spelling, the directory checked is the one the argv asks for, resolved, and a new check, cwd_is_runner_dir, requires it to be the runner's own directory, which the {cwd} placeholder of the default template still satisfies. Regressions: six override spellings and four directory spellings at the function level; through the runner, an attached override and a --cd into the repository are refused before any harness call, with and without --skip-probe, nothing recorded; --allow-unisolated records the false checks in the sidecar; --cd {cwd} passes with every check true. docs/EVAL_PROTOCOL.md and docs/REPO_HEALTH.md say "in any spelling"; .ai/backlog.md gets the revalidation section. Full REPO_HEALTH battery green.
 

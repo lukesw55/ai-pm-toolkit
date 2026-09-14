@@ -67,11 +67,22 @@ scored by an assertion block in `scripts/grade_evals.py` and defended by a stric
    assertion it names.
 6. When the expected output says "either ... or", the assertion accepts both routes and the near
    miss omits another item.
+7. Line breaks inside a paragraph are not behaviour. Every assertion reads the reply through
+   `unwrap_soft_breaks` in `scripts/grade_evals.py`: a break after a full line, one the next
+   word would have pushed past the reply's longest line, is a soft wrap and rejoins; blank
+   lines, headings, list items, table rows, block quotes, code fences, slide headers and a
+   labelled field under a heading stay boundaries; a reply whose longest line is under 40
+   characters, a list of tokens one per line, is left as it is. The same answer wrapped at 72
+   columns scores the same, and a token list joined by newlines still scores as a list.
+8. An assertion that counts findings, failures or remedies accepts the honest zero when the
+   reply names the checks it stands on: one real failure needs one path and one remedy, never a
+   second failure to reach a count, and an isolated "all green" that names no check passes
+   neither branch.
 
-The test derives two more attacks from each strict pair: the keyword list re-joined with "; ",
-", ", a newline and " and ", and the block's own labels joined the same five ways. Every derived
-text must stay at or below 0.34. A strict pair is required for every eval, the standard ones
-included since B41. The bands are a property of the grader, not of any skill: a good fixture at
+The test derives three more texts from each strict pair: the good text wrapped at 72 columns,
+held to the good band; the keyword list re-joined with "; ", ", ", a newline and " and "; and
+the block's own labels joined the same five ways. Every derived attack must stay at or below
+0.34. A strict pair is required for every eval, the standard ones included since B41. The bands are a property of the grader, not of any skill: a good fixture at
 1.00 says the assertions accept the intended answer, nothing about how often a model produces it.
 
 ## Run the pilot with the runner

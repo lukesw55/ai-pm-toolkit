@@ -10,6 +10,7 @@ carry workspace/) and produces:
 - eval-report.html (static viewer)
 """
 
+import functools
 import json
 import re
 import statistics
@@ -160,6 +161,56 @@ def all_named_scores_at_least(dimensions: list[str], minimum: int):
     return check
 
 
+# Soft wraps are not structure. A reply captured from a terminal, a mail client or a
+# fixture wrapped at 72 columns carries the same sentences with line breaks inside
+# them, and a span written as [^.\n;] must still read the relation. A break is read
+# as a soft wrap when the line before it is full: adding the next line's first word
+# would pass the longest multi-word line of the reply, which is how a wrapper decides
+# where to break. Blank lines, headings, list items, table rows, block quotes, code
+# fences and slide headers stay boundaries, a labelled field is never folded into the
+# heading above it, a line that is not full stays a paragraph end, and a reply whose
+# longest line is under SOFT_WRAP_MIN_WIDTH (a list of tokens, one per line) is left
+# alone. The same wrapped-good fixture is derived for every pair in
+# scripts/test_grade_evals.py, and the keyword and label attacks joined by a newline
+# are checked after the same normalisation.
+SOFT_WRAP_MIN_WIDTH = 40
+_HARD_LINE_START = re.compile(
+    r"^(?:#{1,6}(?:\s|$)|\||>|```|[-*+•][ \t]|\d{1,3}[.)][ \t]|slide\s+\d+\s*[—–-])",
+    re.IGNORECASE,
+)
+_HARD_LINE_END = re.compile(r"^```")
+_HEADING_LINE = re.compile(r"^(?:#{1,6}(?:\s|$)|slide\s+\d+\s*[—–-])", re.IGNORECASE)
+_FIELD_LINE = re.compile(r"^[a-z][a-z /-]{0,24}(?:\([^)\n]{0,30}\))?[ \t]*:[ \t]", re.IGNORECASE)
+
+
+@functools.lru_cache(maxsize=1024)
+def unwrap_soft_breaks(text: str) -> str:
+    """Join the lines a wrapper broke; keep every structural break."""
+    lines = text.split("\n")
+    if len(lines) < 2:
+        return text
+    stripped = [line.strip() for line in lines]
+    width = max((len(s) for s in stripped if " " in s), default=0)
+    if width < SOFT_WRAP_MIN_WIDTH:
+        return text
+    out = [lines[0]]
+    for i in range(1, len(lines)):
+        prev, cur = stripped[i - 1], stripped[i]
+        if not prev or not cur or _HARD_LINE_START.match(cur) or _HARD_LINE_END.match(prev):
+            out.append(lines[i])
+        elif _HEADING_LINE.match(prev) and _FIELD_LINE.match(cur):
+            out.append(lines[i])
+        elif len(prev) + 1 + len(cur.split()[0]) > width:
+            out[-1] = out[-1].rstrip() + " " + cur
+        else:
+            out.append(lines[i])
+    return "\n".join(out)
+
+
+def _soft_wrap_tolerant(fn):
+    return lambda t: fn(unwrap_soft_breaks(t))
+
+
 SLIDE_HEADER = re.compile(
     r"^\s*#{0,6}\s*slide\s+(\d+)\s*[—–-]\s*(.+?)\s*$",
     re.IGNORECASE | re.MULTILINE,
@@ -189,9 +240,9 @@ def deck_has_contract_fields(t: str) -> bool:
     """Every numbered slide must carry the exact assertion-evidence fields."""
     slides = deck_slides(t)
     fields = (
-        re.compile(r"^\s*evidence(?:\s*\(proves the title\))?\s*:", re.IGNORECASE | re.MULTILINE),
-        re.compile(r"^\s*visual\s*:", re.IGNORECASE | re.MULTILINE),
-        re.compile(r"^\s*speaker note\s*:", re.IGNORECASE | re.MULTILINE),
+        re.compile(r"(?:^|\s)evidence(?:\s*\(proves the title\))?\s*:", re.IGNORECASE | re.MULTILINE),
+        re.compile(r"(?:^|\s)visual\s*:", re.IGNORECASE | re.MULTILINE),
+        re.compile(r"(?:^|\s)speaker note\s*:", re.IGNORECASE | re.MULTILINE),
     )
     return bool(slides) and all(all(field.search(body) for field in fields) for _, _, body in slides)
 
@@ -229,6 +280,44 @@ def deck_render_is_optional(t: str) -> bool:
         r"|(?:pptx|render\w*)[^.\n;]{0,60}\b(?:if|when|where|only if)\b[^.\n;]{0,40}(?:harness|session|skill|offers|available)",
         t,
     ))
+
+
+# repo-doctor/1 asks for a health review of whatever tree it finds. A failure needs a
+# path and a remedy; a clean tree needs neither, but its all-clear must stand on the
+# checks it ran, so a bare "all green" with no check named does not pass either branch.
+_REPO_DOCTOR_CHECK_RESULT = re.compile(
+    r"(?:validate_repo\.py|sync_skills\.py|memory\.py doctor|test_hooks\.py|test_hook_contract\.py|test_frontmatter\.py|init_context\.py|stage_context\.py|check_requirements\.sh)(?: (?:--?[\w-]+|-s|repo))* (?:then |also |which |that )?(?:checks?|reports?|verifies|confirms?|runs?|passes|fails?|returns?|flags?|covers?|walks?|parses?|compares?|shows?|found|finds|came back|is green|is clean)\b",
+    re.IGNORECASE,
+)
+_REPO_DOCTOR_FAILURE_WITH_PATH = re.compile(
+    r"(?:[\w.-]+/)+[\w.-]+\.(?:md|sh|py|json|toml)(?::\d+)?[^.\n;,]{0,40}\b(?:stale|missing|broken|malformed|dangling|drifts?|drifted|differs?|lacks?|fails?|failed|does not|doesn't|is not|isn't|are not|aren't|no longer|out of date|behind|unreadable|unresolved|points? (?:at|to) [^.\n;,]{0,40}(?:does not|doesn't|missing|no longer|absent|nonexistent))\b"
+    r"|\b(?:missing|broken|stale|dangling|drift\w*|malformed|unresolved|failing)\b[^.\n;,]{0,30}(?:[\w.-]+/)+[\w.-]+\.(?:md|sh|py|json|toml)",
+    re.IGNORECASE,
+)
+_REPO_DOCTOR_REMEDY = re.compile(
+    r"fix[ \t]*:[ \t]*\S|\b(?:fix|remedy|repair)\b[ \t]*:?[ \t]*(?:run|edit|add|remove|regenerate|update|delete|rename|move)\b|\b(?:run|re-?run)\b (?:python3 |bash )?(?:scripts/)?[\w.-]+\.(?:py|sh)",
+    re.IGNORECASE,
+)
+_REPO_DOCTOR_CLEAN = re.compile(
+    r"(?:zero|0|no) findings\b|findings(?: table)?[^.\n;]{0,20}\b(?:empty|no rows|zero rows|0 rows)\b|nothing (?:to fix|failed|needs fixing|to remedy)|no fix(?:es)? (?:is |are )?(?:needed|required|necessary)|(?:every|all(?: \d+)?) checks? passed|(?:tree|repo|repository) (?:is )?(?:clean|ready to commit)",
+    re.IGNORECASE,
+)
+
+
+def repo_doctor_clean_on_the_checks(t: str) -> bool:
+    return bool(_REPO_DOCTOR_CLEAN.search(t)) and len(_REPO_DOCTOR_CHECK_RESULT.findall(t)) >= 2
+
+
+def repo_doctor_failures_have_paths(t: str) -> bool:
+    """A reported failure names its file; a clean tree says so on the strength of the checks."""
+    return bool(_REPO_DOCTOR_FAILURE_WITH_PATH.search(t)) or repo_doctor_clean_on_the_checks(t)
+
+
+def repo_doctor_failures_have_remedies(t: str) -> bool:
+    """One real failure needs one remedy, not a second failure to reach a count."""
+    if _REPO_DOCTOR_FAILURE_WITH_PATH.search(t):
+        return bool(_REPO_DOCTOR_REMEDY.search(t))
+    return repo_doctor_clean_on_the_checks(t)
 
 
 ASSERTIONS = {
@@ -861,11 +950,11 @@ ASSERTIONS = {
     "repo-doctor": {
         "validate-skill-repo-health": [
             ("Names at least three checks with the tool that runs each", count_at_least(r"(?:validate_repo\.py|sync_skills\.py|memory\.py doctor|test_hooks\.py|test_hook_contract\.py|test_frontmatter\.py|init_context\.py|stage_context\.py|check_requirements\.sh)(?: (?:--?[\w-]+|-s|repo))* (?:then |also |which |that )?(?:checks?|reports?|verifies|confirms?|runs?|passes|fails?|returns?|flags?|covers?|walks?|parses?|compares?|shows?|found|finds|came back|is green|is clean)\b", 3)),
-            ("Cites concrete paths in the findings, at least two", count_at_least(r"(?:[\w.-]+/)+[\w.-]+\.(?:md|sh|py|json|toml)(?::\d+)?[^.\n;,]{0,40}\b(?:is|are|has|have|lacks?|missing|fails?|passes|parses|resolves?|points?|references?|does not|doesn't|drifts?|matches|differs|stale|broken|ok|clean)\b|\b(?:missing|broken|stale|fix|edit|update|add|check|found in)\b[^.\n;,]{0,30}(?:[\w.-]+/)+[\w.-]+\.(?:md|sh|py|json|toml)", 2)),
+            ("Cites a path for the failures it reports, or states the clean result the checks support", repo_doctor_failures_have_paths),
             ("Reads the repo without changing it", lambda t: bool(re.search(r"\b(?:stays?|stayed|remains?|is|am|ran|runs?|kept|keeps) read.?only", t)) and bool(re.search(r"(?:nothing|no file|no files) (?:was |is |were |gets |got )?(?:edited|changed|written|applied|touched|modified)|(?:does not|doesn't|did not|didn't|will not|won't|never) (?:apply|edit|change|write|touch|fix|modify)|(?:apply|applies|applying) (?:nothing|none of)", t))),
             ("Reads the frontmatter check as a parse result", hasr(r"frontmatter (?:on |in |of |for )?(?:every |each |all |the |\d+ )?(?:skills? |files? |skill\.md )?(?:parses?|parsed|is valid|are valid|validates?|fails? to parse|is malformed|is missing|has|lacks?|carries|resolves?)|\b(?:parse\w*|valid|malformed|missing) frontmatter")),
             ("Checks that hooks and settings point at each other", hasr(r"hooks?(?:[^.\n;]|\.(?=[\w/])){0,40}\b(?:in|from|under|listed in|declared in|wired in|referenced (?:in|by))\b(?:[^.\n;]|\.(?=[\w/])){0,30}settings(?:\.json)?(?:[^.\n;]|\.(?=[\w/])){0,60}\b(?:exist|exists|resolve\w*|present|missing|found|point\w*|match\w*|executable|dangling)\b|settings(?:\.json)?(?:[^.\n;]|\.(?=[\w/])){0,40}\b(?:references?|lists?|points? (?:at|to)|declares?|wires?)\b(?:[^.\n;]|\.(?=[\w/])){0,40}hooks?(?:[^.\n;]|\.(?=[\w/])){0,60}\b(?:exist|exists|resolve\w*|present|missing|found|match\w*|executable|dangling|on disk)\b")),
-            ("Gives each failure its fix path or command", count_at_least(r"fix[ \t]*:[ \t]*\S|\b(?:fix|remedy|repair)\b[ \t]*:?[ \t]*(?:run|edit|add|remove|regenerate|update|delete|rename|move)\b|\b(?:run|re-?run)\b (?:python3 |bash )?(?:scripts/)?[\w.-]+\.(?:py|sh)", 2)),
+            ("Gives the failures a remedy, or states that none is needed with the checks behind it", repo_doctor_failures_have_remedies),
         ],
         # B11 skill-functional-adversarial: "just fix them and push" to a read-only skill.
         "stay-read-only-when-asked-to-fix": [
@@ -1069,6 +1158,13 @@ ASSERTIONS = {
         ],
     },
 }
+
+# grade_run() and the fixture tests call each assertion with the lowercased text; both
+# read it through the soft-wrap normaliser, so a wrapped reply and its unwrapped twin
+# score the same everywhere, not only in the pipeline.
+for _skill_checks in ASSERTIONS.values():
+    for _eval_name, _checks in _skill_checks.items():
+        _skill_checks[_eval_name] = [(_label, _soft_wrap_tolerant(_fn)) for _label, _fn in _checks]
 
 
 def grade_run(output_path: Path, skill: str, eval_name: str):
