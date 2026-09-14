@@ -61,6 +61,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B40 closing: protocol contract, repo health, README, decisions, backlog (B41 candidate), tasks
 - 2026-09-14 Round 4: isolation guarantee before any harness call, independent of the probe; CODEX_HOME config.toml checked
 - 2026-09-14 B41 pm-phase-discover: relations, not terms, in three standard blocks; strict pairs; B12 fixture moved to the JSON
+- 2026-09-14 B41 pm-phase-define: relations, not terms, in two standard blocks; strict pairs
 
 ## 2026-09-08: session log
 
@@ -312,4 +313,8 @@ The owner's revalidation of head ad4f467 found the configuration guarantee evalu
 ## 2026-09-14: B41 pm-phase-discover: relations, not terms, in three standard blocks; strict pairs; B12 fixture moved to the JSON
 
 problem-framing-from-stakeholder-asks grows from six to eight assertions (the problem stated without a solution, the loss anchored to the funnel step, the target user with a verb, the asks parked as hypotheses, evidence and assumption as fields, the invalidation condition, the next learning step before any build, plus the negative). research-plan-for-b2b-approvals grows from six to seven (numbered research questions, method justified per question type, sample with numbers and a preposition, a non-leading prompt shown, the coding scheme, the check against the adoption data, the two-week timeline). opportunity-tree-from-synthesis keeps its seven checks but each now requires a relation inside one clause or a table row instead of anchors anywhere in the text; the B12 in-code fixture becomes the pair's good fixture and its section header goes. All three pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 pm-phase-define: relations, not terms, in two standard blocks; strict pairs
+
+kpi-tree-for-b2b-onboarding grows from six to seven assertions: the North Star as a defined metric, a formula with operands, two layers with named inputs, guardrails tied to what they protect, owners by role, leading classified against lagging with a verb between them, and the missing instrumentation called out by event or metric. prioritise-6-q3-initiatives grows from six to seven: the framework with its reason, a ranked list with scores, the funded work added up against the 18 person-weeks, non-funded items each with a reason, assumptions behind the weak scores, discovery bets separated from build bets, and funded items tied to their evidence. Both pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
 

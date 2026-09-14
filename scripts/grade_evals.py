@@ -437,19 +437,22 @@ ASSERTIONS = {
     },
     "pm-transversal-stakeholder": {
         "daci-api-v1-deprecation": [
-            ("Names a single approver", hasr(r"approver:|approver\s*=|approver.*@|approver is|vp.*approver|vp product")),
-            ("Populates Driver, Contributors, Informed all four roles", lambda t: ("driver" in t) and ("contributor" in t) and ("informed" in t)),
-            ("At least 3 options compared", hasr(r"option a.*option b.*option c|option 1.*option 2.*option 3|3 options|three options")),
-            ("Has timeline with concrete dates / months", hasr(r"202[5-9]|month\s*\d|m\d|week \d|q[1-4]|day\s*\d")),
-            ("Has specific ask + decision date", hasr(r"decision date|by (?:friday|next week|\w+ \d+)|approve by|sign.off by|decision by")),
+            ("Names one approver and fills the other three roles", lambda t: bool(re.search(r"approver[ \t]*(?::|=|is|→|->)[ \t]*(?:the )?(?:vp|head|cpo|chief|director|product lead\w*)[^\n,;]{0,40}", t)) and bool(re.search(r"driver[ \t]*(?::|=|is)", t)) and bool(re.search(r"contributors?[ \t]*(?::|=|are|is)", t)) and bool(re.search(r"informed[ \t]*(?::|=|are|is)", t))),
+            ("Classifies the door before recommending", hasr(r"(?:one.way|two.way) door[^.\n;]{0,80}\b(?:because|since|as|so)\b|(?:reversib\w+|irreversib\w+)[^.\n;]{0,60}\b(?:because|since|once|after)\b[^.\n;]{0,60}(?:customers?|v1|shut|sunset|migrat)")),
+            ("Compares at least three options with a trade-off each", lambda t: len(re.findall(r"option [abc123][^\n]{0,200}\b(?:cost|risk|churn|fte|incident|month|slow|fast|keeps?|loses?|saves?)\w*", t)) >= 3),
+            ("Grounds the recommendation in the prompt's numbers", count_at_least(r"(?:8,?000 customers|1 fte|two incidents|2 incidents|14 months)[^.\n;]{0,60}\b(?:means|costs?|is|are|shows?|justif\w+|argues?|weighs?|drives?|keeps?|remain)\b|\b(?:means|costs?|is|shows?|justif\w+|argues?)\b[^.\n;]{0,40}(?:8,?000 customers|1 fte|two incidents|2 incidents|14 months)", 2)),
+            ("Dates the milestones", count_at_least(r"(?:20[2-3]\d-\d{2}(?:-\d{2})?|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w* 20[2-3]\d|\bq[1-4] 20[2-3]\d|\bmonth [1-9]\b|\bm[1-9]\b)[^.\n;]{0,60}\b(?:announce|freeze|sunset|shut|migrat|read.?only|notify|deadline|cut.?over)\w*", 2)),
+            ("Asks for the decision by a date", hasr(r"(?:decision|approval|sign.?off) (?:needed |requested |due )?by[ \t]+(?:friday|monday|tuesday|wednesday|thursday|\w+ \d{1,2}|20[2-3]\d-\d{2}-\d{2}|end of \w+)|(?:approve|decide|sign off)[^.\n;]{0,30}\bby\b[ \t]+(?:friday|monday|tuesday|wednesday|thursday|\w+ \d{1,2}|20[2-3]\d-\d{2}-\d{2}|end of \w+)")),
+            ("Answers the churn fear with a mitigation, not a dismissal", hasr(r"(?:churn|support team'?s? fear|cs fear|head of cs)[^.\n;]{0,80}\b(?:mitigat\w+|addressed|answered|covered|reduced|handled)\b[^.\n;]{0,60}\b(?:by|through|with|via)\b|\b(?:mitigat\w+|to answer|to address)\b[^.\n;]{0,40}(?:churn|the fear|the risk)[^.\n;]{0,80}\b(?:by|through|with|via|:)\b")),
         ],
         "exec-memo-slip-risk": [
-            ("TL;DR up front", hasr(r"tl;dr|tldr|summary")),
-            ("All three options (A, B, C) addressed", lambda t: ("option a" in t) and ("option b" in t) and ("option c" in t)),
-            ("Clear recommendation stated", hasr(r"recommend|recommendation")),
-            ("Ask with Friday / specific date", hasr(r"friday|decision by|approve by|by eod")),
-            ("Risks named for the recommended option", hasr(r"risk|mitigat")),
-            ("Concise (memo body under ~800 words)", lambda t: len(t.split()) < 850),
+            ("Opens with the recommendation in the TL;DR", hasr(r"tl;?dr[ \t]*:[ \t]*[^\n]{0,240}\b(?:option b|recommend\w*|contractor)\b|summary[ \t]*:[ \t]*[^\n]{0,240}\b(?:option b|recommend\w*|contractor)\b")),
+            ("Gives every option its cost and its reversibility", lambda t: sum(bool(re.search(rf"option {o}[^\n]{{0,240}}\b(?:cost|\$|weeks?|slip|degraded|reversib\w*|irreversib\w*|undo|hard to undo|easy to undo)\b", t)) for o in "abc") >= 3 and bool(re.search(r"reversib|irreversib|undo", t))),
+            ("Prices the recommended option with the prompt's numbers", hasr(r"\$?80k[^.\n;]{0,60}\b(?:buys|saves|for|against|recovers|brings back|cuts)\b[^.\n;]{0,40}(?:3 weeks|three weeks)|(?:3 weeks|three weeks)[^.\n;]{0,60}\b(?:for|costs?|at)\b[^.\n;]{0,20}\$?80k")),
+            ("Names what could go wrong with the chosen path", hasr(r"risks? (?:of|with|in) (?:option b|the recommend\w+|this (?:option|path))[^\n]{0,240}|option b[^.\n;]{0,60}\b(?:risks?|carries|exposes|could)\b[^.\n;]{0,80}\b(?:mitigat\w+|if|contractor|ramp|onboarding|dependency)\b")),
+            ("Asks for the decision by Friday and says why", hasr(r"(?:decision|approval|sign.?off|answer)[^.\n;]{0,40}\bby friday\b[^.\n;]{0,80}\b(?:so that|so we|to brief|because|before)\b|\bby friday\b[^.\n;]{0,60}\b(?:brief|sales|customers)\b")),
+            ("Scopes the narrower MVP by what it defers", hasr(r"(?:narrower|narrow|smaller|reduced) (?:mvp|scope)[^.\n;]{0,80}\b(?:defers?|deferring|drops?|cuts?|leaves? out|pushes?)\b[^.\n;]{0,60}(?:three|3)[^.\n;]{0,20}(?:workflows?|nice.to.have)|(?:three|3) (?:nice.to.have )?(?:admin )?workflows?[^.\n;]{0,60}\b(?:deferred|move|moved|pushed|out of|drop)\w*")),
+            ("Stays inside a page", lambda t: len(t.split()) < 850),
         ],
         # B11 doctrine-adversarial: a DACI requested as a rubber stamp for a decision already made.
         "challenge-daci-with-approver-already-decided": [
