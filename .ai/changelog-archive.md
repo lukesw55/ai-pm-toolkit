@@ -60,6 +60,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 Grader tests: every graded eval carries a strict pair
 - 2026-09-14 B40 closing: protocol contract, repo health, README, decisions, backlog (B41 candidate), tasks
 - 2026-09-14 Round 4: isolation guarantee before any harness call, independent of the probe; CODEX_HOME config.toml checked
+- 2026-09-14 B41 pm-phase-discover: relations, not terms, in three standard blocks; strict pairs; B12 fixture moved to the JSON
 
 ## 2026-09-08: session log
 
@@ -307,4 +308,8 @@ docs/EVAL_PROTOCOL.md gains the "Assertion and fixture contract" section (relati
 ## 2026-09-14: Round 4: isolation guarantee before any harness call, independent of the probe; CODEX_HOME config.toml checked
 
 The owner's revalidation of head ad4f467 found the configuration guarantee evaluated only inside the probe (so --skip-probe skipped it), reached only after the harness had already run once, and a codex_home_clean check that ignored config.toml. check_isolation now evaluates isolation_config on the run argv and the environment before the harness is started for anything, version query and probe included, refuses unless --allow-unisolated, and every sidecar records the checks whether or not the probe ran; --skip-probe skips the diagnostic only. codex_home_clean accepts only auth.json, the artefacts Codex writes while running and a config.toml limited to model and approval keys: any table, developer_instructions, model_instructions_file, notify, prompts, rules or any other entry is refused; a new no_config_overrides check refuses -c and --config on the argv; docs say a read-only sandbox proves nothing about attached tools. Regressions: an invalid template is refused with zero run_harness calls with and without --skip-probe and no probe or attempt written; --skip-probe with a valid configuration records the checks; a home with instructions and an MCP server is refused before any call while the same home with a model key passes; probe immutability stays green. Protocol, runbook, REPO_HEALTH, backlog and tasks updated. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 pm-phase-discover: relations, not terms, in three standard blocks; strict pairs; B12 fixture moved to the JSON
+
+problem-framing-from-stakeholder-asks grows from six to eight assertions (the problem stated without a solution, the loss anchored to the funnel step, the target user with a verb, the asks parked as hypotheses, evidence and assumption as fields, the invalidation condition, the next learning step before any build, plus the negative). research-plan-for-b2b-approvals grows from six to seven (numbered research questions, method justified per question type, sample with numbers and a preposition, a non-leading prompt shown, the coding scheme, the check against the adoption data, the two-week timeline). opportunity-tree-from-synthesis keeps its seven checks but each now requires a relation inside one clause or a table row instead of anchors anywhere in the text; the B12 in-code fixture becomes the pair's good fixture and its section header goes. All three pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
 
