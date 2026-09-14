@@ -232,20 +232,23 @@ def deck_render_is_optional(t: str) -> bool:
 ASSERTIONS = {
     "pm-phase-discover": {
         "problem-framing-from-stakeholder-asks": [
-            ("Names a specific target user (not just 'users')", hasr(r"target user|new user|admin|segment|persona")),
-            ("Identifies invalidation / what would change conclusion", hasr(r"invalidation|would change|would flip|would be wrong")),
-            ("Parks / tables stakeholder asks rather than picking one", hasr(r"park|stakeholder|(?:ask|request)s? (?:are|will be|remain)|not commit")),
-            ("Names next learning step before committing", hasr(r"next (learning )?step|next action|next move|first learn|before (?:any )?solution")),
-            ("Separates known evidence from assumed", hasr(r"known|evidence|assumed|assumption")),
+            ("Frames the problem without a solution inside it", hasr(r"problem statement[ \t]*:[ \t]*[^\n]{20,}|(?:the )?problem[^.\n;]{0,20}\b(?:is|stated as|reads)\b[^.\n;]{0,20}\bthat\b[^.\n;]{0,60}(?:do not|don't|never|cannot|can't|fail|abandon|drop|stall|are lost)")),
+            ("Anchors the loss to the funnel step", hasr(r"62 ?%[^.\n;]{0,40}\b(?:before|never|drop|lost|leave|abandon|stall)\w*\b[^.\n;]{0,40}(?:first project|create|project step)|(?:before|prior to)[^.\n;]{0,20}(?:create|first project)[^.\n;]{0,40}62 ?%")),
+            ("Names the target user as a segment, with a verb", hasr(r"target user[ \t]*:[ \t]*[^\n]{6,}|(?:target|focus)[^.\n;]{0,20}\b(?:is|are|on)\b[^.\n;]{0,40}(?:new (?:users|admins|signups)|first.time|trial|admins? who|users who)")),
+            ("Parks the stakeholder asks as hypotheses, not choices", hasr(r"(?:sales|support|engineering|ceo|guided tour|simplif\w+ signup|ai.powered)[^.\n;]{0,60}\b(?:parked|tabled|is a|are|become|treated as|logged as)\b[^.\n;]{0,30}(?:hypothes|solution candidate|not (?:chosen|selected|committed)|parking lot|later)|(?:parked|parking lot|tabled)[ \t]*:[ \t]*[^\n]{0,80}(?:tour|signup|ai|competitor)")),
+            ("Separates evidence from assumption by field", lambda t: bool(re.search(r"(?:known|evidence|what we know)[ \t]*:[ \t]*\S", t) and re.search(r"(?:assumed|assumptions?|what we assume|inferred)[ \t]*:[ \t]*\S", t)) or bool(re.search(r"\bevidence\b[^.\n;]{0,20}\b(?:shows|is|says)\b[\s\S]{0,300}\b(?:is|are) (?:an |our )?assumption", t))),
+            ("States what would invalidate the framing", hasr(r"(?:invalidat\w+|would (?:change|flip|be wrong)|falsif\w+)[^.\n;]{0,40}\b(?:if|when|should)\b[^.\n;]{0,60}(?:users|drop|complete|62 ?%|interview|funnel|segment|replay)|\bif\b[^.\n;]{0,80}\b(?:the framing|this framing|the problem|we)\b[^.\n;]{0,20}(?:is wrong|changes|falls|does not hold)")),
+            ("Names the next learning step and puts it before any build", hasr(r"next (?:learning )?step[ \t]*:[ \t]*[^\n]{6,}|next (?:learning )?step[^.\n;]{0,20}\b(?:is|:)\b[^.\n;]{0,60}(?:interview|watch|session|instrument|log|funnel|survey|talk to)|(?:interview|instrument|watch|session replay|survey)\w*[^.\n;]{0,60}\b(?:before|prior to|then decide|before we)\b[^.\n;]{0,30}(?:build|commit|solution|tour|signup|scop)")),
             ("Avoids committing to a specific proposed solution", lambda t: not re.search(r"(?:we will|let's|let us|recommend(?:ing)?) (?:ship|build|adopt|implement|deploy) (?:the )?(?:guided tour|ai.powered|simplified signup|tooltip)", t)),
         ],
         "research-plan-for-b2b-approvals": [
-            ("Includes research questions (explicit list)", hasr(r"research question|rq\s*\d|\d\.\s|q\d:")),
-            ("Justifies method choice", hasr(r"why|rationale|because|chosen|method")),
-            ("Specifies sample + recruitment criteria", hasr(r"sample|recruit|n\s*=|participant|admin")),
-            ("Includes interview guide or sample questions", hasr(r"interview guide|questions?:|guide|prompt")),
-            ("Describes synthesis / coding approach", hasr(r"synthesi[sz]|coding|themes?|affinity")),
-            ("Mentions triangulation with quant / existing data", hasr(r"triangul|quant|telemetry|analytics|data")),
+            ("Lists the research questions as a numbered set", count_at_least(r"\brq ?\d\b|research question \d", 3)),
+            ("Justifies the method for each question type", hasr(r"(?:interview|survey|diary|usability|contextual)\w*[^.\n;]{0,40}\b(?:because|since|fits|answers|suits|for)\b[^.\n;]{0,40}(?:rq ?\d|why|how|question|behaviou?r|adoption|flat)|(?:rq ?\d)[^.\n;]{0,30}\b(?:needs|calls for|is answered by|gets)\b[^.\n;]{0,30}(?:interview|survey|log|analytics|usability)")),
+            ("Sets sample and recruitment criteria with numbers", hasr(r"(?:sample|recruit\w*|participants?)[^.\n;]{0,20}\b(?:of|is|are|:)\s*(?:\d{1,2}|six|eight|ten|twelve)\b[^.\n;]{0,20}admins?|(?:\d{1,2}|six|eight|ten|twelve) (?:b2b )?admins?[^.\n;]{0,20}\b(?:on|from|at|across|running|managing|in)\b[^.\n;]{0,20}(?:5.50|\d{1,2}.\d{1,2} seat|seat)")),
+            ("Keeps the interview prompts non-leading and shows one", hasr(r"(?:non.?leading|open(?:-ended)?|neutral)[^.\n;]{0,40}(?:question|prompt)s?[^.\n]{0,120}\?|(?:tell me about|walk me through|describe (?:the )?last time|what happened)[^\n]{0,80}\?")),
+            ("Names the coding scheme the synthesis uses", hasr(r"(?:\bcode\b|\bcodes\b|coding|synthesi[sz]\w*)[^.\n;]{0,40}\b(?:with|using|by|through|against|into)\b[^.\n;]{0,40}(?:codebook|coding scheme|affinity|themes?|tags?|codes)|(?:codebook|coding scheme)[^.\n;]{0,40}\b(?:built|drafted|before|from|after)\b")),
+            ("Checks the themes against the numbers already in hand", hasr(r"(?:triangulat\w+|cross.?check|compare)[^.\n;]{0,60}(?:against|with|to)[^.\n;]{0,40}(?:adoption|usage|analytics|telemetry|6 months|flat|funnel|event)|(?:adoption|usage|analytics|telemetry)[^.\n;]{0,40}\b(?:confirms?|contradicts?|triangulat\w+|checks?|cross.?checked)\b")),
+            ("Fits the plan into the one-to-two-week budget", hasr(r"(?:week 1|week 2|days? \d|day \d|1.2 weeks|two weeks|ten (?:working )?days)[^.\n;]{0,60}\b(?:recruit|interview|synthesi|readout|schedule|run)\w*|(?:recruit|interview|synthesi|readout)\w*[^.\n;]{0,40}\b(?:in|by|during|within)\b[^.\n;]{0,10}(?:week 1|week 2|days? \d|the first week|the second week|two weeks)")),
         ],
         "resist-solution-first-dashboard-premise": [
             ("Names the framing as a decision already taken rather than a validated need", hasr(r"(?:request|framing|brief|premise|this|ask|plan)[^.\n;]{0,40}\b(?:treats?|takes?|assumes?|presents?|starts? from)\b[^.\n;]{0,60}(?:as (?:already )?(?:decided|settled|given)|solution.first|as the answer|as a given)")),
@@ -268,12 +271,12 @@ ASSERTIONS = {
         ],
         # B12 standard: the tree is built from the synthesis evidence only; no invented scores.
         "opportunity-tree-from-synthesis": [
-            ("States the outcome as a metric with the target", lambda t: bool(re.search(r"outcome", t, re.I) and re.search(r"1\.5|median", t, re.I))),
-            ("Derives O1 from T1 and cites the prompt's counts and reach", lambda t: bool(re.search(r"\bo1\b", t, re.I) and re.search(r"11/14|11 of 14", t, re.I) and re.search(r"40%|12%|100%", t, re.I))),
-            ("Lists at least two solutions under the top opportunity", hasr(r"\bs2\b|second solution|solution 2")),
-            ("Maps assumptions with types and written-out status", lambda t: bool(re.search(r"desirab|viab|feasib|usab|ethic", t, re.I) and re.search(r"verified|unverified|inferred", t, re.I))),
-            ("Tests the riskiest assumption first", hasr(r"riskiest|highest risk|test(?:ed)? first|first test")),
-            ("Parks T3 for the prompt's reasons", lambda t: bool(re.search(r"park|defer|not now|out of scope", t, re.I) and re.search(r"audit|\bt3\b|\bo3\b", t, re.I) and re.search(r"pillar|off.strategy|12%|regulated|external|grc", t, re.I))),
+            ("States the outcome as a metric with its target and guardrail", hasr(r"outcome(?:[^.\n;]|\.(?=\d)){0,40}(?:median|approval time)(?:[^.\n;]|\.(?=\d)){0,60}(?:<=|≤|under|to|below) ?1\.5 days|median(?:[^.\n;]|\.(?=\d)){0,30}(?:3\.2|approval)(?:[^.\n;]|\.(?=\d)){0,40}(?:<=|≤|to|under) ?1\.5")),
+            ("Derives the top opportunity from its interview count and reach", hasr(r"o1[^.\n;]{0,80}\b11 ?(?:/|of) ?14\b[^.\n;]{0,40}\breach\w*\b[^.\n;]{0,10}(?:100 ?%|all)")),
+            ("Lists two or more solutions under the top opportunity", hasr(r"o1-s2|(?:solutions?|options?)[ \t]*:[^\n]{0,80}\b(?:s2|and|;)\b|second solution|solution 2")),
+            ("Maps assumptions with a type and a written-out status", hasr(r"(?:desirab|viab|feasib|usab|ethic)\w*[^\n]{0,60}\|[^\n]{0,40}\b(?:verified|unverified|inferred)\b|(?:desirab|viab|feasib|usab|ethic)\w*[^.\n;]{0,40}\b(?:status|is|remains)\b[^.\n;]{0,10}(?:verified|unverified|inferred)")),
+            ("Orders the assumption tests by risk", hasr(r"riskiest[^.\n;]{0,40}\b(?:first|before)\b|(?:highest|largest) risk[^.\n;]{0,40}\b(?:first|before)\b|tested first[^.\n;]{0,60}(?:risk|importance)")),
+            ("Parks the off-strategy opportunity for the prompt's reasons", hasr(r"(?:park\w*|defer\w*|not now|out of scope)[^.\n;]{0,60}(?:o3|t3|audit export)[^.\n;]{0,120}\b(?:because|for|since|as|reasons?)\b[^.\n;]{0,60}(?:off.strategy|12 ?%|regulated|external|grc|pillar)|(?:o3|t3|audit export)[^.\n;]{0,120}(?:off.strategy|12 ?%|regulated|grc)[^.\n;]{0,80}\b(?:so|therefore|hence)\b[^.\n;]{0,20}(?:park\w*|defer\w*|not now)")),
             ("Invents no score or verified solution feasibility", lambda t: not re.search(r"(?:scorecard|total(?: score)?)[^\n]{0,30}\b\d{1,2}\s*/\s*\d{1,2}\b", t, re.I) and not re.search(r"(?:\bverified\b[^\n]{0,80}(?:feasib|inbox|ships)|(?:feasib|inbox|ships)[^\n]{0,80}\bverified\b)", t, re.I) and not re.search(r"(?:\bt3\b|\bo3\b|audit export)[^\n]{0,80}(?:strategic alignment|alignment|reachab)[^\n]{0,15}\b[45]\b", t, re.I) and not re.search(r"(?:\bt3\b|\bo3\b|audit)[^\n]{0,40}rank(?:ed)? ?(?:#|no\.? ?)?1\b", t, re.I)),
         ],
         "update-impact-brief-and-test-feasibility-during-discovery": [

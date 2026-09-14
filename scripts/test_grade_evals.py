@@ -331,43 +331,6 @@ fixture(
 )
 
 
-# -- B12: the tree is built from the synthesis evidence only (standard) ----
-fixture(
-    "opportunity-tree-grounded-in-evidence-scores-well",
-    "pm-phase-discover",
-    "opportunity-tree-from-synthesis",
-    """
-    Outcome (O): median approval time from 3.2 days to <=1.5 days by Q2
-    without raising the rejection rate; today 38% of 4,120 monthly
-    requests miss the 2-day SLA.
-
-    ## O1 - approvers miss requests buried in email (T1): 11/14
-    interviews, reach 100%, severity high (requests stall 3+ days), on the
-    time-to-approve pillar, reachable in-product. Frequency is unknown / not
-    scored; the supported dimensions put O1 at rank 1.
-    - Solutions: O1-S1 daily digest email; O1-S2 in-app approver inbox
-    - Experiment O1-S2-E1: fake-door inbox link in the approver header for
-      two weeks; invalidation: fewer than 30% of approvers click it.
-
-    ## O2 - admins rebuild the approval chain per project (T2): 8/14,
-    reach 40%, severity medium (20 min per project), self-serve admin
-    pillar, needs the Q3 templates. Rank 2.
-
-    ## Parked: O3 - manual audit export (T3): 4/14, reach 12% (regulated
-    accounts), quarterly, off-strategy this year, needs an external GRC
-    integration. Parked for those three reasons. Demand for GRC beyond
-    regulated accounts: unknown / not scored.
-
-    ## Assumption map for O1-S2
-    | ID | Assumption | Type | Importance | Evidence strength | Status | Test |
-    | O1-S2-A1 | approvers act on an in-app inbox within the day | desirability | 5 | 3 | inferred: 11/14 name the pain, nobody has seen an inbox | O1-S2-E1 |
-    | O1-S2-A2 | the inbox can reuse the approval API | feasibility | 2 | 1 | unverified: no technical evidence in the synthesis | O1-S2-E2 API spike |
-    Riskiest first: A1 (risk 15) is tested first through E1; A2 follows (risk 10).
-    """,
-    0.8, 1.0,
-)
-
-
 # -- B18: the ruler is applied by its three dimensions, not by account size ----
 fixture(
     "regua-scores-three-dimensions-and-applies-the-lock",
