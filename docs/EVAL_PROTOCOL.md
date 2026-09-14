@@ -47,7 +47,11 @@ scored by an assertion block in `scripts/grade_evals.py` and defended by a stric
    number, a name, an id, a role) with a relation word between them (a verb, "because", "not",
    "vs", a destination preposition) inside one clause, or an artefact a list cannot supply (a
    fraction with its denominator, a path, an id with a verb, a labelled field with content, an
-   ordered sequence, a count of two or three of the same structure).
+   ordered sequence, a count of two or three of the same structure). The relation may also be
+   carried by adjacency (a subject and its state side by side, as a terse status line puts them)
+   or by structure (a table row whose cells hold the check and its result): the assertion accepts
+   the forms the deliverable allows and never demands a verb or a prose repetition the prompt did
+   not ask for.
 2. One assertion per block checks the decision itself, with its verb and object ("does not write
    the one-pager as it stands", "ship to 100%", "sign-off given", "the gate stays").
 3. At most two assertions per block are satisfied by a list of terms (negatives,

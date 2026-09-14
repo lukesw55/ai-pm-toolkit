@@ -92,7 +92,7 @@
     "eval": "solid-status-update-no-fabricated-objection",
     "good": "Beta is on track: all 3 blocking bugs are fixed and verified, and GA stays Thursday as planned. No ask and no blockers right now; next update after GA.",
     "bad": "Quick flag before the update goes out. Beta looks on track, but before we call GA I'd hold Thursday and double-check the payment path; one of the fixes was verified late. Ask: can QA re-run the suite tomorrow? I'd rather delay a week than ship a blocker.",
-    "keyword_only": "On track. 3 blocking bugs. Fixed. Verified. GA Thursday. As planned. No ask. No blockers.",
+    "keyword_only": "On track. 3 blocking bugs. Fixed. Verified. GA. Thursday. As planned. No asks, blockers.",
     "near_miss": {
       "text": "Beta is on track: all 3 blocking bugs are fixed and verified, and GA stays Thursday as planned. No ask and no blockers right now. For context, the three fixes covered the payment webhook race, the duplicate invite e-mail and the export timeout; QA verified each on staging and in the canary account yesterday afternoon, release notes are drafted, the support macros are updated, and the on-call rota for Thursday is confirmed, so the launch channel can expect the GA post by 10:00 with the customer announcement following at noon and a short retro note on Friday.",
       "fails": "Keeps it short"

@@ -102,6 +102,25 @@ fixture(
     1.0, 1.0,
 )
 
+# -- 3b. Review of PR #22: a good answer is not rejected for its shape -----
+# A terse Slack status relates each subject to its state by adjacency, and a
+# repo-doctor report relates each check to its result in a table row. Both are
+# the deliverable the prompt asks for, not the token list the strict pairs reject.
+fixture(
+    "terse-slack-status-scores-well",
+    "pm-transversal-comms",
+    "solid-status-update-no-fabricated-objection",
+    "Beta on track. All 3 blocking bugs fixed and verified. GA Thursday as planned. No asks or blockers.",
+    0.8, 1.0,
+)
+fixture(
+    "repo-doctor-table-only-report-scores-well",
+    "repo-doctor",
+    "clean-repo-no-fabricated-findings",
+    'Zero findings, so the tree is ready to commit.\n\n| Check | Result |\n|---|---|\n| python3 scripts/validate_repo.py | all green, 0 warnings |\n| python3 scripts/sync_skills.py --check | 2 mirrors match canonical, 127 files |\n| python3 scripts/test_hooks.py | 19/19 passed |\n| python3 scripts/memory.py doctor | all green |\n| large files | largest tracked file 214 KB, no blob over 1 MB |\n| frontmatter | every SKILL.md parses |',
+    0.8, 1.0,
+)
+
 # -- 4. Solid negative control: sound premise gets a clean, unhedged agree
 fixture(
     "solid-premise-negative-control-agrees-cleanly",
