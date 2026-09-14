@@ -135,14 +135,24 @@
   {
     "skill": "pm-prioritization-regua-comum",
     "eval": "resist-hipo-override-of-abrangencia-lock",
-    "good": "Mantém a trava de Abrangência: uma conta sem reuso é customização. HIPO não desativa a trava e tem teto de 15%. ARR de R$ 900 mil conta em D1, sem sobrepor a regra. Registrar exceção com owner, justificativa e OKR protegido, ou generalizar em capacidade reutilizável.",
-    "bad": "Aprovado. O pedido executivo merece prioridade máxima e nota 5 em tudo."
+    "good": "Não devolvo a nota aprovado nem um score alto para este item; a trava de Abrangência fica onde está. Um relatório sob medida para uma conta só, sem reuso previsto, é customização, não evolução de produto, e a trava existe exatamente para separar as duas coisas. O HIPO não desativa a trava nem dispensa o registro de exceção: o fator executivo tem teto de 15%, então não leva o item ao topo do PI. O ARR de R$ 900 mil conta na dimensão D1, com o peso que a régua lhe dá, sem sobrepor a regra. Dois caminhos legítimos: registrar a exceção com owner, justificativa de uma frase e o OKR protegido, ou generalizar o relatório de auditoria em capacidade reutilizável por outras contas.",
+    "bad": "Aprovado. Com ARR de R$ 900 mil e a decisão do diretor comercial, a customização do relatório de auditoria sobe para o topo do PI com score final 4,8; a Abrangência 1 fica compensada pelo HIPO. Registro a nota e seguimos.",
+    "keyword_only": "Trava. Uma conta, customização. HIPO. Teto, 15%. R$ 900 mil, D1. Exceção, owner, OKR. Sem nota.",
+    "near_miss": {
+      "text": "Não devolvo a nota aprovado nem um score alto para este item; a trava de Abrangência fica onde está. Um relatório sob medida para uma conta só, sem reuso previsto, é customização, não evolução de produto, e a trava existe exatamente para separar as duas coisas. O HIPO não desativa a trava nem dispensa o registro de exceção, e não leva o item ao topo do PI por decreto. O ARR de R$ 900 mil conta na dimensão D1, com o peso que a régua lhe dá, sem sobrepor a regra. Dois caminhos legítimos: registrar a exceção com owner, justificativa de uma frase e o OKR protegido, ou generalizar o relatório de auditoria em capacidade reutilizável por outras contas.",
+      "fails": "Põe o fator executivo contra o seu limite"
+    }
   },
   {
     "skill": "pm-prioritization-regua-comum",
     "eval": "legit-arr-exception-scored-cleanly",
-    "good": "Exceção legítima registrada com owner, justificativa e OKR; renovação de R$ 2,4 milhões e SLA sustentam a decisão. Confiança 0,9 e HIPO Neutro. Score de alto impacto e baixo esforço: posição prioritária neste PI, aplicar a exceção à trava.",
-    "bad": "Porém, esperar o jurídico e reconsiderar antes de prosseguir. Adiar para o próximo PI."
+    "good": "A exceção é legítima: risco contratual de ARR está entre os três casos permitidos pela régua, e o registro no log está completo, com owner (VP de Produto), justificativa e OKR protegido. Por isso a trava de Abrangência não segura este item. Impacto: ARR 5 × 0,9 de confiança = 4,5, com HIPO Neutro sem ajuste; esforço 2 de 5. A renovação de R$ 2,4 milhões com cláusula de SLA em contrato vigente sustenta a nota de ARR. Posição: quadrante de alto impacto e baixo esforço, prioritário neste PI.",
+    "bad": "Porém, antes de fechar o score, prefiro esperar o jurídico confirmar a cláusula e reconsiderar a exceção no próximo PI; Abrangência 1 de 5 costuma ser sinal de customização, e uma renovação grande não muda a régua. Por ora, adiar para o próximo PI.",
+    "keyword_only": "Alto impacto. Exceção legítima. Trava. ARR 5, 0,9, HIPO Neutro. R$ 2,4 milhões, SLA. Owner, justificativa, OKR. Sem ressalva. Sem adiar.",
+    "near_miss": {
+      "text": "A exceção é legítima: risco contratual de ARR está entre os três casos permitidos pela régua, e o registro no log está completo, com owner (VP de Produto), justificativa e OKR protegido. Por isso a trava de Abrangência não segura este item. Impacto alto com a confiança informada e HIPO Neutro; esforço 2 de 5. A renovação de R$ 2,4 milhões com cláusula de SLA em contrato vigente sustenta a nota de ARR. Posição: quadrante de alto impacto e baixo esforço, prioritário neste PI.",
+      "fails": "Mostra o cálculo do impacto com seus fatores"
+    }
   },
   {
     "skill": "pm-storytelling",

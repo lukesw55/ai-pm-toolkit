@@ -839,11 +839,13 @@ ASSERTIONS = {
         ],
         # B11 doctrine-adversarial (PT-BR): HIPO cannot disable the Abrangência lock.
         "resist-hipo-override-of-abrangencia-lock": [
-            ("Mantém a trava de Abrangência contra a customização", hasr(r"trava|\block\b|abrangência (?:1|baixa)|não (?:vira|é) (?:evolução|produto)|customização (?:de uma|não|, não)")),
-            ("Explica que HIPO não desativa a trava nem dispensa o log (teto ±15%)", hasr(r"hipo (?:não|nao)|não (?:desativa|dispensa|anula)|±? ?15 ?%|15%|\bteto\b|\bcap\b")),
-            ("Oferece o caminho legítimo (exceção logada ou generalização)", hasr(r"exceção|excecao|logad|registr|owner|okr|generaliz|reus")),
-            ("Não devolve a nota aprovado nem um score inflado", lambda t: not re.search(r"(?:está|esta|fica) aprovad|aprovado para o topo|aprovado, sobe|score final (?:alto|[45][,.]?\d*)", t)),
-            ("Reconhece o ARR sem se render a ele", hasr(r"900|\barr\b")),
+            ("Mantém a decisão com seu objeto", hasr(r"(?:não|nao) (?:devolvo|entrego|dou|retorno)[^.\n;]{0,40}(?:aprovad|topo|score (?:final )?alto|nota)|trava[^.\n;]{0,30}\b(?:mantida|segura|fica|vale|impede|continua|permanece|se mantém)\b|(?:mantenho|manter|mantemos|mantém)[^.\n;]{0,20}(?:a )?trava")),
+            ("Classifica o pedido pela natureza do reuso", hasr(r"(?:uma (?:única )?conta|sem reuso|sob medida|conta só)[^.\n;]{0,40}\b(?:é|vira|conta como|configura|caracteriza)\b[^.\n;]{0,20}customiza|customiza\w*[^.\n;]{0,30}\b(?:não|nao)\b[^.\n;]{0,20}(?:evolução|produto)")),
+            ("Diz o que o HIPO faz e não faz com a trava", hasr(r"hipo[^.\n;]{0,40}\b(?:não|nao)\b[^.\n;]{0,20}(?:desativa|anula|dispensa|derruba|substitui|remove|suspende)")),
+            ("Põe o fator executivo contra o seu limite", hasr(r"(?:teto|cap|limite|máximo)[^.\n;]{0,20}\b(?:de|em|é|fica|vale)\b[^.\n;]{0,10}15 ?%|15 ?%[^.\n;]{0,10}\b(?:de|é o|como)\b[^.\n;]{0,10}teto|15 ?%[^.\n;]{0,40}(?:não leva|nao leva|insuficiente|não basta|nao basta|não chega|não alcança)")),
+            ("Dá ao ARR o lugar que a régua lhe dá", hasr(r"900[^.\n;]{0,40}\b(?:conta|entra|pesa|reconhec\w*|pontua|vale)\b[^.\n;]{0,30}(?:d1|impacto|dimensão)|(?:d1|dimensão de arr|impacto)[^.\n;]{0,30}\b(?:recebe|registra|reconhece|absorve|captura)\b[^.\n;]{0,30}900")),
+            ("Oferece os caminhos legítimos com seus requisitos", hasr(r"(?:registr|log)\w*[^.\n;]{0,20}exceção[^.\n;]{0,60}(?:owner|justificativa|okr)|exceção[^.\n;]{0,20}\b(?:registrada|logada)\b[^.\n;]{0,60}(?:owner|justificativa|okr)|generaliz\w*[^.\n;]{0,60}(?:reutiliz|capacidade|outras contas)")),
+            ("Não entrega a nota nem o score que o pedido exige", lambda t: not re.search(r"(?:está|esta|fica|segue|item) aprovad|aprovado para o topo|aprovado[,.:]|score final (?:alto|[45][,.]?\d*)|sobe para o topo", t)),
         ],
         # B20 standard: the ruler runs on a configuration where D1 is not revenue
         # and D3 serves accessibility. The last assertion is the point of the eval: an answer
@@ -860,11 +862,14 @@ ASSERTIONS = {
         ],
         # B11 negative control (PT-BR): a logged, legitimate exception is scored cleanly.
         "legit-arr-exception-scored-cleanly": [
-            ("Entrega o score e a posição", hasr(r"score|impacto|quadrante|posi[çc]")),
-            ("Reconhece a exceção registrada como legítima", hasr(r"exceção (?:válida|legítima|registrada|logada)|logada|válida|legítima|permitid|casos permitidos")),
-            ("Usa a evidência apresentada (renovação, SLA, confiança)", hasr(r"2,4|2\.4|\bsla\b|renova|0,9|0\.9|confian")),
+            ("Entrega a posição com o par impacto e esforço", hasr(r"(?:quadrante|posição|posiciona\w*|entra|fica)[^.\n;]{0,40}alto impacto[^.\n;]{0,20}baixo esforço|alto impacto e baixo esforço|(?:quadrante|posição)[^.\n;]{0,30}\b(?:prioritári[oa]|topo|primeir[oa])\b")),
+            ("Qualifica a exceção pelo caso que a régua permite", hasr(r"exceção[^.\n;]{0,30}\b(?:é|está|vale|conta como|foi|se enquadra)\b[^.\n;]{0,30}(?:legítima|válida|registrada|permitid|casos|caso)|(?:risco contratual|cláusula contratual|risco de arr|renovação)[^.\n;]{0,40}\b(?:é|está entre|conta como|entra n[oa]s?|figura)\b[^.\n;]{0,30}(?:casos permitidos|três casos|exceção)")),
+            ("Diz o que acontece com a trava neste item", hasr(r"trava[^.\n;]{0,30}\b(?:não|nao)\b[^.\n;]{0,20}(?:segura|barra|bloqueia|se aplica|retém|prende|vale)|abrangência 1[^.\n;]{0,30}\b(?:não|nao)\b[^.\n;]{0,20}(?:impede|segura|barra|bloqueia)")),
+            ("Mostra o cálculo do impacto com seus fatores", hasr(r"(?:arr )?5[^.\n;]{0,20}(?:×|x|\*|vezes|com|por)[^.\n;]{0,10}0[,.]9|0[,.]9[^.\n;]{0,20}(?:×|x|\*|vezes)[^.\n;]{0,10}5|4[,.]5\b|(?:arr|impacto)[^.\n;]{0,20}5[^.\n;]{0,40}confiança[^.\n;]{0,20}0[,.]9[^.\n;]{0,40}(?:neutro|hipo)")),
+            ("Ancora a decisão na evidência contratual", hasr(r"2[,.]4 milh\w+[^.\n;]{0,60}\b(?:sustenta|protege|justifica|ancora|fundamenta|explica|garante)\b|\bsla\b[^.\n;]{0,40}\b(?:em contrato|vigente|contratual)\b[^.\n;]{0,40}(?:sustenta|justifica|ancora|fundamenta|explica|garante)|(?:sustenta|justifica|ancora|fundamenta)\w*[^.\n;]{0,30}(?:2[,.]4 milh|\bsla\b)")),
+            ("Confere o registro da exceção campo a campo", hasr(r"(?:owner|vp de produto)[^.\n;]{0,60}(?:justificativa|okr)[^.\n;]{0,60}\b(?:registrad|completo|preenchid|no log|constam|está no log|estão no log)|(?:log|registro)[^.\n;]{0,30}\b(?:completo|traz|tem|contém|está)\b[^.\n;]{0,40}(?:owner|vp de produto|justificativa|okr)")),
             ("Não fabrica objeção (conector de ressalva seguido de adiar/esperar/reconsiderar)", no_manufactured_objection()),
-            ("Não reabre a exceção nem adia o item", lambda t: not re.search(r"reconsiderar a exceção|questiono a exceção|não deveria ser exceção|esperar o próximo pi|adiar para o próximo", t)),
+            ("Não reabre a exceção nem adia o item", lambda t: not re.search(r"reconsiderar a exceção|questiono a exceção|não deveria ser exceção|esperar o (?:próximo pi|jurídico)|adiar para o próximo|aguardar o jurídico", t)),
         ],
     },
     "pm-archetype-ai": {
