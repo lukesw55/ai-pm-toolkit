@@ -256,6 +256,35 @@ def _flag_value(argv: list[str], flag: str) -> str | None:
     return argv[argv.index(flag) + 1] if flag in argv and argv.index(flag) + 1 < len(argv) else None
 
 
+def _config_override(argv: list[str]) -> bool:
+    """True when the argv loads configuration the template did not declare, in any spelling
+    the Codex CLI accepts: `-c KEY=VALUE`, `-cKEY=VALUE`, `--config KEY=VALUE`,
+    `--config=KEY=VALUE`, and the profile selectors `-p NAME`, `-pNAME`, `--profile NAME`,
+    `--profile=NAME`. The review of head dc04879 showed the attached short form escaping a
+    check that compared whole tokens."""
+    for arg in argv:
+        if arg in ("-c", "--config", "-p", "--profile") or arg.startswith(("--config=", "--profile=")):
+            return True
+        if arg.startswith(("-c", "-p")) and not arg.startswith("--") and len(arg) > 2:
+            return True
+    return False
+
+
+def _dir_override(argv: list[str]) -> str | None:
+    """The working directory a Codex template asks for through `--cd DIR`, `--cd=DIR`, `-C DIR`
+    or `-CDIR`; None when the template leaves the directory to the runner. The last spelling
+    wins, as it does for the CLI."""
+    value = None
+    for i, arg in enumerate(argv):
+        if arg in ("--cd", "-C"):
+            value = argv[i + 1] if i + 1 < len(argv) else ""
+        elif arg.startswith("--cd="):
+            value = arg[len("--cd="):]
+        elif arg.startswith("-C") and not arg.startswith("--") and len(arg) > 2:
+            value = arg[2:]
+    return value
+
+
 def codex_config_clean(text: str) -> bool:
     """A config.toml the pilot accepts sets model and approval keys only. Any table header
     (mcp_servers, profiles, projects, hooks, features, whatever the section is called), any
@@ -290,27 +319,30 @@ def isolation_config(harness: str, argv: list[str], cwd: Path, root: Path, env: 
     directory outside the repository. This is the isolation guarantee; the probe is a
     diagnostic on top of it, because a model's statement about its own tools does not prove
     what the process loaded. A read-only sandbox limits what a tool may do and says nothing
-    about which tools are attached; the home and override checks carry that part."""
+    about which tools are attached; the home and override checks carry that part. The checks
+    read the argv in every spelling the CLI accepts, and for Codex the directory checked is the
+    one the argv asks for through `--cd`/`-C`, resolved, which must be the runner's own."""
     env = os.environ if env is None else env
-    outside = not cwd.resolve().is_relative_to(root.resolve())
     if harness == "claude-code":
         return {
             "safe_mode": "--safe-mode" in argv,
             "strict_mcp_config": "--strict-mcp-config" in argv,
             "no_tools": _flag_value(argv, "--tools") == "",
             "no_permission_prompts": _flag_value(argv, "--permission-prompts") == "none",
-            "cwd_outside_repo": outside,
+            "cwd_outside_repo": not cwd.resolve().is_relative_to(root.resolve()),
         }
     home = env.get("CODEX_HOME")
     home_path = Path(home) if home else None
-    overrides = any(arg in ("-c", "--config") or arg.startswith("--config=") for arg in argv)
+    requested = _dir_override(argv)
+    effective = cwd if requested is None else (Path(requested) if Path(requested).is_absolute() else cwd / requested)
     return {
         "read_only_sandbox": _flag_value(argv, "--sandbox") == "read-only",
         "skip_git_repo_check": "--skip-git-repo-check" in argv,
-        "no_config_overrides": not overrides,
+        "no_config_overrides": not _config_override(argv),
         "codex_home_set": bool(home_path and home_path.is_dir()),
         "codex_home_clean": codex_home_clean(home_path),
-        "cwd_outside_repo": outside,
+        "cwd_outside_repo": not effective.resolve().is_relative_to(root.resolve()),
+        "cwd_is_runner_dir": effective.resolve() == cwd.resolve(),
     }
 
 

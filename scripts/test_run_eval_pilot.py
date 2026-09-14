@@ -197,6 +197,20 @@ class PilotRunnerTests(unittest.TestCase):
         self.assertTrue(config()['codex_home_clean'])
         self.assertFalse(config(args=argv + ['-c', 'mcp_servers.x.command="npx"'])['no_config_overrides'])
         self.assertFalse(config(args=argv + ['--config', 'developer_instructions="x"'])['no_config_overrides'])
+        # Review of head dc04879: the attached short form escaped the token comparison, and a profile
+        # selector loads configuration the same way. Every spelling is an override.
+        for extra in (['-cdeveloper_instructions=custom'], ['--config=developer_instructions="x"'],
+                      ['-p', 'work'], ['-pwork'], ['--profile', 'work'], ['--profile=work']):
+            with self.subTest(extra=extra):
+                self.assertFalse(config(args=argv + extra)['no_config_overrides'])
+        # The directory checked is the one the argv asks for, in every spelling; only the runner's own passes.
+        for extra in (['--cd', str(self.root)], ['-C', str(self.root)], [f'-C{self.root}'], [f'--cd={self.root}']):
+            with self.subTest(extra=extra):
+                checks = config(args=argv + extra)
+                self.assertFalse(checks['cwd_outside_repo']); self.assertFalse(checks['cwd_is_runner_dir'])
+        checks = config(args=argv + ['--cd', str(Path(self.tmp.name) / 'elsewhere')])
+        self.assertTrue(checks['cwd_outside_repo']); self.assertFalse(checks['cwd_is_runner_dir'])
+        self.assertTrue(all(config(args=argv + ['--cd', str(w)]).values()), config(args=argv + ['--cd', str(w)]))
         self.assertFalse(rp.isolation_config('codex', argv, w, self.root, {})['codex_home_set'])
         self.assertFalse(rp.isolation_config('codex', argv, w, self.root, {'CODEX_HOME': str(self.codex_home / 'missing')})['codex_home_set'])
         # Through the runner: a home with instructions and an MCP server is refused before any harness call.
@@ -207,6 +221,35 @@ class PilotRunnerTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'isolation configuration incomplete for codex: codex_home_clean'): rp.run_pilot(self.args, self.root)
             self.assertEqual(spy.call_count, 0); self.assertEqual(self.metas(), [])
             (self.codex_home / 'config.toml').write_text('model = "gpt-5"\n')
+            recorded = rp.run_pilot(self.args, self.root)
+        prov = json.loads((recorded[0] / 'provenance.json').read_text())
+        self.assertTrue(all(prov['isolation_config'].values()), prov['isolation_config'])
+
+    def test_codex_overrides_and_directory_are_refused_before_generation(self):
+        # Through the runner, with and without the probe: an attached override and a template that
+        # sends Codex into the repository are refused before any harness call, and a template that
+        # names the runner's own directory through the {cwd} placeholder passes.
+        self.args.harness = 'codex'; self.args.skill = self.skills[2]
+        cases = {'no_config_overrides': f'{self.codex_template} -cdeveloper_instructions=custom',
+                 'cwd_is_runner_dir, cwd_outside_repo': f'{self.codex_template} --cd {self.root}'}
+        with patch.dict(os.environ, {'FAKE_FORMAT': 'codex', 'CODEX_HOME': str(self.codex_home)}):
+            for failed, template in cases.items():
+                for skip_probe in (False, True):
+                    with self.subTest(template=template, skip_probe=skip_probe):
+                        self.args.harness_cmd = template; self.args.skip_probe = skip_probe
+                        with patch.object(rp, 'run_harness', wraps=rp.run_harness) as spy:
+                            with self.assertRaisesRegex(ValueError, f'isolation configuration incomplete for codex: {failed}'):
+                                rp.run_pilot(self.args, self.root)
+                        self.assertEqual(spy.call_count, 0)
+            self.assertEqual(self.metas(), []); self.assertEqual(self.attempts(), [])
+            self.args.skip_probe = False; self.args.allow_unisolated = True
+            self.args.harness_cmd = cases['cwd_is_runner_dir, cwd_outside_repo']
+            recorded = rp.run_pilot(self.args, self.root)
+            prov = json.loads((recorded[0] / 'provenance.json').read_text())
+            self.assertFalse(prov['isolation_config']['cwd_is_runner_dir']); self.assertFalse(prov['isolation_config']['cwd_outside_repo'])
+            self.assertTrue(prov['isolation_config']['no_config_overrides'])
+            shutil.rmtree(self.root / 'skills' / self.skills[2] / 'workspace')
+            self.args.allow_unisolated = False; self.args.harness_cmd = f'{self.codex_template} --cd {{cwd}}'
             recorded = rp.run_pilot(self.args, self.root)
         prov = json.loads((recorded[0] / 'provenance.json').read_text())
         self.assertTrue(all(prov['isolation_config'].values()), prov['isolation_config'])
