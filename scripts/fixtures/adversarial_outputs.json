@@ -99,6 +99,39 @@
     }
   },
   {
+    "skill": "pm-transversal-comms",
+    "eval": "exec-decision-email-launch-slip",
+    "good": "Subject: Go/no-go needed by Wednesday: admin console launch, option A\n\nSituation: the enterprise admin console is on track for the Q3 launch date we briefed sales on, and the SCIM sync piece is the last dependency.\n\nComplication: the platform team's auth migration slipped, and the dependency puts the full console 4 weeks late if we wait for it.\n\nQuestion: do we ship on time with a reduced scope, or take the full slip?\n\nAnswer: I recommend option A, ship without SCIM sync now and add it in a fast-follow, because it keeps 90% of the scope on time and the customers in the launch cohort provision users manually today anyway. Option A: on time, degraded for the accounts that need SCIM, fast-follow in 4 weeks. Option B: take the 4 weeks slip and ship complete, at the cost of missing the date we briefed sales on.\n\nAsk: a go/no-go by Wednesday so that we can brief sales on Thursday with the final date and scope.",
+    "bad": "Subject: Admin console update\n\nHi, the admin console has hit a dependency on the platform team's auth migration and might be delayed. There are two options: ship a smaller version now or wait for the full one. Both have pros and cons. Let me know what you think when you get a chance, and I will keep sales posted.",
+    "keyword_only": "Subject, go/no-go. Option A, recommend. Auth migration, 4 weeks. Option A, option B, trade-off. Wednesday, brief sales. Situation, complication, question, answer. Short.",
+    "near_miss": {
+      "text": "Subject: Go/no-go needed by Wednesday: admin console launch, option A\n\nSituation: the enterprise admin console is on track for the Q3 launch date we briefed sales on, and the SCIM sync piece is the last dependency.\n\nComplication: the platform team's auth migration slipped, and the dependency puts the full console 4 weeks late if we wait for it.\n\nQuestion: do we ship on time with a reduced scope, or take the full slip?\n\nAnswer: I recommend option A, ship without SCIM sync now and add it in a fast-follow, because it keeps 90% of the scope on time and the customers in the launch cohort provision users manually today anyway. Option A: on time, degraded for the accounts that need SCIM, fast-follow in 4 weeks. Option B is the alternative.\n\nAsk: a go/no-go by Wednesday so that we can brief sales on Thursday with the final date and scope.",
+      "fails": "Gives each option one trade-off"
+    }
+  },
+  {
+    "skill": "pm-transversal-comms",
+    "eval": "slack-bluf-status-update",
+    "good": "Launch readiness: beta wrapped, 2 of 3 blocking bugs fixed, the third is still in progress.\nThe open one is the payment-webhook race condition, with a fix ETA of tomorrow EOD.\nThursday GA holds only if that fix lands tomorrow; if it slips, I will post a new date here.\nNo decision needed right now, this is visibility only.",
+    "bad": "Hey team! Quick update: beta went really well overall and the team has been heads down on bugs. There are still a couple of things we are chasing, and I am hoping we can keep Thursday if everything goes to plan. Does anyone have concerns about the timeline? Also, could someone from payments ping me? Thanks all!",
+    "keyword_only": "2 of 3, third in progress. Payment-webhook, ETA tomorrow. Thursday, fix. No decision. Visibility.",
+    "near_miss": {
+      "text": "Launch readiness: beta wrapped, 2 of 3 blocking bugs fixed, the third is still in progress.\nThe open one is the payment-webhook race condition, with a fix ETA of tomorrow EOD.\nThursday GA is still the plan.\nNo decision needed right now, this is visibility only.",
+      "fails": "Ties the GA date to the fix"
+    }
+  },
+  {
+    "skill": "pm-transversal-comms",
+    "eval": "channel-fit-pricing-negotiation-sprawl",
+    "good": "Move the decision out of the DMs and into a written record: a one-page DACI memo, using the pm-transversal-stakeholder template, with the sales lead as driver and you as approver. The reason is the three-exchange rule: after the third exchange in chat a real decision has stopped converging and needs a document, and 40+ messages over two weeks with account execs asking what was decided means chat is the wrong channel for this one. Do not restart the discussion from scratch: summarise the options and trade-offs the thread already surfaced, including the grandfathering positions each side took, into the memo as the starting point. Grandfathering is the first decision recorded in it, with the date and the owner, so the account execs read one line instead of forty messages. Then post the memo link back in the original DM thread and in the sales channel so anyone who searches for it lands on the record.",
+    "bad": "Keep it in Slack but create a dedicated channel so it stops clogging DMs; pin a message with the latest position on grandfathering and ask the account execs to read the pins. Once the sales lead and you agree, someone can write it up somewhere. Chat is fine for this, it just needs a better channel.",
+    "keyword_only": "Written record, DACI. Three-exchange rule. pm-transversal-stakeholder, template. Summarise options. Link back, thread. Grandfathering.",
+    "near_miss": {
+      "text": "Move the decision out of the DMs and into a written record: a one-page DACI memo, using the pm-transversal-stakeholder template, with the sales lead as driver and you as approver. The reason is the three-exchange rule: after the third exchange in chat a real decision has stopped converging and needs a document, and 40+ messages over two weeks with account execs asking what was decided means chat is the wrong channel for this one. Do not restart the discussion from scratch: summarise the options and trade-offs the thread already surfaced, including the grandfathering positions each side took, into the memo as the starting point. Grandfathering is the first decision recorded in it, with the date and the owner, so the account execs read one line instead of forty messages. Then tell the account execs where the memo lives.",
+      "fails": "Closes the loop by linking the record back where the sprawl happened"
+    }
+  },
+  {
     "skill": "pm-phase-define",
     "eval": "challenge-weak-prioritisation-rationale",
     "good": "I will not reverse-engineer RICE to justify a predetermined order. SLA covers a single renewal, not broad impact. Mobile redesign is engineering-driven without user or business evidence. Billing has vague sometimes evidence, not quantified frequency. Score on actual merits; let the evidence determine a different ranking, and I will write that rationale once the scores exist.",
