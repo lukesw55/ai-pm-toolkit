@@ -20,6 +20,7 @@ Resolve `<slug>` from the active pointer; read this project only. Missing or unf
 - `.ai/memory/projects/<slug>/app.md`
 - `.ai/memory/active-context.md`
 - relevant project memory (prior compliance decisions are especially important)
+- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
 
 ## Skills and references you pull from
 

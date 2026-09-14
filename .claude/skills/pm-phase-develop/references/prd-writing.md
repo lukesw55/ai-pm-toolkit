@@ -51,6 +51,9 @@ Supporting metrics (adoption, engagement, depth).
 ### Guardrails
 Metrics that must NOT degrade (reliability, support, trust, retention).
 
+### Eval limits (AI features only)
+Link the scenario sheet built with `pm-archetype-ai/references/eval-design.md`; its limits block and block rule are the acceptance bar for the model's output.
+
 ## Requirements
 
 ### Must-have (MVP)

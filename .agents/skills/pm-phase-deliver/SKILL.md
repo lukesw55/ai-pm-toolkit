@@ -111,12 +111,12 @@ Anti-patterns: one-metric obsession, shipping on averages that hide segment harm
 
 ## Workflow
 
-1. **Load context** — `.ai/memory/active-context.md`, PRD and tracking plan from `pm-phase-develop`, priorities from Define.
+1. **Load context** — `.ai/memory/active-context.md`, PRD and tracking plan from `pm-phase-develop`, priorities from Define. When present, `.ai/memory/org/goals.md` and `competitors.md` frame the launch narrative.
 2. **Classify the ask** — readiness, release notes, monitoring, A/B interpretation, analytics narrative, or metric-quality check?
 3. **Anchor on the hypothesis** — what were we trying to learn/achieve? State it upfront so the readout compares actuals to expectations.
 4. **Respect the guardrails** — check reliability, support load, satisfaction, and revenue side-effects before calling a result a "win".
 5. **Decide the move** — iterate, scale, hold, rollback, or stop. Decisions beat descriptions.
-6. **Persist** — launch memo → `.ai/memory/projects/<slug>/launches/<name>.md`; experiment results → `experiments.md` using the template; close-out → `retrospective.md`.
+6. **Persist** — launch memo → `.ai/memory/projects/<slug>/launches/<name>.md`; experiment results → `experiments.md` using the template; close-out → `retrospective.md`. If the launch changes what we know about a persona, competitor or goal, update the matching `.ai/memory/org/` file (versioned in a fork) and log it with `memory.py log`.
 
 ## Output contract
 

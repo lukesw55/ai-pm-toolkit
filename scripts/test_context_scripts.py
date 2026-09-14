@@ -73,9 +73,10 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(self.run_script('init_context.py','Alpha').returncode,0)
         self.assertIn('**Current stage**: prd',self.pointer.read_text())
         self.assertIn('`beta`:',self.pointer.read_text())
+        import init_context
         for slug in ('alpha','beta'):
-            for name in ('app.md','design.md','tasks.md'):
-                self.assertTrue((self.projects/slug/name).is_file())
+            for name in init_context.PROJECT_FILES:
+                self.assertTrue((self.projects/slug/name).is_file(),name)
 
     def test_explicit_migration(self):
         legacy=self.root/'.ai/app.md';legacy.write_text('Legacy evidence')
@@ -85,6 +86,53 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(self.run_script('init_context.py','--migrate-legacy','Alpha').returncode,0)
         self.assertEqual((self.projects/'alpha/app.md').read_text(),'Legacy evidence')
         self.assertEqual(legacy.read_text(),'Legacy evidence')
+
+    def test_org_layer(self):
+        import context_paths
+        result=self.run_script('init_context.py','--org')
+        self.assertEqual(result.returncode,0,result.stderr)
+        org=self.root/'.ai/memory/org'
+        for name in context_paths.ORG_FILES:
+            self.assertNotIn('{{',(org/name).read_text())
+        before=self.pointer.read_bytes()
+        (org/'goals.md').write_text('real goals')
+        self.assertEqual(self.run_script('init_context.py','--org').returncode,0)
+        self.assertEqual((org/'goals.md').read_text(),'real goals')
+        self.assertEqual(self.pointer.read_bytes(),before)
+        self.assertEqual(self.run_script('memory.py','doctor').returncode,0)
+        self.assertEqual(self.run_script('init_context.py').returncode,2)
+
+    def test_org_project_coexists_with_org_layer(self):
+        self.assertEqual(self.run_script('memory.py','park','alpha').returncode,0)
+        result=self.run_script('init_context.py','Org')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertTrue((self.projects/'org').is_dir())
+        self.assertEqual(self.run_script('init_context.py','--org').returncode,0)
+        layer=self.root/'.ai/memory/org'
+        self.assertTrue((layer/'goals.md').exists())
+        self.assertEqual(self.run_script('memory.py','log','org','project note').returncode,0)
+        self.assertIn('project note',(self.projects/'org'/'changelog.md').read_text())
+        self.assertNotIn('project note',(layer/'goals.md').read_text())
+        self.assertEqual(self.run_script('memory.py','doctor').returncode,0)
+
+    def test_org_refuses_a_symlinked_memory_ancestor(self):
+        memory=self.root/'.ai/memory';outside=Path(self.tmp.name)/'outside-memory'
+        shutil.move(str(memory),str(outside));memory.symlink_to(outside,target_is_directory=True)
+        result=self.run_script('init_context.py','--org')
+        self.assertEqual(result.returncode,1,result.stdout);self.assertIn('symlink',result.stderr);self.assertNotIn('Traceback',result.stderr)
+        self.assertFalse((outside/'org').exists(),'nothing may be created outside the repository')
+        memory.unlink();shutil.move(str(outside),str(memory))
+        self.assertEqual(self.run_script('init_context.py','--org').returncode,0)
+
+    def test_missing_template_is_a_finding(self):
+        (self.root/'.ai/memory/_templates/org/goals.md').unlink()
+        result=self.run_script('init_context.py','--org')
+        self.assertEqual(result.returncode,1);self.assertIn('missing template',result.stderr);self.assertNotIn('Traceback',result.stderr)
+        (self.root/'.ai/memory/_templates/insights.md').unlink()
+        self.assertEqual(self.run_script('memory.py','park','alpha').returncode,0)
+        result=self.run_script('init_context.py','Gamma')
+        self.assertEqual(result.returncode,1);self.assertIn('missing template',result.stderr);self.assertNotIn('Traceback',result.stderr)
+        self.assertFalse((self.projects/'gamma').exists())
 
     def test_stages(self):
         import advance_stage, validate_context

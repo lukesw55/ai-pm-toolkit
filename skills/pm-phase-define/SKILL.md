@@ -122,12 +122,12 @@ Anti-patterns: status without recommendation, hidden trade-offs, burying the ask
 
 ## Workflow
 
-1. **Load context** — `.ai/memory/active-context.md`, project profile, prior `decisions.md` and `experiments.md`, any existing strategy/KPI artefact. Pull discovery outputs if `pm-phase-discover` produced them.
+1. **Load context** — `.ai/memory/active-context.md`, project profile, prior `decisions.md` and `experiments.md`, any existing strategy/KPI artefact. Pull discovery outputs if `pm-phase-discover` produced them. When present, read `.ai/memory/org/goals.md` before building a KPI tree or ranking bets: the tree hangs off the cycle's objectives.
 2. **Classify the ask** — strategy, KPI, sizing, business case, pricing, prioritisation, roadmap, or decision memo? State it explicitly in one line.
 3. **Name the choices** — every artefact must include "what we chose NOT to do" and why.
 4. **Ground in evidence** — cite discovery outputs, data, or assumptions (flagged as such). Missing evidence → name it explicitly.
 5. **Stress-test assumptions** — for sizing/business case, identify top 3 load-bearing assumptions and show sensitivity.
-6. **Persist** — strategy → `.ai/memory/projects/<slug>/strategy.md`; decisions → `decisions.md`; KPI tree → `kpis.md`; priorities → `priorities.md`.
+6. **Persist** — strategy → `.ai/memory/projects/<slug>/strategy.md`; decisions → `decisions.md`; KPI tree → `kpis.md`; priorities → `priorities.md`. If a bet changes a cycle goal, update `.ai/memory/org/goals.md` (versioned in a fork) and log it with `memory.py log`.
 
 ## Output contract
 

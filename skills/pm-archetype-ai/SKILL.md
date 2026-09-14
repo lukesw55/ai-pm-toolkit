@@ -18,7 +18,11 @@ description: >-
 
 > Product-type lens. Pairs with phase skills (`pm-phase-{discover,define,develop,deliver}`) when the product is probabilistic. The phase skills cover *when* and *how to sequence*; this skill covers *what's special about AI work*.
 
-Shape: a **compositional single-file lens** by design — one `SKILL.md` that composes the phase and transversal references linked below and adds only the archetype-specific concerns, anti-patterns and output format; no `references/` of its own until a real need appears; its `evals/evals.json` (standard, adversarial, negative control) is the quality contract and is graded like any full skill.
+Shape: a **compositional lens** — one `SKILL.md` that composes the phase and transversal references linked below and adds the archetype-specific concerns, anti-patterns and output format. It carries a single reference of its own, `references/eval-design.md`, added when a real need appeared (PM-owned eval design had no home in any phase skill); the other archetype lenses stay single-file until they show the same need. Its `evals/evals.json` (standard, adversarial, negative control) is the quality contract and is graded like any full skill.
+
+## Progressive loading
+
+Load this `SKILL.md` first. `references/progressive-loading.md` names the one supporting reference and when to open it.
 
 ## Prime directive
 
@@ -46,11 +50,13 @@ Skip this skill when the AI piece is purely backend optimisation users never see
 
 - `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
 - relevant project memory — **prior eval results are load-bearing**; if the team has shipped anything AI-shaped before, the eval log determines what's possible now
+- shared org context in `.ai/memory/org/` when present (`personas.md`, `competitors.md`, `goals.md`); open the file the task needs, not all four
 
 ## References this skill chains to
 
 Pairs with `pm-phase-develop` (PRD with eval plan), `pm-phase-deliver` (release gate by eval pass-rate), `pm-transversal-analysis` (qualitative eval of outputs), and the `claude-api` skill for Claude-API-specific implementation. Specific references:
 
+- `references/eval-design.md` — scenario sheet, hazard list, limits block, golden set with a real failure, block rule, validation and verification of the judge
 - `../pm-phase-develop/references/prd-writing.md` — AI PRDs emphasise failure modes + eval plan + HITL
 - `../pm-phase-develop/references/tracking-plan-design.md` — AI apps need bespoke events (inference called, tool used, fallback triggered, user rated output)
 - `../pm-phase-deliver/references/experiment-interpretation.md` — A/B on AI outputs requires care (variance, subjectivity)
@@ -74,10 +80,10 @@ Pairs with `pm-phase-develop` (PRD with eval plan), `pm-phase-deliver` (release 
 
 1. **Define the user task** — what are we automating or augmenting? What does "good output" look like?
 2. **Define the quality rubric** — dimensions (accuracy, helpfulness, safety, tone) and grading method per dimension.
-3. **Draft the eval suite** — 20–100 representative cases covering happy paths, edge cases, adversarial inputs.
+3. **Draft the eval suite** — 20–100 representative cases covering happy paths, edge cases, adversarial inputs, laid out as a scenario sheet, hazard list, limits block and golden set per `references/eval-design.md`.
 4. **Pick the model + prompt strategy** — cost / latency / quality envelope; fallback chain.
 5. **Design the guardrails** — hard limits, soft limits, HITL routing.
-6. **Plan the release gate** — eval pass-rate threshold before shipping; canary rollout.
+6. **Plan the release gate** — eval pass-rate threshold and block rule before shipping; canary rollout.
 7. **Design observability** — traces, feedback capture, drift detection.
 8. **Define the iteration loop** — cadence for re-running evals, updating prompts, reviewing failures.
 9. **Stress-test failure modes** — loop in your QA lead for code / metric / experiment integrity.
@@ -106,7 +112,7 @@ Pairs with `pm-phase-develop` (PRD with eval plan), `pm-phase-deliver` (release 
 what we're building; dimensions of "good"
 
 ### Eval suite
-coverage + size + grading method + pass-rate threshold to ship
+coverage + size + grading method + pass-rate threshold and block rule to ship
 
 ### Model + prompt strategy
 model selection rationale, prompt structure, caching, few-shot, fallback chain

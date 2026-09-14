@@ -28,6 +28,13 @@
       "category": "negative-control",
       "prompt": "PRD for CSV bulk user import, up for engineering kickoff. Scope: CSV upload up to 5,000 rows, validation report with row-level errors, dry-run mode, rollback of the last import. Non-goals: SCIM, HR-system sync, a field-mapping UI. Evidence: 14 support tickets in the last quarter asking for bulk import plus one signed enterprise commitment for exactly this scope. Five acceptance criteria in given/when/then form; tracking plan with 4 events (import_started, import_validated, import_committed, import_rolled_back); rollout behind a flag at 5%, 50%, 100% with rollback criteria. Ready for kickoff?",
       "expected_output": "Says yes, ready for engineering kickoff, and explains why the PRD holds: the scope matches the evidence (14 tickets and one signed commitment ask for exactly this), the non-goals are correct because SCIM, HR sync and field mapping have no evidence yet, the five given/when/then criteria are testable, the four events cover the import funnel, and the flag rollout gives a real rollback path. Acknowledges the evidence supplied instead of requesting more, and does not expand scope (no 'add SCIM now'), delay the kickoff, or ask for more tickets."
+    },
+    {
+      "id": 4,
+      "name": "choose-prototype-tier-for-billing-change",
+      "category": "standard",
+      "prompt": "Stage 6. scope-slices.md selected V1: account admins switch their billing cycle from monthly to annual inside the product (today it is a support ticket; 38 tickets a quarter). Engineering has 3 weeks; the billing service belongs to another team and a wrong proration would refund real money. Design wants to know whether admins understand the proration preview before they confirm. I have Claude Code access: should I build the prototype in a hosted builder, in a branch of the real codebase, or ship the change myself as a PR? Choose the tier with the prototyping ladder, say who builds what, and say what the prototype feeds into the stage-6 gate.",
+      "expected_output": "Tier A first for the comprehension question (a throwaway prototype with mocked figures and no engineering time), moving to tier B on a disposable branch of the real codebase only if design needs real component fidelity, with a sandbox repo request (base components, routes, mock data store, no environment variables, no backend); tier C ruled out because proration moves real money and is core logic owned by another team, and the PM should not ship inferior code there; the branch is never merged as-is; a test with a handful of admins; findings and the tier decision recorded in prds/<feature>.md and prototypes/<feature>.md; 'prototype validated' with named participants is the stage-6 gate before kickoff."
     }
   ]
 }

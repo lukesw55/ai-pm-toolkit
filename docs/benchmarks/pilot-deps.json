@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "skills": {
+    "pm-phase-discover": [
+      "skills/DOCTRINE.md",
+      "skills/pm-phase-discover/references/competitive-intel.md",
+      "skills/pm-phase-discover/references/impact-brief.md",
+      "skills/pm-phase-discover/references/jtbd-segmentation.md",
+      "skills/pm-phase-discover/references/opportunity-hypothesis.md",
+      "skills/pm-phase-discover/references/opportunity-solution-tree.md",
+      "skills/pm-phase-discover/references/problem-framing.md",
+      "skills/pm-phase-discover/references/research-design.md"
+    ],
+    "pm-transversal-comms": [
+      "skills/DOCTRINE.md",
+      "skills/pm-transversal-comms/references/channel-rules.md",
+      "skills/pm-transversal-comms/references/chat-bluf.md",
+      "skills/pm-transversal-comms/references/exec-email-scqa.md"
+    ],
+    "pm-prioritization-regua-comum": [
+      "skills/pm-prioritization-regua-comum/references/examples.md",
+      "skills/pm-prioritization-regua-comum/references/rubric.md",
+      "skills/pm-prioritization-regua-comum/references/templates.md",
+      "skills/pm-prioritization-regua-comum/references/workshop.md"
+    ]
+  },
+  "verified_harness_versions": {
+    "claude-code": [],
+    "codex": []
+  }
+}

@@ -22,6 +22,7 @@ Resolve `<slug>` from the active pointer; read this project only. Missing or unf
 - `.ai/memory/projects/<slug>/design.md`
 - `.ai/memory/active-context.md`
 - relevant project memory (prior design decisions and rejected patterns)
+- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
 
 ## Planner mode
 

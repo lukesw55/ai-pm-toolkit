@@ -62,7 +62,7 @@ Anti-patterns: defaulting to whichever channel is already open, letting a negoti
 
 ## Workflow
 
-1. **Load context** — who's reading, what they already know, what decision or action this message needs to produce.
+1. **Load context** — who's reading, what they already know, what decision or action this message needs to produce. When present, `.ai/memory/org/company.md` fixes the vocabulary and `personas.md` the reader's archetype.
 2. **Classify the ask** — email, chat, or "this actually needs a doc" (→ `pm-transversal-stakeholder`)?
 3. **Name the one ask** — one message, one action. Split multi-ask messages.
 4. **Draft with the structure, not around it** — SCQA for email, BLUF for chat. The structure is the discipline, not decoration.

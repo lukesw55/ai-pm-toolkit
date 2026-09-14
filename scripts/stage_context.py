@@ -33,7 +33,7 @@ STAGE_TO_SKILL = {
     "discovery": "pm-phase-discover",
     "one-pager": "pm-phase-define (one-pager.md)",
     "product-prioritization": "pm-phase-define + pm-phase-develop (validated-bet selection + backlog-scope-slicing.md)",
-    "prd": "pm-phase-develop (prd-writing.md + prototype loop)",
+    "prd": "pm-phase-develop (prd-writing.md + prototyping-ladder.md)",
     "tech-kickoff": "pm-phase-develop (tech-team-kickoff.md)",
     "delivery": "pm-phase-deliver (launch-readiness.md + release-notes.md + post-launch-monitoring.md)",
 }
@@ -119,7 +119,8 @@ def build_stage_block(stage: str, contract: dict[str, dict[str, str]]) -> list[s
 
     layer4 = (
         "warm set (session-kickoff.md, state.md, decisions.md, +3 newest "
-        "changelog) per docs/memory/MEMORY_SYSTEM.md"
+        "changelog) per docs/memory/MEMORY_SYSTEM.md; org context "
+        "(.ai/memory/org/) when the task needs personas, competitors or goals"
     )
     if idx and idx > 1:
         layer4 += "; plus previous stage artefact"

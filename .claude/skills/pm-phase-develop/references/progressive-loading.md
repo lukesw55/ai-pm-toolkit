@@ -8,6 +8,7 @@ Use `SKILL.md` as the control plane.
 | `references/cross-functional-orchestration.md` | Function-by-function launch coordination and role maps | Aligning design, eng, analytics, legal, support, and GTM on a delivery |
 | `references/dependency-risk.md` | RAID log, dependency mapping, mitigation planning | Surfacing cross-team dependencies or maintaining a risk register |
 | `references/prd-writing.md` | PRD template and specification-writing discipline | Writing or reviewing a PRD or spec |
+| `references/prototyping-ladder.md` | Three prototype tiers by where they live and what they cost engineering; sandbox request; decision record (stage 6) | Choosing between a throwaway prototype, a code prototype on the real codebase, or a PM-authored PR |
 | `references/tech-team-kickoff.md` | 90-min kickoff agenda for the product-to-engineering handoff (stage 7) | Preparing or running the tech team kickoff |
 | `references/technical-fluency.md` | PM lens on architecture, APIs, NFRs, and feasibility | Weighing a technical trade-off with engineering |
 | `references/tracking-plan-design.md` | Event schema, naming conventions, instrumentation QA | Designing pre-launch instrumentation or a tracking plan |

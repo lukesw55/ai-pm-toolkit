@@ -49,6 +49,10 @@ class Sandbox:
         return subprocess.run([sys.executable, str(self.root / "scripts" / "init_context.py"), name],
                               capture_output=True, text=True, cwd=self.root)
 
+    def init_org(self) -> subprocess.CompletedProcess:
+        return subprocess.run([sys.executable, str(self.root / "scripts" / "init_context.py"), "--org"],
+                              capture_output=True, text=True, cwd=self.root)
+
     def project(self, slug: str) -> Path:
         return self.projects / slug
 
@@ -406,6 +410,31 @@ def main() -> int:
               ix.returncode == 1 and "PII" in ix.stderr, ix.stderr.strip())
         check("doctor skips the PII project with a WARN and still exits 0",
               dc.returncode == 0 and "PII path" in dc.stdout, dc.stdout.strip())
+
+        # 15. shared org layer and insights.md: caps warn only when the files exist and are over
+        dc0 = sb.run("doctor")
+        check("doctor is silent about an absent org layer", dc0.returncode == 0 and "org/" not in dc0.stdout, dc0.stdout.strip())
+        r = sb.init_org()
+        org_files = ("company.md", "personas.md", "competitors.md", "goals.md")
+        check("init_context.py --org creates the four org files without a project name",
+              r.returncode == 0 and all((sb.mem / "org" / n).is_file() for n in org_files), r.stderr.strip())
+        dc1 = sb.run("doctor")
+        check("doctor stays silent while org files sit under their cap", dc1.returncode == 0 and "org/" not in dc1.stdout, dc1.stdout.strip())
+        big = "x" * 13000
+        (sb.mem / "org" / "personas.md").write_text(big, encoding="utf-8")
+        sb.write(slug, "insights.md", big)
+        dc2 = sb.run("doctor")
+        check("doctor warns on an oversized org file and an oversized insights.md and still exits 0",
+              dc2.returncode == 0 and "org/personas.md" in dc2.stdout and f"{slug}/insights.md" in dc2.stdout, dc2.stdout.strip())
+        dr = sb.run("distill", slug)
+        check("distill reports insights.md as prose over its cap", dr.returncode == 2 and "insights.md" in dr.stdout, dr.stdout.strip())
+        (sb.mem / "org" / "company.md").write_text("# Company\n\nContact: jane.doe@example.com, +55 11 91234-5678\n", encoding="utf-8")
+        dc3 = sb.run("doctor")
+        check("doctor warns on an e-mail and a phone pattern in an org file and still exits 0",
+              dc3.returncode == 0 and "org/company.md" in dc3.stdout and "e-mail" in dc3.stdout and "phone" in dc3.stdout, dc3.stdout.strip())
+        (sb.mem / "org" / "company.md").write_text("# Company\n\nReviewed 2026-09-10 14:10; 1,940 accounts; support@example.com is a role alias, flagged for review anyway.\n", encoding="utf-8")
+        dc4 = sb.run("doctor")
+        check("doctor does not read dates or counts as phone numbers", dc4.returncode == 0 and "phone" not in dc4.stdout, dc4.stdout.strip())
 
     failures = [r for r in RESULTS if not r[1]]
     if failures:

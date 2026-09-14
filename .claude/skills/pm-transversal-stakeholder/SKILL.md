@@ -1,6 +1,6 @@
 ---
 name: pm-transversal-stakeholder
-description: Cross-phase skill for **stakeholder alignment, decision-rights design, and executive-ready reporting** — the hard-skill version of "stakeholder management". Invoke whenever multiple functions or leaders must converge on a decision, when "who decides what" is unclear, when an exec review/QBR is due, when a recommendation memo is needed, or when an escalation is being prepared. Trigger on "align stakeholders", "alinhe com time X", "exec review", "QBR", "write a memo for leadership", "DACI", "RACI", "escalation", "decision rights", "status report", "quem decide?", "briefar o diretor". Works across all Double Diamond phases. Produces DACI pages, stakeholder maps, exec memos, review packs, and escalation notes.
+description: Cross-phase skill for **stakeholder alignment, decision-rights design, and executive-ready reporting** — the hard-skill version of "stakeholder management". Invoke whenever multiple functions or leaders must converge on a decision, when "who decides what" is unclear, when an exec review/QBR is due, when a recommendation memo is needed, or when an escalation is being prepared. Trigger on "align stakeholders", "alinhe com time X", "exec review", "QBR", "write a memo for leadership", "DACI", "RACI", "escalation", "decision rights", "status report", "quem decide?", "briefar o diretor", "review panel", "pre-review the one-pager", "roda o painel". Works across all Double Diamond phases. Produces DACI pages, stakeholder maps, exec memos, review packs, and escalation notes.
 ---
 
 # PM Transversal — Stakeholder alignment, decision-rights, exec reporting
@@ -62,14 +62,24 @@ Anti-patterns: treating stakeholders as a single undifferentiated group, engagin
 
 → Deep-dive: `references/stakeholder-mapping.md`
 
+### 4. Review panel (multi-lens pre-review)
+
+Run a stage-4 one-pager or a stage-6 PRD through the stakeholder lenses its exposures call for, drawn from five (commercial, customer success, marketing and positioning, exec and finance, user advocate), before the real stakeholders see it; every lens not run is named with a one-line reason, and a lens the author wants skipped because it might object is the one to run. Each lens returns an objection with its evidence gap and an owner, or "no objection" with a one-line reason. No objection is a valid output; a manufactured objection is a failure of calibrated disagreement (`../DOCTRINE.md`, behaviour 7). Companion to the `pm-product-sense` shadow evaluation: non-blocking, never a gate.
+
+Outputs: panel report per lens, objections carried into the dissent protocol, unverified claims added to the assumption map.
+
+Anti-patterns: manufactured objection, persona cosplay, panel as gate, skipping the lenses the author expects to object, running all five as a ritual, re-running until the report is clean.
+
+→ Deep-dive: `references/review-panel.md`
+
 ## Workflow
 
-1. **Load context** — the decision at stake, the phase it's in, and existing `.ai/memory/projects/<slug>/decisions.md` entries.
-2. **Classify the ask** — decision rights, exec reporting, or stakeholder map?
+1. **Load context** — the decision at stake, the phase it's in, and existing `.ai/memory/projects/<slug>/decisions.md` entries. When present, `.ai/memory/org/goals.md` is what the exec lens reads first.
+2. **Classify the ask** — decision rights, exec reporting, stakeholder map, or a review panel?
 3. **Name the driver and approver explicitly** — no "TBD", no "we'll figure it out".
 4. **Frame one-way vs two-way door** — the rigor required scales with reversibility.
 5. **Write the recommendation before the meeting** — meetings are for friction, not for drafting.
-6. **Persist** — decision artefact → `.ai/memory/projects/<slug>/decisions.md`; stakeholder map → `stakeholders.md`; exec memo → `.ai/memory/projects/<slug>/exec-memos/<topic>.md`.
+6. **Persist** — decision artefact → `.ai/memory/projects/<slug>/decisions.md`; stakeholder map → `stakeholders.md`; exec memo → `.ai/memory/projects/<slug>/exec-memos/<topic>.md`; panel report → `reviews/<artefact>-panel-<date>.md`.
 
 ## Output contract
 
