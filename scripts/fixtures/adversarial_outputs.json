@@ -211,14 +211,24 @@
   {
     "skill": "pm-archetype-platform",
     "eval": "refuse-hidden-breaking-change-as-minor",
-    "good": "This is a breaking contract change, not a patch. Do not ship silently as 2.3.1. Add timestamp_iso alongside epoch seconds in a minor release, or use a major version with dual format and deprecation window. Inventory 140 consumers, notify partners, run contract tests on both formats.",
-    "bad": "Approved as a bug fix. Ship 2.3.1 without notifying consumers."
+    "good": "I won't sign off on the release note as a bug fix, and this does not ship as 2.3.1: the timestamp field is documented as epoch seconds in the v1 contract that 140 consumers parse against, so changing its type is a breaking contract change, not a patch. The safe path is additive: add a timestamp_iso field alongside the existing epoch field in a minor release, or, if the old field really must go, a major version with a dual-format period. Before either, inventory the 140 integrations and notify the partners who own them. Set a deprecation window for the epoch format and run the contract tests against both formats until it closes. The archetype anti-pattern applies here: a hidden breaking change means consumers never migrate and you support both forever.",
+    "bad": "Approved as a bug fix; ship it in 2.3.1 as planned. Most consumers parse dates loosely, the ISO string is more readable, and a release note line 'timestamp now ISO-8601' is enough; if a couple of the 140 integrations break, they will tell us and we fix them then.",
+    "keyword_only": "Not 2.3.1. Epoch seconds, v1 contract, breaking. timestamp_iso. 140 integrations, notify. Deprecation window, contract tests. Hidden breaking change. Not approved.",
+    "near_miss": {
+      "text": "I won't sign off on the release note as a bug fix, and this does not ship as 2.3.1: the timestamp field is documented as epoch seconds in the v1 contract that 140 consumers parse against, so changing its type is a breaking contract change, not a patch. The safe path is additive: add a timestamp_iso field alongside the existing epoch field in a minor release, or, if the old field really must go, a major version with a dual-format period. Before either, inventory the 140 integrations and notify the partners who own them. Set a deprecation window for the epoch format and run the contract tests against both formats until it closes.",
+      "fails": "Names the anti-pattern by its consequence"
+    }
   },
   {
     "skill": "pm-archetype-platform",
     "eval": "additive-change-ships-as-minor",
-    "good": "Ship as minor: additive and backwards-compatible, optional field, existing fields unchanged, contract tests green. No deprecation machinery needed. Changelog and docs are sufficient notice.",
-    "bad": "However, hold the release and revisit compatibility. Treat it as breaking; notify all 140 partners individually first."
+    "good": "Ship it as minor 2.4.0 with the changelog entry; no deprecation machinery needed. The change is additive because retry_count is optional and no existing field changes: absent on first deliveries, present on retries, so every current parser keeps working. The contract tests are green for all existing fields, which is the proof that nothing consumers rely on moved. The changelog entry and the OpenAPI spec are sufficient notice for an additive field. The partners do not need individual notification; deprecation and partner outreach apply when a field is removed or changed, not when one is added.",
+    "bad": "However, I would hold the release and treat it as a breaking change to be safe: any payload shape change can surprise a strict parser. Run the deprecation window anyway and notify all 140 partners individually before 2.4.0 goes out.",
+    "keyword_only": "Minor, 2.4.0. Optional, additive. Contract tests green. Changelog, OpenAPI. Partners, not individually. No objection. Not breaking.",
+    "near_miss": {
+      "text": "Ship it as minor 2.4.0 with the changelog entry; no deprecation machinery needed. The change is additive because retry_count is optional and no existing field changes: absent on first deliveries, present on retries, so every current parser keeps working. The contract tests are green for all existing fields, which is the proof that nothing consumers rely on moved. The changelog entry and the OpenAPI spec are sufficient notice for an additive field. The partners do not need individual notification; deprecation and partner outreach apply when a field is removed or changed, not when one is added. Still, a heads-up to each of the 140 partners individually would not hurt.",
+      "fails": "Does not treat it as breaking or notify everyone individually"
+    }
   },
   {
     "skill": "pm-phase-develop",
