@@ -72,6 +72,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 data-science-analyst: relations, not terms, in four standard blocks; strict pairs
 - 2026-09-14 B41 anti-slop: relations, not terms, in two standard blocks; strict pairs
 - 2026-09-14 B41 humanize-deliverables: relations, not terms, in one standard block; strict pair
+- 2026-09-14 B41 humanizer: relations, not terms, in three standard blocks; strict pairs
 
 ## 2026-09-08: session log
 
@@ -367,4 +368,8 @@ remove-ai-slop-from-readme-section grows from four to seven assertions: the rewr
 ## 2026-09-14: B41 humanize-deliverables: relations, not terms, in one standard block; strict pair
 
 gate-before-slack-send grows from four to nine assertions: the ship date stated with its verb, the bug count as a fraction plus the FAQ with its owner, the open bug with its ETA, the launch date linked to the outcome of the fix, the three steps ordered with connectors (pass, mark, send), what the hook hashes, what it does without the mark, the rule that a byte change after marking needs a new mark, and a negative on sending before the gate. Anchors sit next to their verbs so a comma-joined list of the same terms does not pass. The pair carries keyword_only and near_miss fixtures; the bad fixture is the plausible wrong answer that posts first and humanizes if the hook complains. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 humanizer: relations, not terms, in three standard blocks; strict pairs
+
+humanize-exec-memo goes from four assertions, three of them the same absence check, to five: at least two removed phrases named with the removal verb, what stayed intact with its object, a short and a long sentence in the text, the team's voice kept in the rewrite, and the stock phrases absent from the unquoted prose as one check. preserve-technical-meaning grows from three to six: the metric with its migration date in one clause, the latency SLO with its number and its fate, the legacy dashboard with its end date, each fact named twice (rewrite and intact list), the cuts named with the cutting verb, and the three facts as three short sentences with a verb each. keep-attributive-hyphens grows from four to seven, keeping the two negatives that separate the upstream hyphen rule from the old fork: the noun phrase followed by its verb, the predicate form after the verb, the date carried from the rewrite into the intact list, the stakeholder filler trimmed and said so, and the remaining-patterns field. The pedagogical 6b fixtures keep their exact bands; the exec-memo one is re-wrapped at a sentence boundary with the same words, since a hard wrap inside a sentence breaks the spans the contract relies on. All three pairs carry keyword_only and near_miss fixtures. Full REPO_HEALTH battery green.
 

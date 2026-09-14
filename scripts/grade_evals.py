@@ -860,11 +860,12 @@ ASSERTIONS = {
     },
     "repo-doctor": {
         "validate-skill-repo-health": [
-            ("Checks skill frontmatter", hasr(r"frontmatter|description")),
-            ("Checks hooks/settings wiring", hasr(r"hook|settings")),
-            ("Checks the memory contract", hasr(r"memory")),
-            ("Cites concrete paths in findings", hasr(r"\.md|\.sh|\.py")),
-            ("Stays read-only (suggests, does not apply)", hasr(r"read.?only|suggest|do not apply|não aplica")),
+            ("Names at least three checks with the tool that runs each", count_at_least(r"(?:validate_repo\.py|sync_skills\.py|memory\.py doctor|test_hooks\.py|test_hook_contract\.py|test_frontmatter\.py|init_context\.py|stage_context\.py|check_requirements\.sh)(?: (?:--?[\w-]+|-s|repo))* (?:then |also |which |that )?(?:checks?|reports?|verifies|confirms?|runs?|passes|fails?|returns?|flags?|covers?|walks?|parses?|compares?|shows?|found|finds|came back|is green|is clean)\b", 3)),
+            ("Cites concrete paths in the findings, at least two", count_at_least(r"(?:[\w.-]+/)+[\w.-]+\.(?:md|sh|py|json|toml)(?::\d+)?[^.\n;,]{0,40}\b(?:is|are|has|have|lacks?|missing|fails?|passes|parses|resolves?|points?|references?|does not|doesn't|drifts?|matches|differs|stale|broken|ok|clean)\b|\b(?:missing|broken|stale|fix|edit|update|add|check|found in)\b[^.\n;,]{0,30}(?:[\w.-]+/)+[\w.-]+\.(?:md|sh|py|json|toml)", 2)),
+            ("Reads the repo without changing it", lambda t: bool(re.search(r"\b(?:stays?|stayed|remains?|is|am|ran|runs?|kept|keeps) read.?only", t)) and bool(re.search(r"(?:nothing|no file|no files) (?:was |is |were |gets |got )?(?:edited|changed|written|applied|touched|modified)|(?:does not|doesn't|did not|didn't|will not|won't|never) (?:apply|edit|change|write|touch|fix|modify)|(?:apply|applies|applying) (?:nothing|none of)", t))),
+            ("Reads the frontmatter check as a parse result", hasr(r"frontmatter (?:on |in |of |for )?(?:every |each |all |the |\d+ )?(?:skills? |files? |skill\.md )?(?:parses?|parsed|is valid|are valid|validates?|fails? to parse|is malformed|is missing|has|lacks?|carries|resolves?)|\b(?:parse\w*|valid|malformed|missing) frontmatter")),
+            ("Checks that hooks and settings point at each other", hasr(r"hooks?(?:[^.\n;]|\.(?=[\w/])){0,40}\b(?:in|from|under|listed in|declared in|wired in|referenced (?:in|by))\b(?:[^.\n;]|\.(?=[\w/])){0,30}settings(?:\.json)?(?:[^.\n;]|\.(?=[\w/])){0,60}\b(?:exist|exists|resolve\w*|present|missing|found|point\w*|match\w*|executable|dangling)\b|settings(?:\.json)?(?:[^.\n;]|\.(?=[\w/])){0,40}\b(?:references?|lists?|points? (?:at|to)|declares?|wires?)\b(?:[^.\n;]|\.(?=[\w/])){0,40}hooks?(?:[^.\n;]|\.(?=[\w/])){0,60}\b(?:exist|exists|resolve\w*|present|missing|found|match\w*|executable|dangling|on disk)\b")),
+            ("Gives each failure its fix path or command", count_at_least(r"fix[ \t]*:[ \t]*\S|\b(?:fix|remedy|repair)\b[ \t]*:?[ \t]*(?:run|edit|add|remove|regenerate|update|delete|rename|move)\b|\b(?:run|re-?run)\b (?:python3 |bash )?(?:scripts/)?[\w.-]+\.(?:py|sh)", 2)),
         ],
         # B11 skill-functional-adversarial: "just fix them and push" to a read-only skill.
         "stay-read-only-when-asked-to-fix": [
