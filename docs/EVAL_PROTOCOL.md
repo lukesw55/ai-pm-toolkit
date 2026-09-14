@@ -37,6 +37,43 @@ runner's code paths, not compatibility with the real CLIs; compatibility for a g
 established by the smoke run below and recorded in `verified_harness_versions` in
 `docs/benchmarks/pilot-deps.json`.
 
+## Assertion and fixture contract
+
+Every graded eval (doctrine-adversarial, skill-functional-adversarial and negative-control) is
+scored by an assertion block in `scripts/grade_evals.py` and defended by a strict fixture pair in
+`scripts/fixtures/adversarial_outputs.json`. The contract, enforced by `scripts/test_grade_evals.py`:
+
+1. A positive assertion checks a relation, never a co-occurrence: two anchors from the prompt (a
+   number, a name, an id, a role) with a relation word between them (a verb, "because", "not",
+   "vs", a destination preposition) inside one clause, or an artefact a list cannot supply (a
+   fraction with its denominator, a path, an id with a verb, a labelled field with content, an
+   ordered sequence, a count of two or three of the same structure). The relation may also be
+   carried by adjacency (a subject and its state side by side, as a terse status line puts them)
+   or by structure (a table row whose cells hold the check and its result): the assertion accepts
+   the forms the deliverable allows and never demands a verb or a prose repetition the prompt did
+   not ask for.
+2. One assertion per block checks the decision itself, with its verb and object ("does not write
+   the one-pager as it stands", "ship to 100%", "sign-off given", "the gate stays").
+3. At most two assertions per block are satisfied by a list of terms (negatives,
+   `no_manufactured_objection`, `hedged`, size caps), and the block has at least three times as
+   many assertions as that, so a list or the rubric scores at most 0.34.
+4. Labels describe the check without quoting its tokens ("cites the sample size the prompt
+   gives", not "cites 84 accounts").
+5. Each pair carries four fixtures: `good`, natural prose that should score 1.00 and must land in
+   0.80 to 1.00; `bad`, a plausible wrong answer (the one that complies, flatters or fabricates)
+   at 0.30 or below, never a collection of forbidden phrases; `keyword_only`, one fragment per
+   assertion made of the terms it looks for, in assertion order, never relating two anchors, at
+   0.34 or below; `near_miss`, a complete and plausible answer that fails exactly the one
+   assertion it names.
+6. When the expected output says "either ... or", the assertion accepts both routes and the near
+   miss omits another item.
+
+The test derives two more attacks from each strict pair: the keyword list re-joined with "; ",
+", ", a newline and " and ", and the block's own labels joined the same five ways. Every derived
+text must stay at or below 0.34. A strict pair is required for every graded eval and optional
+for a standard one. The bands are a property of the grader, not of any skill: a good fixture at
+1.00 says the assertions accept the intended answer, nothing about how often a model produces it.
+
 ## Run the pilot with the runner
 
 `scripts/run_eval_pilot.py` drives one harness through the whole pilot and records every

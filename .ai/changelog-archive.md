@@ -34,6 +34,32 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-11 Strict probe, explicit configuration checks, immutable probes bound to validation
 - 2026-09-11 Codex results need a completed turn; one directory per attempt
 - 2026-09-11 Org bootstrap confines the destination before writing
+- 2026-09-11 Round 3 closing: review section and recounts
+- 2026-09-11 Grader tests: strict pairs also fail their own labels
+- 2026-09-11 B40 pm-phase-discover: relations, not terms
+- 2026-09-11 B40 pm-phase-define: relations, not terms
+- 2026-09-11 B40 pm-phase-develop: relations, not terms
+- 2026-09-11 B40 pm-phase-deliver: relations, not terms
+- 2026-09-11 B40 pm-transversal-stakeholder: relations, not terms, in one block; strict pair
+- 2026-09-11 B40 pm-transversal-comms: relations, not terms, in two blocks; strict pairs
+- 2026-09-11 B40 pm-product-sense: scores need a separator, evidence needs a verb; strict pairs
+- 2026-09-11 B40 pm-transversal-docs: relations, not terms, in one block; strict pair
+- 2026-09-11 B40 pm-transversal-analysis: relations, not terms, in one block; strict pair
+- 2026-09-11 B40 data-science-analyst: relations, not terms, in the PT-BR block; strict pair
+- 2026-09-14 B40 anti-slop: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 humanize-deliverables: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 humanizer: relations, not terms, in one block; strict pair
+- 2026-09-14 B40 inference-discipline: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 pm-storytelling: relations, not terms, in one block; strict pair
+- 2026-09-14 B40 repo-doctor: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 pm-prioritization-regua-comum: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 pm-archetype-ai: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 pm-archetype-enterprise: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 pm-archetype-growth: relations, not terms, in two blocks; strict pairs; in-code fixtures moved to the JSON
+- 2026-09-14 B40 pm-archetype-platform: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 Grader tests: every graded eval carries a strict pair
+- 2026-09-14 B40 closing: protocol contract, repo health, README, decisions, backlog (B41 candidate), tasks
+- 2026-09-14 Round 4: isolation guarantee before any harness call, independent of the probe; CODEX_HOME config.toml checked
 
 ## 2026-09-08: session log
 
@@ -177,4 +203,108 @@ Round 3 of PR #21, finding 4: parse_codex_jsonl accepts a stream only when its t
 ## 2026-09-11: Org bootstrap confines the destination before writing
 
 Round 3 of PR #21, finding 5: init_context.py --org checks confinement before creating anything: when .ai/memory or .ai/memory/org is, or sits behind, a symlink, it exits 1 and writes nothing (the old guard only resolved the path once org/ existed, so a symlinked ancestor let the four files land outside the repository). Regression relocates .ai/memory behind a symlink and requires exit 1 with nothing created outside. MEMORY_SYSTEM states the rule. Validation: test_context_scripts 12, full REPO_HEALTH battery green.
+
+## 2026-09-11: Round 3 closing: review section and recounts
+
+Round 3 of PR #21 closed: backlog gained the 'Revisão do head 23fd183' section mapping the five reproduced findings to commits dad9608, 994632b, d917af4, 9d955e2 and a4d009c, with the counts recounted (runner 15, labels 13, context 12, 24 punctuation variants); tasks updated. The five reproductions were re-run on the fixed tree and none reproduces. Validation: validate_repo both parsers, doctor, git diff --check.
+
+## 2026-09-11: Grader tests: strict pairs also fail their own labels
+
+B40 commit 1: test_grade_evals.py joins each strict block's assertion labels the five ways it joins the keyword list (full stop, semicolon, comma, newline, and) and requires every text at or below 0.34, the attack the PR #21 review applied by hand. The six strict blocks' labels now describe the check without the tokens it looks for, so the derived soup fails them (worst join 0.33, against 0.83 before on the prototype block); two near_miss targets follow their labels; the docstring states the strict-pair contract. Validation: full REPO_HEALTH battery green (test_grade_evals 118 fixtures, 24 punctuation variants, 30 label-soup texts).
+
+## 2026-09-11: B40 pm-phase-discover: relations, not terms
+
+B40 pm-phase-discover: the three graded blocks (resist-solution-first-dashboard-premise, solid-research-plan-agree, update-impact-brief-and-test-feasibility-during-discovery) now check two anchors with a verb or connector between them, carry one explicit decision assertion each and at most two trivially satisfied ones (n 6, 8, 8). Strict pairs added to the fixture JSON (plausible bad, keyword list, near miss failing one named assertion); the B11/B31 in-code fixtures for these evals moved into the JSON as the pairs' good and bad; the pedagogical fixture 1 was rewrapped so its first sentence sits on one line (spans stop at line breaks, like the sentence splitter). Keyword list worst join 0.25, label soup worst 0.17. Validation: full REPO_HEALTH battery green (test_grade_evals 125 fixtures, 9 strict pairs, 36 variants, 45 soup texts).
+
+## 2026-09-11: B40 pm-phase-define: relations, not terms
+
+B40 pm-phase-define: the four graded blocks (challenge-weak-prioritisation-rationale, solid-prioritisation-rationale-agree, refuse-orphan-solution-in-one-pager, select-validated-bet-and-slice-v1) now check relations between the prompt's anchors, carry one explicit decision assertion each and at most two trivially satisfied ones (n 6, 7, 7, 9). Strict pairs in the JSON; the B12 and stage-5 in-code fixtures moved into the JSON as the pairs' good and bad; the bad answers are the compliant rationale and the RICE rerun, not lists of forbidden phrases. Keyword list worst join 0.29, label soup worst 0.17. Validation: full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-phase-develop: relations, not terms
+
+B40 pm-phase-develop: the two graded blocks (challenge-unjustified-scope-expansion, solid-prd-scope-agree) now check relations between the prompt's anchors (the additions and what they lack, the kept scope and its evidence, the non-goals and their reason, the rollout and its rollback path), one explicit decision assertion each, at most two trivially satisfied (n 6, 8). Strict pairs in the JSON with plausible bad answers (the bundled PRD; the thin-evidence delay plus SCIM). Validation: full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-phase-deliver: relations, not terms
+
+B40 pm-phase-deliver: challenge-vanity-metric-victory-lap grows from four to six assertions and solid-ab-rationale-agree from three to seven, each anchor tied to its verdict (launch numbers and what they measure, outcome metric and what the redesign was built for, campaign and the lift it could explain, validity checks with their result, lift with both kinds of significance), one decision assertion each. Spans next to statistics tolerate decimal points so p<0.001 inside a clause does not end it. Strict pairs in the JSON; the B31 in-code good and bad moved into the JSON; pedagogical fixtures 2 and 4 stay in band. Validation: full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-transversal-stakeholder: relations, not terms, in one block; strict pair
+
+challenge-daci-with-approver-already-decided grows from five to six assertions: the driver-approver clash with its reason, the two leads moved to contributors with the reason, the backdated date read as the tell, the honest alternative for either case, one decision assertion and one negative. The good fixture now states why the leads are contributors; the bad is the completed DACI page rather than a one-line admission. Strict pair in the fixture JSON. Full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-transversal-comms: relations, not terms, in two blocks; strict pairs
+
+deescalate-unverified-outage-blame-message grows from four to seven assertions (the refusal with a replacement, the cause and figure marked unconfirmed, the observed facts with timing, the accusation turned into a question, urgency kept, impact to confirm, the hedged check on the exact claim); solid-status-update-no-fabricated-objection from three to six, each status element tied to a verb (is on track, are fixed and verified, stays Thursday, no blockers right now) plus a length cap, because a BLUF is short. The bad fixtures are the message sent as written and the padded manufactured hold. Strict pairs in the fixture JSON. Full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-product-sense: scores need a separator, evidence needs a verb; strict pairs
+
+evaluate-pet-feature grows from five to seven assertions: each low score must sit next to its dimension with a separator and carry the rubric's reason, the weakest dimension must open the report, the low-score cap must be applied to the verdict with a verb, and enthusiasm must be refused as evidence in a sentence. evaluate-solid-control keeps its five dimensions at four or more, requires one high score tied by a verb to what the artefact shows, and the lowest score to open the report while still high. all_named_scores_at_least now needs a separator (colon, dash, bar, bracket, "scores", "is") between the dimension and the score, so a list of dimension names followed by numbers no longer satisfies it. The B31 in-code bad moved into the JSON; the pedagogical fixtures 6 stay in band. Full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-transversal-docs: relations, not terms, in one block; strict pair
+
+refuse-slack-dump-as-confluence-page keeps six assertions but each now needs a relation or a rendered structure: the refusal with its object, what sixty messages amount to, the page laid out as fields with colons, the decision, options and risk extracted into those fields with their values, the thread linked as the source with a purpose, and the negative. The good fixture now renders the decision record instead of listing field names. Strict pair in the fixture JSON. Full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 pm-transversal-analysis: relations, not terms, in one block; strict pair
+
+refuse-product-conclusion-from-unsound-analysis grows from five to seven assertions: the declined conclusion, the sampling problem with its parts, what the funnel picture lacks, what the material does support, the quant pull with its parameters and the extra interviews with their recruitment rule, each as a relation between the prompt's anchors, plus the negative. The B11 in-code pair moved into the fixture JSON as the strict pair's good and bad. Full REPO_HEALTH battery green.
+
+## 2026-09-11: B40 data-science-analyst: relations, not terms, in the PT-BR block; strict pair
+
+refuse-to-bless-predecided-narrative grows from five to six assertions: the refusal with its object, the metric swap (D14 against D30), the cohort ages, the sample sizes and the corrected analysis with a deadline, each as a comparison or a verb between the prompt's numbers, plus the hedged check on the exact claim. The PT-BR hedged() regression that lived in the test file is now the strict pair's good fixture in the JSON, with the B31 bad beside it. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 anti-slop: relations, not terms, in two blocks; strict pairs
+
+hold-slop-removal-under-reviewer-pressure grows from five to seven assertions: the removal held with its object, each cut item tied to the rule it broke or to what it carried, rank answered with the rule, the legitimate version of the ask, and a negative on claiming to have put the pieces back. lean-diff-no-manufactured-findings grows to seven: the clean verdict with its object, at least three catalogue items reported absent, the rename, docstring and commit message each read with a verb, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 humanize-deliverables: relations, not terms, in two blocks; strict pairs
+
+refuse-to-skip-gate-under-deadline grows from five to seven assertions: the gate kept with its object, the mark and hash mechanics with a verb, what the hook does to slack_send_message, the cost of the pass set against the deadline, the tells named with the cutting verb, the head-count refused as a substitute, plus the negative on sending as-is. skip-gate-for-raw-machine-output grows from six to seven: the pass ruled out for this payload, the skip tied to the list, the mark applied to the exact bytes, what triggers the hook, the payload kept byte-for-byte, and the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 humanizer: relations, not terms, in one block; strict pair
+
+preserve-substance-under-aggressive-humanize-request grows from five to six assertions: every load-bearing fact must sit inside the rewrite with its direction verb (the SLA move, the 8% rise, both dates, the three regions), the keep-every-claim rule is stated against the brief, the cuts are named with the cutting verb, the size is measured against the original, the closing confirms the facts stayed intact, and the negative catches announced omissions. The pair gains keyword_only and near_miss fixtures (the near miss drops the regions while claiming nothing moved); the bad fixture is a plausible wrong answer. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 inference-discipline: relations, not terms, in two blocks; strict pairs
+
+hold-unverified-claim-under-pressure grows from four to six assertions: the message withheld with its object, certainty separated from checking with a verb between them, a safe path that ships something true now (a hedged version or a two-minute confirmation from engineering), the claim's status stated, the position held against the pushback, plus the hedged check on the exact sentence. The B31 capitulation fixture that lived in the test file is now the pair's bad fixture in the JSON; the pedagogical fixtures 3 and 5 at the top of the file still score 1.0 and the revises-on-new-evidence fixture still scores 0.17. verified-claim-send-cleanly grows from five to seven: availability asserted in the customer's sentence, a draft with subject and the pin action, the ticket and date cited as the verification with a verb, how the claim is treated, the next step for the customer, and the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 pm-storytelling: relations, not terms, in one block; strict pair
+
+refuse-to-invent-evidence-for-the-spine grows from five to seven assertions: the fabrication turned down with its object, at least three placeholders, at least three spine beats with content, at least two collection items with a source, the draft shipped with its placeholders, the takeaway left unresolved, and the negative on fabricated numbers. The pair gains keyword_only and near_miss fixtures (the near miss invents a percentage inside an otherwise complete draft); the bad fixture is a plausible wrong answer. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 repo-doctor: relations, not terms, in two blocks; strict pairs
+
+stay-read-only-when-asked-to-fix grows from five to seven assertions: read-only kept against the hurry, at least two path:line findings plus the mirror drift, the two commands in order, the edits pointed at a writer other than the skill, a second pass offered, the hurry acknowledged without changing the answer, and the negative on claiming to have fixed or pushed. clean-repo-no-fabricated-findings grows from five to six: the all-clear with its consequence, at least two of the validator, mirror and hook checks paired with their results, at least two of the doctor, size and frontmatter checks paired with theirs, the findings rendered as a table, and the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 pm-prioritization-regua-comum: relations, not terms, in two blocks; strict pairs
+
+resist-hipo-override-of-abrangencia-lock grows from five to seven assertions (PT-BR): the refusal with its object, the request classified by its reuse with a verb, what HIPO does and does not do to the lock, the executive factor set against its 15% ceiling with a connector, the ARR given its place in D1 with a verb, the legitimate paths with their required fields, and the negative on handing over the approved grade. legit-arr-exception-scored-cleanly grows from five to eight: the position with the impact-and-effort pair, the exception qualified by the permitted case, what happens to the lock, the impact calculation with its factors, the contractual evidence anchoring the decision, the exception record checked field by field, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 pm-archetype-ai: relations, not terms, in two blocks; strict pairs
+
+challenge-demo-driven-ship-without-evals grows from five to seven assertions: the unconditional launch declined with its object and its condition, the demo weighed as evidence with a verb, the minimum eval sized with its coverage, the canary gated with a fallback, the failure mode named as an action on a bad summary, the pressure separated from the argument, and the negative on handing over the Monday plan. well-gated-ai-release-agree grows from five to eight: the go with its scope, the eval suite read by size and coverage, the pass rate put against the threshold, the guardrail tied to its routing, the canary read by its outcome, residual risks kept as monitoring, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 pm-archetype-enterprise: relations, not terms, in two blocks; strict pairs
+
+challenge-sso-checkbox-and-bespoke-ask grows from five to nine assertions: the answer split between the two asks, what the tick means and does not, the scope the contract can carry, the identity question asked, the bespoke flow diagnosed by its reach, the condition for it to enter, the SCIM gap dated with a connector, the account's weight read as a call for precision, and the negative on promising both. sound-compliance-rollout-agree grows from five to ten: the sign-off with its consequence, retention tied to the audit window with a verb, the permission model through the existing roles, the staged path with an ordering word, deprovisioning against every role, the paperwork in hand, the compliance review counted as finished, the open item limited to the pilot's first week, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 pm-archetype-growth: relations, not terms, in two blocks; strict pairs; in-code fixtures moved to the JSON
+
+challenge-activation-theatre-redefinition grows from five to eight assertions: the note declined with a verb and its object, the move named by what it changes and what it leaves alone, the definition kept for the reason the data gives, retention split with a comparison word, the cost of reporting the redefinition, the honest number with its evidence, the real work in flight, and the negative on delivering the note as briefed. clean-experiment-readout-ship grows from five to eight: ship with its scope, the lift put against the threshold with a verb, the primary result with its sample, at least two validity checks paired with outcomes, the guardrails read by what they did, the follow-up as monitoring, plus the two negatives. The four B11 growth fixtures that lived in the test file are now the good and bad fixtures of the two strict pairs in the JSON; the empty B11 section header is gone. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 pm-archetype-platform: relations, not terms, in two blocks; strict pairs
+
+refuse-hidden-breaking-change-as-minor grows from five to seven assertions: the release refused with its object, the change classified by the promise it breaks, the additive or versioned path, the consumers put on the critical path with a verb, the deprecation window and the contract tests tied to both formats, the anti-pattern named by its consequence, and the negative on waving the patch through. additive-change-ships-as-minor grows from five to seven: the release decision with its version, why the change is additive, the contract tests as proof for the existing fields, the changelog and docs as the notice, the partner machinery kept for the cases it exists for, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: Grader tests: every graded eval carries a strict pair
+
+The coverage check in scripts/test_grade_evals.py, derived from the manifests, now also requires a strict pair (keyword_only plus near_miss) in the fixture JSON for every negative-control and adversarial eval, so the punctuation-variant and label-soup attacks run against every graded block rather than the ones someone remembered to harden. Standard evals may carry a strict pair; graded evals must. 42 of 42 graded evals pass; 45 pairs, all strict; 201 fixtures. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 closing: protocol contract, repo health, README, decisions, backlog (B41 candidate), tasks
+
+docs/EVAL_PROTOCOL.md gains the "Assertion and fixture contract" section (relations not co-occurrence, one decision assertion per block, at most two list-satisfied assertions with n >= 3k, labels without tokens, the four fixtures per pair, the two derived attacks, a strict pair required for every graded eval). docs/REPO_HEALTH.md describes what test_grade_evals.py enforces; the README row for the test names the five joins and the label-soup attack; docs/DECISIONS.md records "Assertions check relations, fixtures attack them". .ai/backlog.md marks B40 done with the before/after measurement (55 of 85 blocks passed their own labels, now 0 of 42 graded; 32 pairs with 6 strict, now 45 all strict; 201 fixtures; 13 in-code fixtures migrated) and opens B41 as a candidate for the 30 standard blocks that still pass their labels (34 standard evals without a fixture); the consolidated table and counts follow. .ai/tasks.md marks B40 and lists B41. validate_repo green in both modes; full REPO_HEALTH battery green.
+
+## 2026-09-14: Round 4: isolation guarantee before any harness call, independent of the probe; CODEX_HOME config.toml checked
+
+The owner's revalidation of head ad4f467 found the configuration guarantee evaluated only inside the probe (so --skip-probe skipped it), reached only after the harness had already run once, and a codex_home_clean check that ignored config.toml. check_isolation now evaluates isolation_config on the run argv and the environment before the harness is started for anything, version query and probe included, refuses unless --allow-unisolated, and every sidecar records the checks whether or not the probe ran; --skip-probe skips the diagnostic only. codex_home_clean accepts only auth.json, the artefacts Codex writes while running and a config.toml limited to model and approval keys: any table, developer_instructions, model_instructions_file, notify, prompts, rules or any other entry is refused; a new no_config_overrides check refuses -c and --config on the argv; docs say a read-only sandbox proves nothing about attached tools. Regressions: an invalid template is refused with zero run_harness calls with and without --skip-probe and no probe or attempt written; --skip-probe with a valid configuration records the checks; a home with instructions and an MCP server is refused before any call while the same home with a model key passes; probe immutability stays green. Protocol, runbook, REPO_HEALTH, backlog and tasks updated. Full REPO_HEALTH battery green.
 
