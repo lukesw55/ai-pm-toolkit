@@ -1,6 +1,6 @@
 # Integrated pull requests
 
-Backfill verified against GitHub PR metadata on 2026-09-10. Titles below are concise descriptions, not verbatim PR titles. Original discussions remain linked. Squash integrations are included; a merge-only git log would omit them.
+Backfill verified against GitHub PR metadata on 2026-09-10; rows for #19 to #21 added on 2026-09-14 from the same metadata. Titles below are concise descriptions, not verbatim PR titles. Original discussions remain linked. Squash integrations are included; a merge-only git log would omit them.
 
 | PR | Integrated (UTC) | Change | Main commit |
 |---|---|---|---|
@@ -22,4 +22,7 @@ Backfill verified against GitHub PR metadata on 2026-09-10. Titles below are con
 | [#16](https://github.com/lukesw55/ai-pm-toolkit/pull/16) | 2026-09-08T17:17:24Z | B21: validate hook routes and block malformed write envelopes | `14fb6030936ecbbcdf67a861cfcbad1986103e32` |
 | [#17](https://github.com/lukesw55/ai-pm-toolkit/pull/17) | 2026-09-09T01:15:48Z | B23: require typed frontmatter and align portable parsing | `bd321d006ca037ac6a54f331068adb8f3f91d396` |
 | [#18](https://github.com/lukesw55/ai-pm-toolkit/pull/18) | 2026-09-09T17:45:37Z | Replace sector-specific examples with neutral collaboration scenarios | `88d2e6b53911cb294658b002c9b91c8fd6595fa7` |
+| [#19](https://github.com/lukesw55/ai-pm-toolkit/pull/19) | 2026-09-10T14:12:00Z | Complete the remaining backlog infrastructure (B22, B24 to B28, B30) and keep the live pilot explicitly pending | `7650b2dfe0f2f66275aac9239a1af9d0f745771a` |
+| [#20](https://github.com/lukesw55/ai-pm-toolkit/pull/20) | 2026-09-10T19:18:08Z | B31: close the loose ends left by the consolidated backlog execution (pinned actions, manifest-derived fixture coverage, matcher semantics per harness) | `474ce87a5852e32ff9de4bdc94cd2022469689af` |
+| [#21](https://github.com/lukesw55/ai-pm-toolkit/pull/21) | 2026-09-14T18:50:41Z | B32-B39: references batch (org layer, eval design, prototyping ladder, review panel, batch synthesis, pilot runner, human labels) with five review rounds | `49296352197ed3fd5c89be31e277f86abb50e763` |
 
