@@ -68,6 +68,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 pm-transversal-comms: relations, not terms, in three standard blocks; strict pairs
 - 2026-09-14 B41 pm-product-sense: relations, not terms, in one standard block; strict pair
 - 2026-09-14 B41 pm-transversal-docs: relations, not terms, in two standard blocks; strict pairs
+- 2026-09-14 B41 pm-transversal-analysis: relations, not terms, in two standard blocks; strict pairs
 
 ## 2026-09-08: session log
 
@@ -347,4 +348,8 @@ build-onboarding-improvement grows from six to seven assertions: a clarifying qu
 ## 2026-09-14: B41 pm-transversal-docs: relations, not terms, in two standard blocks; strict pairs
 
 confluence-prd-plus-jira-tickets grows from six to seven assertions: the page skeleton with title, status and owner fields, exactly one epic with an id, at least four story lines, links both ways, acceptance criteria per story, labels, components and a definition of done, and the page kept a skeleton rather than a copy. ticket-hygiene-pass grows from seven to eight: four new titles, the bug with reproduction steps, the backend task under a story, the epic with a primary metric and a slice, open questions for the PM, a definition-of-ready gate, a type per ticket, and links per ticket. Both pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 pm-transversal-analysis: relations, not terms, in two standard blocks; strict pairs
+
+synthesise-5-interview-transcripts grows from seven to eight assertions: themes ranked with a frequency out of five, participants quoted by id, the segment pattern read against team size with a verb, counter-evidence kept with the participant who gave it and what they said, evidence strength graded with its reason, a quant check per theme, the pain separated from the requested solution, and the five-interview caveat with a verb. triangulate-checkout-confusion grows from six to seven: the combined confidence with its reason, the qualitative count with its prompting, the funnel drop against the benchmark, the segment split as a clue, what would flip the conclusion, a diagnostic next step, and the guardrail folded into the read. batch-synthesis-six-interviews already met the contract and is unchanged. Both new pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
 
