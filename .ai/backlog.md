@@ -43,7 +43,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B37 | Síntese em lote de entrevistas e receitas de tarefa via conectores MCP | Conteúdo PM | pesquisa | 3 | 2 | 3 | 18 | feito |
 | B38 | Candidatos de catálogo: positioning/GTM, build-vs-buy, win/loss | Conteúdo PM | pesquisa | 2 | 1 | 2 | 4 | candidato |
 | B40 | Asserções anteriores ao lote vulneráveis a resposta só de palavras-chave (54 de 79 blocos) | Evals | verificado | 3 | 2 | 3 | 18 | feito |
-| B41 | Blocos standard cuja sopa de rótulos ainda passa (30 de 43; 34 sem fixture) | Evals | verificado | 2 | 1 | 2 | 4 | candidato |
+| B41 | Blocos standard cuja sopa de rótulos ainda passa (30 de 43; 34 sem fixture) | Evals | verificado | 2 | 1 | 2 | 4 | feito |
 
 ## Detalhe por item
 
@@ -211,7 +211,7 @@ Medição original (2026-09-10) com o mesmo ataque que o dono aplicou ao bloco d
 
 ### B41 — Blocos standard cuja sopa de rótulos ainda passa (GUT 4)
 
-**Candidato.** Ao fim do B40, 30 dos 43 blocos standard ainda passam em ≥ 0,8 quando os próprios rótulos do bloco são lidos como resposta (medição do script desta sessão, cinco junções), e 34 evals standard não têm fixture nenhuma. O risco é menor que no B40: blocos standard medem cobertura de método, não doutrina, e a ficha de piloto (`docs/EVAL_PROTOCOL.md`) prevê o veredito humano (B32) como verdade. O tratamento é o mesmo contrato do B40 aplicado bloco a bloco, com par estrito opcional virando obrigatório para standard só se o piloto mostrar `investigate_grader` nesses evals. GUT 2/1/2.
+**Feito (2026-09-14, PR separada por decisão do dono: entregar agora, em vez de deixar como candidato).** Os 43 evals standard receberam o contrato do B40: 40 blocos reescritos ou ajustados (os 3 já estritos do lote de referências, `choose-prototype-tier`, `batch-synthesis` e `design-golden-set`, ficaram como estavam) e par estrito para os 43, com `good` em prosa, `bad` errada plausível, `keyword_only` e `near_miss`. Como o prompt standard pede um entregável aberto, as âncoras vêm dos fatos do prompt (números, ids, datas) e da forma do artefato (campo com conteúdo, contagem, sequência com conectores), nunca de uma resposta fixa; a banda 0,80 a 1,00 absorve boas respostas com outra redação. Fixtures embutidas migradas para o JSON: B12 (`opportunity-tree`), B18 e B20 (régua); as pedagógicas 6b (hífen e exec memo) e 7 (deck) ficaram com as bandas exatas, uma reembrulhada numa fronteira de frase porque a quebra dura dentro da frase quebra os spans. Dois blocos standard que já reprovavam a sopa foram apertados: o marcador `[NEEDS METRIC]` do deck passa a exigir o que falta, e o render passa a ser uma relação (`Render: optional`, storyline como entregável ou render condicionado ao harness) em vez de duas palavras coocorrendo. `test_grade_evals.py` passa a exigir fixture alta, fixture baixa e par estrito para os 85 evals. Medição antes: 30 dos 43 blocos standard passavam a própria sopa de rótulos em ≥ 0,8; 45 pares; 34 evals standard sem fixture. Depois: 0 dos 85 blocos passa a sopa (máximo 0,33); 85 pares, um por eval, todos estritos; 356 fixtures, 340 variantes de pontuação e 425 sopas derivadas; good 1,00 em todos, bad ≤ 0,29, keyword-only ≤ 0,33. Lições novas: verbo colado à âncora, sem vírgula, para que a junção por vírgula não concatene fragmento e verbo; spans que atravessam caminhos de arquivo toleram o ponto seguido de letra; asserções de negação lêem só a prosa fora de aspas, para que uma boa resposta possa citar o que cortou. Um commit por skill, bateria completa antes de cada um.
 
 ## Frameworks avaliados e não aportados
 
@@ -272,11 +272,13 @@ Lote autorizado pelo dono a partir da avaliação das três referências (Ron Ya
 | B32 | implementado | `label_eval_run.py` com identidade composta, `rubric_version`, `--supersede` e split; grader com taxas de desacordo humano e do grader e `investigate_grader`, 12 testes; seção "Label runs" no protocolo |
 | B38 | candidato | positioning/GTM, build-vs-buy, win/loss ficam para o próximo ciclo |
 | B40 | implementado (PR separada) | 39 blocos graduados reescritos para relações, 6 com rótulos abstraídos; par estrito (keyword-only, near-miss) para 42 de 42 evals graduados; sopa de rótulos derivada no teste; 13 fixtures embutidas migradas para o JSON; contrato em `docs/EVAL_PROTOCOL.md` |
-| B41 | candidato | 30 blocos standard passam a própria sopa de rótulos; 34 evals standard sem fixture |
+| B41 | implementado (PR separada) | 40 blocos standard reescritos ou ajustados pelo contrato do B40 (os 3 já estritos ficaram); par estrito para 43 de 43 evals standard, 85 de 85 no total; B12, B18 e B20 migradas para o JSON; o teste exige par estrito para todo eval |
 
 Contagem ao fim da rodada 3, recontada pelos manifestos e pelas suítes: 85 evals (43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial, 16 negative-control), 32 pares sintéticos dos quais 6 estritos (keyword-only com 4 variantes de pontuação cada e near-miss), 118 fixtures no grader com 42 de 42 blocos graduados cobertos, 138 arquivos em cada espelho; suítes: hooks 33, contrato 9, memória 48, contexto 12, gravador 6, runner 15, rótulos 13, validador 54, frontmatter 5.
 
 Contagem ao fim do B40 (2026-09-14, PR separada): 85 evals inalterados; 45 pares sintéticos, todos estritos; 201 fixtures no grader, mais 180 variantes de pontuação e 225 sopas de rótulos derivadas; 42 de 42 evals graduados com par estrito; nenhum bloco graduado passa a própria sopa de rótulos.
+
+Contagem ao fim do B41 (2026-09-14, PR separada): 85 evals inalterados; 85 pares sintéticos, um por eval, todos estritos; 356 fixtures no grader, mais 340 variantes de pontuação e 425 sopas de rótulos derivadas; 85 de 85 evals com par estrito; nenhum bloco passa a própria sopa de rótulos (máximo 0,33); good 1,00 em todos os pares, bad ≤ 0,29.
 
 ## Revisão da PR #21 (2026-09-11)
 

@@ -66,8 +66,8 @@ scored by an assertion block in `scripts/grade_evals.py` and defended by a stric
 
 The test derives two more attacks from each strict pair: the keyword list re-joined with "; ",
 ", ", a newline and " and ", and the block's own labels joined the same five ways. Every derived
-text must stay at or below 0.34. A strict pair is required for every graded eval and optional
-for a standard one. The bands are a property of the grader, not of any skill: a good fixture at
+text must stay at or below 0.34. A strict pair is required for every eval, the standard ones
+included since B41. The bands are a property of the grader, not of any skill: a good fixture at
 1.00 says the assertions accept the intended answer, nothing about how often a model produces it.
 
 ## Run the pilot with the runner
