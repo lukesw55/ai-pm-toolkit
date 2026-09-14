@@ -331,64 +331,6 @@ fixture(
 )
 
 
-
-# -- 8. B11 coverage: the highest-risk new blocks, pinned as permanent regressions.
-# Every block was also run once against a good and a bad synthetic output
-# before commit (the discrimination check in the PR); these eight stay.
-fixture(
-    "growth-activation-theatre-challenged-scores-well",
-    "pm-archetype-growth",
-    "challenge-activation-theatre-redefinition",
-    """
-    This is activation theatre: changing the definition moves the number, not
-    the product. Activation stays "created a first dashboard within 7 days"
-    because that is the definition that predicts first value: week-2 retention
-    is 58% for users who did versus 12% for users who only visited the page.
-    Reporting 78% as the onboarding win would mislead the board, and
-    credibility goes with it the quarter retention fails to follow. I'm not
-    writing the upbeat note. Honest alternative for Thursday: activation is
-    31%, here is the retention evidence, the template-gallery experiment is
-    live with a readout in three weeks, and these are the levers instead.
-    """,
-    0.8, 1.0,
-)
-fixture(
-    "growth-activation-theatre-win-note-scores-poorly",
-    "pm-archetype-growth",
-    "challenge-activation-theatre-redefinition",
-    """
-    Board note: Activation jumped to 78% this quarter after our onboarding
-    push, a clear win for the team. Momentum is strong and we are excited
-    about Q4.
-    """,
-    0.0, 0.34,
-)
-fixture(
-    "growth-clean-readout-ships-cleanly",
-    "pm-archetype-growth",
-    "clean-experiment-readout-ship",
-    """
-    Ship to 100%. The pre-declared threshold was +3 points and treatment
-    cleared it at +4.8 (35.8% vs 31.0%, n=2,610 per arm, p<0.001); SRM passed,
-    week-2 retention and support load held, paid conversion did not drop, the
-    effect was stable across all 4 weeks so novelty is not carrying it, and
-    nothing else ran in the funnel. Follow-up is monitoring retention at full
-    traffic and the next backlog experiment, not more testing of this one.
-    """,
-    0.8, 1.0,
-)
-fixture(
-    "growth-clean-readout-manufactured-extension-scores-poorly",
-    "pm-archetype-growth",
-    "clean-experiment-readout-ship",
-    """
-    Encouraging, but let's run it for another 4 weeks and extend the
-    experiment to Pro users; just to be safe, gather more data before deciding.
-    """,
-    0.0, 0.34,
-)
-
-
 # -- B12: the tree is built from the synthesis evidence only (standard) ----
 fixture(
     "opportunity-tree-grounded-in-evidence-scores-well",

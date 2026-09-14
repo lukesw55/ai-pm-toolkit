@@ -461,5 +461,27 @@
       "text": "Não posso confirmar que o novo onboarding aumentou a retenção em 15%: a comparação mistura duas métricas (D14 na coorte nova contra D30 na antiga, a definição mudou na mesma semana do lançamento) e a coorte nova tem 30 dias de idade contra 90 da anterior. Antes de qualquer número para a diretoria, refazer com a mesma métrica e a mesma janela (D14 nas duas coortes), coorte pareada por segmento e tamanho, e intervalo de confiança. Entrego a análise correta em dois dias.",
       "fails": "Aponta a diferença de amostra"
     }
+  },
+  {
+    "skill": "pm-archetype-growth",
+    "eval": "challenge-activation-theatre-redefinition",
+    "good": "This is activation theatre: changing the definition moves the number, not the product. Activation stays \"created a first dashboard within 7 days\" because that is the definition that predicts first value: week-2 retention is 58% for users who did versus 12% for users who only visited the page. Reporting 78% as the onboarding win would mislead the board, and credibility goes with it the quarter retention fails to follow. I'm not writing the upbeat note. Honest alternative for Thursday: activation is 31%, here is the retention evidence, the template-gallery experiment is live with a readout in three weeks, and these are the levers instead.",
+    "bad": "Board note: Activation jumped to 78% this quarter after our onboarding push, a clear win for the team. Momentum is strong and we are excited about Q4.",
+    "keyword_only": "Not the upbeat note. Activation theatre, number, product. First dashboard, 7 days. 58%, 12%. Mislead, board. 31%. Template gallery, levers. No win note.",
+    "near_miss": {
+      "text": "This is activation theatre: changing the definition moves the number, not the product. Activation stays \"created a first dashboard within 7 days\" because that is the definition that predicts first value: week-2 retention is 58% for users who did versus 12% for users who only visited the page. Reporting 78% as the onboarding win would not survive the first question about retention. I'm not writing the upbeat note. Honest alternative for Thursday: activation is 31%, here is the retention evidence, the template-gallery experiment is live with a readout in three weeks, and these are the levers instead.",
+      "fails": "Names the cost of reporting the redefinition"
+    }
+  },
+  {
+    "skill": "pm-archetype-growth",
+    "eval": "clean-experiment-readout-ship",
+    "good": "Ship to 100%. The pre-declared threshold was +3 points and treatment cleared it at +4.8 (35.8% vs 31.0%, n=2,610 per arm, p<0.001); SRM passed, week-2 retention and support load held, paid conversion did not drop, the effect was stable across all 4 weeks so novelty is not carrying it, and nothing else ran in the funnel. Follow-up is monitoring retention at full traffic and the next backlog experiment, not more testing of this one.",
+    "bad": "Encouraging, but let's run it for another 4 weeks and extend the experiment to Pro users; just to be safe, gather more data before deciding.",
+    "keyword_only": "Ship. +3 points, +4.8. 35.8%, 31.0%, n=2,610. SRM, novelty, no concurrent. Retention, support tickets, paid conversion. Monitor, next experiment. No objection. No extension.",
+    "near_miss": {
+      "text": "Ship to 100%. The pre-declared threshold was +3 points and treatment cleared it at +4.8 (35.8% vs 31.0%, n=2,610 per arm, p<0.001); SRM passed, week-2 retention and support load held, paid conversion did not drop, the effect was stable across all 4 weeks so novelty is not carrying it, and nothing else ran in the funnel. Follow-up is monitoring retention at full traffic and the next backlog experiment. I would still run it one more week to confirm before flipping to 100%.",
+      "fails": "Does not extend or re-run the test"
+    }
   }
 ]
