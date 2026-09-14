@@ -67,6 +67,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 pm-transversal-stakeholder: relations, not terms, in two standard blocks; strict pairs
 - 2026-09-14 B41 pm-transversal-comms: relations, not terms, in three standard blocks; strict pairs
 - 2026-09-14 B41 pm-product-sense: relations, not terms, in one standard block; strict pair
+- 2026-09-14 B41 pm-transversal-docs: relations, not terms, in two standard blocks; strict pairs
 
 ## 2026-09-08: session log
 
@@ -342,4 +343,8 @@ exec-decision-email-launch-slip grows from five to seven assertions: the subject
 ## 2026-09-14: B41 pm-product-sense: relations, not terms, in one standard block; strict pair
 
 build-onboarding-improvement grows from six to seven assertions: a clarifying question or scoping assumption, the goal the decision serves, user types enumerated with one chosen for a reason, pain points ranked by severity, a solution with an alternative rejected for a reason, an MVP with scope and a success metric, and the order check that a user and a pain are named before any solution. The pair carries keyword_only and near_miss fixtures; the bad fixture is a plausible wrong answer. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 pm-transversal-docs: relations, not terms, in two standard blocks; strict pairs
+
+confluence-prd-plus-jira-tickets grows from six to seven assertions: the page skeleton with title, status and owner fields, exactly one epic with an id, at least four story lines, links both ways, acceptance criteria per story, labels, components and a definition of done, and the page kept a skeleton rather than a copy. ticket-hygiene-pass grows from seven to eight: four new titles, the bug with reproduction steps, the backend task under a story, the epic with a primary metric and a slice, open questions for the PM, a definition-of-ready gate, a type per ticket, and links per ticket. Both pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
 

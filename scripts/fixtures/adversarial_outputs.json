@@ -77,6 +77,28 @@
     }
   },
   {
+    "skill": "anti-slop",
+    "eval": "remove-ai-slop-from-readme-section",
+    "good": "Rewrite: This toolkit gives teams a set of workflows. The source stops after 'workflows', so the rewrite carries only what that sentence states: a toolkit, teams and workflows, and no new claims were added beyond the original.\n\nWhat was cut. Removed 'comprehensive' because it is generic hype that would fit any product page. Removed 'empowers teams to seamlessly leverage' and replaced it with 'gives teams', since 'empowers' and 'leverage' say nothing about what the toolkit does and 'seamlessly' promises an experience nobody has checked. Removed 'robust' for the same reason: an adjective that carries no information. Kept the function of the thing described: the toolkit, the teams who use it and the workflows it holds. If the full section names what the workflows do, that specific fact belongs in the first sentence.",
+    "bad": "Leaner version: This powerful toolkit empowers teams to leverage robust workflows with ease. I trimmed two words to tighten the sentence and added a short tagline underneath, 'Built for speed', so the section still has some energy. The rest of the section reads well as it is.",
+    "keyword_only": "Rewrite. Removed, cut. Comprehensive, empowers, seamlessly, leverage, robust. Generic hype, because. Toolkit, teams, workflows. No new claims.",
+    "near_miss": {
+      "text": "Rewrite: This toolkit gives teams a set of workflows. The source stops after 'workflows', so the rewrite carries only what that sentence states: a toolkit, teams and workflows, and no new claims were added beyond the original.\n\nWhat was cut. Removed 'comprehensive'. Removed 'empowers teams to seamlessly leverage' and replaced it with 'gives teams'. Removed 'robust'. Kept the function of the thing described: the toolkit, the teams who use it and the workflows it holds. If the full section names what the workflows do, that specific fact belongs in the first sentence.",
+      "fails": "Ties each cut to why it goes"
+    }
+  },
+  {
+    "skill": "anti-slop",
+    "eval": "block-unrequested-plan-file",
+    "good": "Two findings, both under the file-artefact rule. PLAN.md and SUMMARY.md are unrequested artefacts: you edited a small script and nobody asked for a plan or a summary, so both count as slop. The anti-slop skill lists PLAN.md and SUMMARY.md among the basenames it never creates, and the write gate blocks those basenames on write, so the files should not have appeared at all. Delete PLAN.md and SUMMARY.md before committing; a small script edit needs no plan, and whatever reasoning they hold belongs in the commit message or the PR body, not in parallel markdown files. Create such files only if the user explicitly asks for them, which did not happen here. The script change itself: I found no banner comments, no narration and no new helper files, so once the two files are gone the change is clean.",
+    "bad": "Nice, the PLAN.md gives reviewers context and the SUMMARY.md saves them reading the diff, so I would keep both; they are harmless documentation. Maybe rename SUMMARY.md to CHANGES.md so it is clearer, and add a short README section pointing to them. The script edit itself looks fine.",
+    "keyword_only": "Delete, remove. PLAN.md, SUMMARY.md. Unrequested, forbidden, file artefacts, slop. Anti-slop rule, gate. Unless explicitly requested. Commit message, PR body. Small script, edit.",
+    "near_miss": {
+      "text": "Two findings, both under the file-artefact rule. PLAN.md and SUMMARY.md are unrequested artefacts: you edited a small script and nobody asked for a plan or a summary, so both count as slop. The anti-slop skill lists PLAN.md and SUMMARY.md among the basenames it never creates, and the write gate blocks those basenames on write, so the files should not have appeared at all. Delete PLAN.md and SUMMARY.md before committing; a small script edit needs no plan, and whatever reasoning they hold belongs in the commit message or the PR body, not in parallel markdown files. The script change itself: I found no banner comments, no narration and no new helper files, so once the two files are gone the change is clean.",
+      "fails": "Keeps the exception for an explicit request"
+    }
+  },
+  {
     "skill": "pm-transversal-comms",
     "eval": "deescalate-unverified-outage-blame-message",
     "good": "The deploy as cause and the $50k figure are unconfirmed. Do not send that blame as fact. Suggested message: checkout errors started this morning around 09:10; please investigate urgently whether last night's deploy is related, and confirm the impact with us before anyone quotes a number.",
