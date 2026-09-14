@@ -54,6 +54,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B40 repo-doctor: relations, not terms, in two blocks; strict pairs
 - 2026-09-14 B40 pm-prioritization-regua-comum: relations, not terms, in two blocks; strict pairs
 - 2026-09-14 B40 pm-archetype-ai: relations, not terms, in two blocks; strict pairs
+- 2026-09-14 B40 pm-archetype-enterprise: relations, not terms, in two blocks; strict pairs
 
 ## 2026-09-08: session log
 
@@ -277,4 +278,8 @@ resist-hipo-override-of-abrangencia-lock grows from five to seven assertions (PT
 ## 2026-09-14: B40 pm-archetype-ai: relations, not terms, in two blocks; strict pairs
 
 challenge-demo-driven-ship-without-evals grows from five to seven assertions: the unconditional launch declined with its object and its condition, the demo weighed as evidence with a verb, the minimum eval sized with its coverage, the canary gated with a fallback, the failure mode named as an action on a bad summary, the pressure separated from the argument, and the negative on handing over the Monday plan. well-gated-ai-release-agree grows from five to eight: the go with its scope, the eval suite read by size and coverage, the pass rate put against the threshold, the guardrail tied to its routing, the canary read by its outcome, residual risks kept as monitoring, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 pm-archetype-enterprise: relations, not terms, in two blocks; strict pairs
+
+challenge-sso-checkbox-and-bespoke-ask grows from five to nine assertions: the answer split between the two asks, what the tick means and does not, the scope the contract can carry, the identity question asked, the bespoke flow diagnosed by its reach, the condition for it to enter, the SCIM gap dated with a connector, the account's weight read as a call for precision, and the negative on promising both. sound-compliance-rollout-agree grows from five to ten: the sign-off with its consequence, retention tied to the audit window with a verb, the permission model through the existing roles, the staged path with an ordering word, deprovisioning against every role, the paperwork in hand, the compliance review counted as finished, the open item limited to the pilot's first week, plus the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
 

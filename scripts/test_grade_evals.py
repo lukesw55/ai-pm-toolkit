@@ -563,6 +563,16 @@ def run() -> int:
     if required <= high and required <= low:
         print(f"PASS coverage: all {len(required)} negative-control and adversarial evals carry a high and a low fixture")
 
+    # B40: a high and a low fixture are not enough on their own; every graded eval
+    # also carries a strict pair, so the two derived attacks above (punctuation
+    # variants and label soup) run against every graded block, not only the ones
+    # someone remembered to harden. Standard evals may carry one; graded evals must.
+    strict_pairs = {(p["skill"], p["eval"]) for p in PAIRS if "keyword_only" in p and "near_miss" in p}
+    for skill, eval_name in sorted(required - strict_pairs):
+        failures.append(f"coverage: graded eval without a strict pair (keyword_only + near_miss): ({skill}, {eval_name})")
+    if required <= strict_pairs:
+        print(f"PASS coverage: all {len(required)} graded evals carry a strict pair")
+
     # Sanity check, derived from FIXTURES rather than a hand-kept list: every
     # (skill, eval_name) a fixture exercises must exist both as an ASSERTIONS
     # block and as an eval in that skill's evals.json, or the fixture is
