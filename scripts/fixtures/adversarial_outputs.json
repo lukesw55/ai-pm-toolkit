@@ -267,14 +267,24 @@
   {
     "skill": "pm-archetype-enterprise",
     "eval": "challenge-sso-checkbox-and-bespoke-ask",
-    "good": "SSO: yes is a checkbox, not a contractual scope. Commit only to tested SAML IdP, manual deprovisioning, no SCIM; which IdP does the account use? The bespoke four-step flow is one-account distortion. Do not promise it unless it generalises into a configurable policy with another customer need. 9% ARR raises the contract and precedent risk.",
-    "bad": "Yes to both: full SSO and the exact four-step flow, with no qualifications."
+    "good": "Yes to SSO with a defined scope, no to the bespoke flow. 'SSO: yes' is a checkbox, not a commitment: what the contract can promise is SAML with the one tested IdP, Okta, with no SCIM and manual deprovisioning in the current admin UX, spelled out in the clause. Which IdP does the account run? If it is not Okta, the yes needs a test first. The four-step approval flow serves one account and sets a precedent that distorts the product; I won't promise it unless it generalises into a configurable approval policy that another account also needs. What I will commit: SSO with that scope, and SCIM on a dated roadmap, Q1 next year, written into the contract. 9% of ARR is a reason to be precise about the scope, not a reason to say yes to everything on the list.",
+    "bad": "Yes to both, tell legal to proceed. We support SAML already, so SSO is a tick in the box, and the four-step approval flow is a two-sprint build that their compliance team has already designed for us; at 9% of ARR and a $1.2M renewal, this is not the account to overthink. Both are confirmed for Friday.",
+    "keyword_only": "SSO yes, flow no. Checkbox. Okta, no SCIM, manual deprovisioning. Which IdP. Four-step flow, one account. Generalises, configurable policy. SCIM, roadmap. 9% of ARR. Not both.",
+    "near_miss": {
+      "text": "Yes to SSO with a defined scope, no to the bespoke flow. 'SSO: yes' is a checkbox, not a commitment: what the contract can promise is SAML with the one tested IdP, Okta, with no SCIM and manual deprovisioning in the current admin UX, spelled out in the clause. The four-step approval flow serves one account and sets a precedent that distorts the product; I won't promise it unless it generalises into a configurable approval policy that another account also needs. What I will commit: SSO with that scope, and SCIM on a dated roadmap, Q1 next year, written into the contract. 9% of ARR is a reason to be precise about the scope, not a reason to say yes to everything on the list.",
+      "fails": "Asks the identity question"
+    }
   },
   {
     "skill": "pm-archetype-enterprise",
     "eval": "sound-compliance-rollout-agree",
-    "good": "Sign off. Existing roles define permissions; immutable audit log retention matches the window. Compliance review is complete. Staged per-account rollout and deprovisioning tested for every role; procurement documents updated. Monitor pilot feedback after launch.",
-    "bad": "However, delay sign-off and extend the pilot. Add ABAC before releasing."
+    "good": "Sign-off given, so engineering can schedule the pilot. The plan covers the archetype checklist point by point. Access for workspace admins runs through the existing RBAC roles, so no new permission model. The log is immutable with 13-month retention, which matches the SOC 2 evidence window. Compliance reviewed and signed the control mapping last week. The rollout goes dark, then internal, then a pilot at 2 accounts including one regulated, then GA with per-account activation. Deprovisioning is tested for all 4 roles. The DPA addendum is drafted and the security questionnaire answers are updated. The one watch item is the regulated pilot account: monitor what it asks for in week one and feed that into the GA notes.",
+    "bad": "Not yet, and however solid this looks I would hold sign-off and extend the pilot to a full quarter; we should add ABAC before GA, since RBAC roles alone are coarse for a regulated account, and re-run the compliance mapping once ABAC lands. Engineering can plan, not schedule.",
+    "keyword_only": "Sign-off. Immutable, 13-month, SOC 2. Workspace admins, RBAC. Dark, internal, pilot, GA. Deprovisioning, 4 roles. DPA addendum. Compliance. Regulated account, week one. No objection. No ABAC.",
+    "near_miss": {
+      "text": "Sign-off given, so engineering can schedule the pilot. The plan covers the archetype checklist point by point. Access for workspace admins runs through the existing RBAC roles, so no new permission model. The log is immutable with 13-month retention, which matches the SOC 2 evidence window. Compliance reviewed and signed the control mapping last week. The rollout goes dark, then internal, then a pilot at 2 accounts including one regulated, then GA with per-account activation. Deprovisioning is tested for all 4 roles. The DPA addendum is drafted and the security questionnaire answers are updated. The one watch item is the regulated pilot account: monitor what it asks for in week one and feed that into the GA notes. One addition: add ABAC before GA so the regulated account gets attribute scoping.",
+      "fails": "Does not add scope before sign-off"
+    }
   },
   {
     "skill": "pm-transversal-stakeholder",

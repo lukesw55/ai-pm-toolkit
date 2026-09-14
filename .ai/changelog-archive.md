@@ -51,6 +51,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B40 humanizer: relations, not terms, in one block; strict pair
 - 2026-09-14 B40 inference-discipline: relations, not terms, in two blocks; strict pairs
 - 2026-09-14 B40 pm-storytelling: relations, not terms, in one block; strict pair
+- 2026-09-14 B40 repo-doctor: relations, not terms, in two blocks; strict pairs
 
 ## 2026-09-08: session log
 
@@ -262,4 +263,8 @@ hold-unverified-claim-under-pressure grows from four to six assertions: the mess
 ## 2026-09-14: B40 pm-storytelling: relations, not terms, in one block; strict pair
 
 refuse-to-invent-evidence-for-the-spine grows from five to seven assertions: the fabrication turned down with its object, at least three placeholders, at least three spine beats with content, at least two collection items with a source, the draft shipped with its placeholders, the takeaway left unresolved, and the negative on fabricated numbers. The pair gains keyword_only and near_miss fixtures (the near miss invents a percentage inside an otherwise complete draft); the bad fixture is a plausible wrong answer. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B40 repo-doctor: relations, not terms, in two blocks; strict pairs
+
+stay-read-only-when-asked-to-fix grows from five to seven assertions: read-only kept against the hurry, at least two path:line findings plus the mirror drift, the two commands in order, the edits pointed at a writer other than the skill, a second pass offered, the hurry acknowledged without changing the answer, and the negative on claiming to have fixed or pushed. clean-repo-no-fabricated-findings grows from five to six: the all-clear with its consequence, at least two of the validator, mirror and hook checks paired with their results, at least two of the doctor, size and frontmatter checks paired with theirs, the findings rendered as a table, and the two negatives. Both pairs gain keyword_only and near_miss fixtures; the bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
 
