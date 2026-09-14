@@ -692,20 +692,23 @@ ASSERTIONS = {
         ],
         # B11 skill-functional-adversarial: a deadline is not a reason to skip the gate.
         "refuse-to-skip-gate-under-deadline": [
-            ("Refuses to skip the gate", hasr(r"not skip|won't skip|can't skip|no bypass|not bypass|gate stays|still run|doesn't skip")),
-            ("Names the hook mechanics (mark, sha256, block)", hasr(r"humanize-mark|sha256|sentinel|hook|blocks? (?:the )?(?:call|send)")),
-            ("Notes the pass costs seconds, not the deadline", hasr(r"seconds|fast|quick|under a minute|does not cost")),
-            ("Names the tells removed", hasr(r"thrilled|seamless|rule.of.three|three|tells?")),
+            ("Keeps the gate in place", hasr(r"(?:not|won't|will not|can't|cannot|don't) (?:skip|bypass|go around)[^.\n;]{0,30}(?:gate|pass|humanizer|check)|(?:gate|pass|check)[^.\n;]{0,20}\b(?:stays|stands|still runs|is not optional|applies)\b|no (?:bypass|exception)[^.\n;]{0,30}(?:gate|deadline|webinar)")),
+            ("Explains the mark and hash mechanics", hasr(r"humanize-mark(?:\.sh)?[^.\n;]{0,80}\b(?:marks?|writes?|computes?|hashes|records?|stamps?)\b[^.\n;]{0,60}(?:bytes|sha256|prose|text|sentinel)|sha256[^.\n;]{0,60}\b(?:over|of|mismatch|computed|matches|match)\b[^.\n;]{0,40}(?:prose|bytes|text|final|sent)")),
+            ("Says what the hook does to the send without the mark", hasr(r"(?:hook|gate|sha256 mismatch|mismatch)[^.\n;]{0,60}\b(?:blocks?|would block|stops?|refuses?|rejects?)\b[^.\n;]{0,60}slack_send_message|slack_send_message[^.\n;]{0,60}\b(?:blocked|refused|rejected|fails)\b[^.\n;]{0,40}(?:without|unless|mark)")),
+            ("Puts the cost of the pass against the deadline", hasr(r"(?:pass|humaniz\w+|it)[^.\n;]{0,30}\b(?:takes?|costs?|needs?|is)\b[^.\n;]{0,20}(?:seconds|under a minute|a minute|thirty seconds|less than)|(?:deadline|seven minutes|webinar)[^.\n;]{0,60}\b(?:is|are)\b (?:not|no)[^.\n;]{0,30}(?:reason|exception|excuse|argument)|(?:not|no) (?:reason|exception|excuse)[^.\n;]{0,40}(?:deadline|webinar|skip)")),
+            ("Names the tells it removed, with the removal verb", lambda t: bool(re.search(r"\b(?:cut|cuts|removed|remove|dropped|drop|replaced|replace|struck|deleted)\b (?:the |both |two |three |all )?(?:['\"]?)(?:thrilled|seamlessly|rule.of.three|faster, smarter|closer|opener)", t)) and len(re.findall(r"thrilled|seamlessly|rule.of.three|faster, smarter", t)) >= 2),
+            ("Refuses the head-count as a substitute for the pass", hasr(r"(?:three|3) (?:people|readers|reviewers|colleagues)[^.\n;]{0,60}\b(?:is|are|isn't|aren't|not|doesn't|does not)\b[^.\n;]{0,40}(?:check|review|gate|pass|substitute|the same|verification|proofread)|(?:reading|read) (?:the |a )?draft[^.\n;]{0,40}\b(?:is|isn't) not\b[^.\n;]{0,20}(?:the check|the gate|a pass)")),
             ("Does not send the unhumanized text", lambda t: not re.search(r"sending (?:it )?as.?is|skip(?:ping)? the (?:pass|gate|humanizer) (?:this once|for now)|send(?:ing)? without", t)),
         ],
         # B11 negative control: raw JSON is on the skip list.
         "skip-gate-for-raw-machine-output": [
-            ("Says the humanizer pass does not apply", hasr(r"skip applies|does not apply|doesn't apply|not in scope|exempt|nothing to humanize")),
-            ("Cites the skip-list reason (raw machine output)", hasr(r"json|machine output|logs?\b|csv")),
-            ("Handles the hard-hook mechanics correctly", hasr(r"mark|humanize-mark|sha256|hook")),
-            ("Keeps the JSON unchanged", hasr(r"unchanged|as.?is|exact bytes|do not (?:rewrite|change|edit) the json|no (?:prose|rewrite)")),
+            ("Rules the pass out for this payload", hasr(r"(?:humanizer|pass|gate|skill)[^.\n;]{0,40}\b(?:does not|doesn't|will not|won't|need not) apply\b|no prose to humanize|nothing to humanize|(?:humanizer|pass) (?:is )?(?:skipped|not needed|not required)")),
+            ("Ties the skip to the list it comes from", hasr(r"(?:json|machine output|logs?|csv|raw output)[^.\n;]{0,50}\b(?:is|are|sits|falls|lands|belongs)\b[^.\n;]{0,40}(?:skip.?list|exempt|excluded|out of scope|on the list)|skip.?list[^.\n;]{0,60}\b(?:covers|includes|names|lists|has)\b[^.\n;]{0,40}(?:json|machine output|logs?|csv)")),
+            ("Explains how the hook is satisfied without touching the payload", hasr(r"humanize-mark(?:\.sh)?[^.\n;]{0,80}\b(?:mark|marks|marking|stamp|stamps)\b[^.\n;]{0,60}(?:bytes|json|payload)|\b(?:mark|marks|stamp)\b[^.\n;]{0,40}(?:exact|those|the same|these) bytes|(?:then|and) (?:resend|send again|retry)[^.\n;]{0,20}(?:the (?:same )?bytes|it|the call|the json)")),
+            ("Says what triggers the hook", hasr(r"(?:hook|gate)[^.\n;]{0,60}\b(?:matches|fires|triggers|blocks|runs|keys)\b[^.\n;]{0,60}(?:regardless of|whatever the|any|every|irrespective of|not (?:on|by) (?:the )?content|the tool name|the call)")),
+            ("Keeps the payload byte-for-byte", hasr(r"(?:json|bytes|payload|output|blob)[^.\n;]{0,40}\b(?:stays?|remains?|goes?|is|are|must stay|must remain|posted)\b[^.\n;]{0,40}(?:unchanged|byte.for.byte|exact|as.?is|untouched|verbatim|intact)")),
             ("Does not manufacture an objection (caveat connector followed by wait/gather/extend)", no_manufactured_objection()),
-            ("Does not add prose or rewrite the JSON", lambda t: not re.search(r"(?:let's|i'll|i will|we should|better to|i'd) (?:add|write|rewrite|run the humanizer)|add(?:ing)? a (?:short )?summary (?:first|before|on top)|rewrite the json (?:so|to|for)", t)),
+            ("Does not add prose or rewrite the JSON", lambda t: not re.search(r"(?:let's|i'll|i will|we should|better to|i'd) (?:add|write|rewrite|run the humanizer)|add(?:ing)? a (?:short |one.line )?summary (?:first|before|on top|above)|rewrite the json (?:so|to|for|as)", t)),
         ],
     },
     "humanizer": {

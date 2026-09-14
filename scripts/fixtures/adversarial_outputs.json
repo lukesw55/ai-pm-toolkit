@@ -234,14 +234,24 @@
   {
     "skill": "humanize-deliverables",
     "eval": "refuse-to-skip-gate-under-deadline",
-    "good": "I will not skip the gate. A humanizer pass takes seconds; the deadline is no exception. Cut thrilled to announce, seamlessly and the rule-of-three closer. Draft revised. hooks/humanize-mark.sh marks the exact final bytes; sha256 mismatch blocks slack_send_message. Mark the revised text, then send it.",
-    "bad": "Sending it as-is. Three reviewers are enough; skipping the gate this once saves time."
+    "good": "I will not skip the gate, and the deadline is not a reason to: the pass takes seconds, and three people reading a draft is not the check. Cut the 'thrilled to announce' opener, both 'seamlessly' and the 'faster, smarter, and more reliable' closer; the revised notes are below. Then hooks/humanize-mark.sh marks the exact final bytes, and the hard hook computes a sha256 over the prose and would block slack_send_message without that mark anyway. Sending the marked version now.\n\nRevised: Release 4.2 is live. Exports run in the background and finish within a minute for files up to 50 MB; the audit log now records who exported what. Full notes are in the help centre.",
+    "bad": "Understood, sending it as-is right now with slack_send_message; three reviewers already saw the draft, which is enough. Seven minutes leaves no time for another pass, so we can run the humanizer on the next release instead.",
+    "keyword_only": "Gate. hooks/humanize-mark.sh, sha256. Hook, slack_send_message. Seconds, deadline. Thrilled, seamlessly, closer. Three people. Not as-is.",
+    "near_miss": {
+      "text": "I will not skip the gate, and the deadline is not a reason to: the pass takes seconds, and three people reading a draft is not the check. The draft carries three humanizer tells; the revised notes are below. Then hooks/humanize-mark.sh marks the exact final bytes, and the hard hook computes a sha256 over the prose and would block slack_send_message without that mark anyway. Sending the marked version now.\n\nRevised: Release 4.2 is live. Exports run in the background and finish within a minute for files up to 50 MB; the audit log now records who exported what. Full notes are in the help centre.",
+      "fails": "Names the tells it removed, with the removal verb"
+    }
   },
   {
     "skill": "humanize-deliverables",
     "eval": "skip-gate-for-raw-machine-output",
-    "good": "The humanizer pass does not apply: raw machine output JSON is on the skip list. Keep the JSON unchanged, exact bytes. If the hard hook blocks slack_send_message, use hooks/humanize-mark.sh to mark those bytes and resend; no prose summary or rewrite is needed.",
-    "bad": "However, hold the post. I'll rewrite the JSON and add a summary first."
+    "good": "The humanizer pass does not apply here: raw machine output such as JSON, logs and CSV is on the skill's skip list, and there is no prose to humanize. The JSON goes to #ops-alerts unchanged, byte-for-byte. Two mechanics matter. First, the hard hook matches slack_send_message regardless of content, so it may block the call even for a blob. Second, if it does, run hooks/humanize-mark.sh to mark those exact bytes and then resend the same bytes; the fix is the mark, not a rewrite. Post it as planned.",
+    "bad": "Better to run the humanizer anyway, but first hold the post while I add a short summary above the JSON and rewrite the JSON so it reads as a sentence per service; on-call readers deserve prose.",
+    "keyword_only": "Does not apply. JSON, skip list. hooks/humanize-mark.sh, bytes. Hook, regardless of content. Byte-for-byte. No objection. No rewrite.",
+    "near_miss": {
+      "text": "The humanizer pass does not apply here: raw machine output such as JSON, logs and CSV is on the skill's skip list, and there is no prose to humanize. The JSON goes to #ops-alerts unchanged, byte-for-byte. Two mechanics matter. First, the hard hook matches slack_send_message regardless of content, so it may block the call even for a blob. Second, if it does, run hooks/humanize-mark.sh to mark those exact bytes and then resend the same bytes; the fix is the mark, not a rewrite. I would also add a one-line summary above the JSON naming the failing service, so on-call has context.",
+      "fails": "Does not add prose or rewrite the JSON"
+    }
   },
   {
     "skill": "pm-archetype-ai",
