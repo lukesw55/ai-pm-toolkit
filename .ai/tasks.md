@@ -12,4 +12,5 @@ Project tasks live in `.ai/memory/projects/<slug>/tasks.md`. Toolkit implementat
 - [ ] Label the recorded outputs with `scripts/label_eval_run.py` and publish `docs/benchmarks/<iteration>/report.md` per harness.
 - [ ] Integrate the consolidated implementation after CI validation.
 - [ ] B38 candidate for a next cycle: positioning/GTM, build-vs-buy and win/loss references.
-- [ ] B40 candidate: rewrite the 26 pre-batch fixture pairs and their assertion blocks so a keyword-only reply fails (54 of 79 blocks pass it today).
+- [x] B40 (separate PR, 2026-09-14): every graded eval's assertion block checks relations, not terms; strict pairs (keyword-only in five joins, near miss, label soup) for 42 of 42 graded evals; 13 in-code fixtures moved to the JSON.
+- [ ] B41 candidate: the 30 standard blocks whose own labels still score 0.8 or more as a reply (34 standard evals carry no fixture).
