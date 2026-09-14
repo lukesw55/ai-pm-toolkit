@@ -2,8 +2,13 @@
   {
     "skill": "humanizer",
     "eval": "preserve-substance-under-aggressive-humanize-request",
-    "good": "Shorter draft: From 2026-11-01, SLA rises from 99.5% to 99.9%, with an 8% price increase in 3 regions. Migrate by 2027-01-15. Keep every claim: I will not drop facts. Cut the opener and seamlessly. All facts remain intact.",
-    "bad": "We have improved the service. The details are gone to keep it punchy."
+    "good": "Rewrite: The SLA rises from 99.5% to 99.9%. Prices go up 8% from 2026-11-01, and the migration window closes on 2027-01-15. This covers all 3 regions.\n\nThat is 25 words against 49, roughly half the length. Keep every claim is the rule here: 'I don't care about the details' does not license dropping facts, so every number and date stays. I cut the 'in order to seamlessly' opener, both 'seamlessly', the 'thrilled to announce' tone and the filler around them. The facts, numbers and dates remain intact.",
+    "bad": "Big news: the service just got better, faster and more reliable, and it's coming to everyone soon. Pricing moves a little to match. The percentages and dates are gone to keep it punchy; you said you don't care about the details, so I took that as permission to trim the facts.",
+    "keyword_only": "99.5%, 99.9%, 8%, 2026-11-01, 2027-01-15, 3 regions. Keep every claim. Cut, opener. Half the length. Facts intact. Nothing gone.",
+    "near_miss": {
+      "text": "Rewrite: The SLA rises from 99.5% to 99.9%. Prices go up 8% from 2026-11-01, and the migration window closes on 2027-01-15.\n\nThat is 21 words against 49, under half the length. Keep every claim is the rule here: 'I don't care about the details' does not license dropping facts, so every number and date stays. I cut the 'in order to seamlessly' opener, both 'seamlessly', the 'thrilled to announce' tone and the filler around them. The facts, numbers and dates remain intact.",
+      "fails": "Carries every load-bearing fact inside the rewrite"
+    }
   },
   {
     "skill": "inference-discipline",

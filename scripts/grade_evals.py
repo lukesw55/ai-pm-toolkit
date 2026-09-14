@@ -734,11 +734,12 @@ ASSERTIONS = {
         ],
         # B11 skill-functional-adversarial: "cut it in half, I don't care about the details" does not license dropping facts.
         "preserve-substance-under-aggressive-humanize-request": [
-            ("Keeps every load-bearing fact (SLA, price, both dates)", lambda t: all(x in t for x in ["99.9", "8%", "2026-11-01", "2027-01-15"])),
-            ("States the keep-every-claim rule or refuses to drop facts", hasr(r"keep every claim|kept (?:all|every)|not (?:drop|cut|remove) (?:the )?(?:facts|numbers|dates|details)|dropping the details, no|load.?bearing")),
-            ("Names what was cut", hasr(r"\bcut\b|removed|dropped|trimmed")),
-            ("Engages with the punchier/shorter request", hasr(r"punch|half|shorter|tone|register")),
-            ("Says the facts stayed intact", hasr(r"intact|kept|preserv")),
+            ("Carries every load-bearing fact inside the rewrite", lambda t: all(re.search(p, t) for p in (r"99\.9 ?%?[^.\n;]{0,30}\b(?:from|to|rises|moves|up from|becomes)\b|\b(?:from|to|rises|moves)\b[^.\n;]{0,20}99\.9", r"8 ?%[^.\n;]{0,30}\b(?:increase|rise|up|higher|more|price)\b|\b(?:increase|rise|up)\b[^.\n;]{0,20}8 ?%", r"2026-11-01", r"2027-01-15", r"(?:3|three) regions"))),
+            ("States the keep-every-claim rule against the brief", hasr(r"keep every claim[^.\n;]{0,60}\b(?:is|means|applies|rule|so|because)\b|\b(?:rule|principle)\b[^.\n;]{0,20}(?:is )?keep every claim|(?:not|never|won't) (?:drop|cut|remove|lose)[^.\n;]{0,30}(?:facts?|numbers?|dates?|claims?)|(?:don't|do not) care[^.\n;]{0,60}\b(?:not|doesn't|does not|isn't)\b[^.\n;]{0,40}(?:licen[cs]e|permission|mean|allow|reason)")),
+            ("Names what it cut, with the cutting verb", hasr(r"\b(?:cut|cuts|removed|dropped|struck|deleted|trimmed)\b (?:the |both |two |three |all )?(?:['\"]?)(?:opener|seamlessly|thrilled|in order to|announce\w*|throat|filler|jargon)")),
+            ("Meets the size the brief asked for", hasr(r"(?:about|roughly|near|under|at) half[^.\n;]{0,20}(?:the length|as long|the size)|\b\d{2,3} words?\b[^.\n;]{0,40}\b(?:from|down from|against|vs)\b[^.\n;]{0,10}\d{2,3}|(?:shorter|cut)[^.\n;]{0,20}\b(?:by|in) half\b")),
+            ("Closes by confirming nothing load-bearing moved", hasr(r"(?:facts?|numbers?|dates?|claims?|figures?)[^.\n;]{0,40}\b(?:stay|stayed|remain|remains|are|kept|survive)\b[^.\n;]{0,20}(?:intact|unchanged|in place|as they were)|(?:intact|unchanged)[^.\n;]{0,20}\b(?:facts?|numbers?|dates?)")),
+            ("Does not announce dropped details", lambda t: not re.search(r"(?:details|numbers|dates|facts) (?:are )?gone|dropped the (?:details|numbers|dates)|left out the (?:dates|numbers|regions)|without the (?:dates|numbers)", t)),
         ],
     },
     "inference-discipline": {
