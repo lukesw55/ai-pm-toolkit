@@ -55,11 +55,15 @@ the SKILL.md the meta names, and the referenced isolation probe present with its
 hash), so a sidecar that describes another run, or points at a probe that no longer exists,
 fails grading and labelling. Four guards precede the runs: the harness version must be listed
 under `verified_harness_versions` in the manifest, which only a parsed `--eval` smoke run earns;
-the process configuration is checked explicitly and recorded in the sidecar (for Claude Code
-`--safe-mode`, `--strict-mcp-config`, `--tools ""` and `--permission-prompts none` in the argv;
-for Codex `--sandbox read-only`, `--skip-git-repo-check` and a `CODEX_HOME` without AGENTS.md,
-skills or hooks; for both, a working directory outside the repository), and a missing check
-stops the run; an isolation probe then asks the harness, through the same argv, what tools it
+the process configuration is checked before the harness is started for anything, the probe
+included, and recorded in every sidecar (for Claude Code `--safe-mode`, `--strict-mcp-config`,
+`--tools ""` and `--permission-prompts none` in the argv; for Codex `--sandbox read-only`,
+`--skip-git-repo-check`, no `-c` or `--config` override, and a `CODEX_HOME` that holds only the
+authentication file, the artefacts Codex writes while running and at most a `config.toml`
+limited to model and approval keys, so no AGENTS.md, skills, hooks, prompts, instruction keys or
+MCP servers; for both, a working directory outside the repository), and a missing check stops
+the run unless `--allow-unisolated`, which records the failed checks instead; `--skip-probe`
+skips only the diagnostic that follows; an isolation probe then asks the harness, through the same argv, what tools it
 can call and what instructions it was given, and stops unless the answer is exactly two lines
 both saying "none" (a repeated field, an extra line or a contradiction fails closed). The probe
 is a diagnostic on top of the configuration checks, not the guarantee: a model's statement
@@ -207,16 +211,21 @@ then `scripts/grade_evals.py --iteration <iteration>`; keep `benchmark_all.json`
 `eval-report.html` for one harness before grading the other, because both live at the repo
 root and are replaced. Never mix harnesses or models in one iteration; start a new one.
 
-Isolation checklist, in two layers. The configuration layer is what the runner verifies and
-records in every sidecar: the documented flags for a session without customisations (Claude
-Code: `--safe-mode`, `--strict-mcp-config`, `--tools ""`, `--permission-prompts none`; Codex:
-`--sandbox read-only`, `--skip-git-repo-check`, `CODEX_HOME` pointing at a directory that holds
-only the authentication file), the working directory outside the repository and empty, no
-plugin or MCP server attached, the same flags for both configurations. The probe layer is a
-diagnostic: the harness must answer exactly `TOOLS: none` and `INSTRUCTIONS: none`. A failed
-check or a probe that names a tool or an instruction means the isolation is broken for that
-harness on that machine; fix the flags or the environment before recording, and never compare
-a run recorded under a broken probe with one recorded under a clean one.
+Isolation checklist, in two layers. The configuration layer is what the runner verifies before
+any harness call, whether or not the probe runs, and records in every sidecar: the documented
+flags for a session without customisations (Claude Code: `--safe-mode`, `--strict-mcp-config`,
+`--tools ""`, `--permission-prompts none`; Codex: `--sandbox read-only`, `--skip-git-repo-check`,
+no `-c` or `--config` override, `CODEX_HOME` pointing at a directory that holds only the
+authentication file; the session and log artefacts Codex writes and a `config.toml` limited to
+model and approval keys are tolerated, while AGENTS.md, skills, hooks, prompts, any
+`[mcp_servers]` table and any instruction key are refused), the working directory outside the
+repository and empty, the same flags for both configurations. A read-only sandbox limits what a
+tool may do and proves nothing about which tools are attached; the home and override checks and
+the probe carry that part. The probe layer is a diagnostic: the harness must answer exactly
+`TOOLS: none` and `INSTRUCTIONS: none`, and `--skip-probe` skips this layer only. A failed check
+or a probe that names a tool or an instruction means the isolation is broken for that harness on
+that machine; fix the flags or the environment before recording, and never compare a run
+recorded under a broken probe with one recorded under a clean one.
 
 Claude Code (flags confirmed in `claude -p --help` 2.1.267; the envelope is not confirmed until
 the smoke run parses it, so 2.1.267 is not yet listed as verified): the default template is
@@ -233,8 +242,9 @@ Codex (template to verify with `codex exec --help` on the machine; this repo has
 binary): the default template is `codex exec --json --model <model> --sandbox read-only
 --ask-for-approval never --skip-git-repo-check --cd <cwd> --output-last-message <file> -`.
 Point `CODEX_HOME` at a fresh directory holding only the authentication file so no user-level
-AGENTS.md, skills or hooks load, and keep the working directory outside the repository for the
-same reason. The parser reads `thread.started` for the thread id, the last agent message or
+AGENTS.md, skills, hooks, prompts or `config.toml` customisations (MCP servers, instruction
+files) load; the runner refuses the run when the home holds any of them. Keep the working
+directory outside the repository for the same reason. The parser reads `thread.started` for the thread id, the last agent message or
 `--output-last-message` for the text, and `turn.completed.usage` for tokens; when no event
 names the model, the recorded model is the `--model` value and `provenance.json` says so with
 `model_source: flag`. Pass a corrected template with `--harness-cmd` if the flags differ.
