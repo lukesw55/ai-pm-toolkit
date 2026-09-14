@@ -306,6 +306,18 @@ Segunda revisão do dono, com cinco grupos de defeitos reproduzidos em sandboxes
 | 4. Parser Codex aceita `turn.failed` com resposta parcial; retomada falha com `FileExistsError` | resultado só com `turn.completed` e sem `turn.failed`/`error`; diretório por tentativa (`attempt-NN`) com a evidência da falha preservada | `9d955e2` |
 | 5. `--org` escreve fora do repo por symlink ancestral | confinamento de `.ai/memory` e `.ai/memory/org` antes de qualquer criação, exit 1 e nada escrito | `a4d009c` |
 
+## Revalidação do head `ad4f467` (2026-09-14)
+
+Quarto comentário do dono na PR #21: grupos 1, 2, 4 e 5 fechados; no grupo 3, três defeitos da garantia de configuração, reproduzidos por ele em sandbox sem CLI real. Os três estão confirmados na leitura do código (`isolation_config` só era avaliado dentro de `probe_isolation`, chamado só sem `--skip-probe` e depois de `run_harness`; `codex_home_clean` olhava apenas AGENTS.md, skills e hooks) e corrigidos num commit aditivo com regressões próprias, "Round 4: isolation guarantee before any harness call".
+
+| # | Achado do dono | Correção |
+|---|---|---|
+| 1. `--skip-probe` pulava também a garantia de configuração | `check_isolation` avalia `isolation_config` fora do probe, em toda rodada; `--skip-probe` só pula o diagnóstico; o sidecar grava `isolation_config` em todo run, com ou sem probe |
+| 2. A recusa chegava depois de executar o processo | a checagem roda antes de qualquer chamada ao harness, inclusive `--version` e o probe; regressão com espião em `run_harness` exige zero chamadas, com e sem `--skip-probe`, e nenhum probe ou tentativa gravados |
+| 3. `codex_home_clean` ignorava `config.toml` | o HOME só é limpo quando contém apenas `auth.json`, artefatos de execução (`sessions/`, `log/`, `history.jsonl`) e, no máximo, um `config.toml` restrito a chaves de modelo e aprovação; qualquer tabela (`[mcp_servers.*]`, `[[profiles]]`), `developer_instructions`, `model_instructions_file` ou `notify` reprovam, assim como `prompts/`, `rules/` ou qualquer outra entrada; nova checagem `no_config_overrides` recusa `-c`/`--config` no argv; sandbox read-only documentado como limite de dano, não prova de ausência de ferramentas |
+
+Regressões: template inválido recusado com zero chamadas de geração com e sem `--skip-probe`; `--skip-probe` com configuração válida grava com `isolation_config` completo e `skip_probe: true`; HOME com `developer_instructions` e `[mcp_servers.example]` recusado antes de qualquer chamada, e o mesmo HOME com `model = "..."` passa; probes imutáveis e hashes continuam verdes. A compatibilidade real dos CLIs continua no smoke previsto; nada sintético entra como evidência real.
+
 O histórico por PR está em `docs/PR_HISTORY.md`; as decisões estão em `docs/DECISIONS.md`. A confiança nos hooks do Codex continua dependendo da ação local `/hooks` do usuário. Configurações administrativas do GitHub e limpeza de branches são ações separadas do backlog de código.
 
 ### B31 — Pontas soltas da execução consolidada (2026-09-10)

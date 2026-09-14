@@ -17,9 +17,14 @@ hooks. It does not measure the toolkit at runtime: routing, progressive loading,
 memory and MCP stay out of scope. with_skill is compared against without_skill inside
 one harness; two harnesses running different models differ by model, never by harness.
 
-Three guards make the measurement auditable. An isolation probe runs first and records
-what the harness reports as available tools and loaded instructions; anything but
-"none" stops the run unless --allow-unisolated. Every harness invocation, recorded or
+Four guards make the measurement auditable. The process configuration is checked before
+the harness is started for anything: the documented flags for a session without
+customisations, a home directory (CODEX_HOME) holding nothing the session would load, no
+configuration overrides on the command line, and a working directory outside the
+repository; a failed check stops the run unless --allow-unisolated, which records the
+failure in every sidecar. An isolation probe then asks the harness what it reports as
+available tools and loaded instructions; anything but "none" stops the run the same way,
+and --skip-probe skips this diagnostic only. Every harness invocation, recorded or
 failed, appends one line to docs/benchmarks/<iteration>/attempts.jsonl, so failures
 are never dropped from the record. The harness version must be listed under
 verified_harness_versions in the dependency manifest, which happens only after a smoke
@@ -69,6 +74,14 @@ PROBE_PROMPT = ("Reply with exactly two lines and nothing else.\n"
                 "before this message, or none>")
 PROBE_SCHEMA = 1
 PROVENANCE_SCHEMA = 2
+# A CODEX_HOME the pilot accepts: the authentication file, a config.toml limited to the keys
+# below, and the artefacts Codex writes while it runs. Anything else (AGENTS.md, skills, hooks,
+# prompts, rules, memories) is a customisation the session would load.
+CODEX_HOME_ENTRIES = {"auth.json", "config.toml", "version.json", "history.jsonl", "sessions", "archived_sessions",
+                      "log", "logs", ".tmp", "shell_snapshots"}
+CODEX_CONFIG_KEYS = {"model", "model_provider", "preferred_auth_method", "approval_policy", "sandbox_mode",
+                     "model_reasoning_effort", "model_reasoning_summary", "model_verbosity", "disable_response_storage",
+                     "file_opener", "hide_agent_reasoning", "show_raw_agent_reasoning"}
 CLAUDE_TOKEN_FIELDS = ("input_tokens", "output_tokens", "cache_creation_input_tokens", "cache_read_input_tokens")
 CODEX_TOKEN_FIELDS = ("input_tokens", "cached_input_tokens", "output_tokens")
 
@@ -243,11 +256,41 @@ def _flag_value(argv: list[str], flag: str) -> str | None:
     return argv[argv.index(flag) + 1] if flag in argv and argv.index(flag) + 1 < len(argv) else None
 
 
+def codex_config_clean(text: str) -> bool:
+    """A config.toml the pilot accepts sets model and approval keys only. Any table header
+    (mcp_servers, profiles, projects, hooks, features, whatever the section is called), any
+    key outside CODEX_CONFIG_KEYS (developer_instructions, model_instructions_file, notify)
+    and any line this reader cannot parse is a customisation the session would load."""
+    for raw in text.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        if line.startswith("["):
+            return False
+        m = re.match(r'^"?([A-Za-z0-9_.\-]+)"?\s*=', line)
+        if not m or m.group(1) not in CODEX_CONFIG_KEYS:
+            return False
+    return True
+
+
+def codex_home_clean(home: Path | None) -> bool:
+    """True only for an existing directory whose entries are all in CODEX_HOME_ENTRIES and
+    whose config.toml, when present, passes codex_config_clean."""
+    if not home or not home.is_dir():
+        return False
+    if {entry.name for entry in home.iterdir()} - CODEX_HOME_ENTRIES:
+        return False
+    config = home / "config.toml"
+    return not config.exists() or codex_config_clean(config.read_text(encoding="utf-8", errors="replace"))
+
+
 def isolation_config(harness: str, argv: list[str], cwd: Path, root: Path, env: dict | None = None) -> dict[str, bool]:
     """Explicit, verifiable process configuration: the flags the harness documents for a
-    session without customisations, and a working directory outside the repository. This
-    is the isolation guarantee; the probe is a diagnostic on top of it, because a model's
-    statement about its own tools does not prove what the process loaded."""
+    session without customisations, the home directory the session reads, and a working
+    directory outside the repository. This is the isolation guarantee; the probe is a
+    diagnostic on top of it, because a model's statement about its own tools does not prove
+    what the process loaded. A read-only sandbox limits what a tool may do and says nothing
+    about which tools are attached; the home and override checks carry that part."""
     env = os.environ if env is None else env
     outside = not cwd.resolve().is_relative_to(root.resolve())
     if harness == "claude-code":
@@ -260,14 +303,34 @@ def isolation_config(harness: str, argv: list[str], cwd: Path, root: Path, env: 
         }
     home = env.get("CODEX_HOME")
     home_path = Path(home) if home else None
-    clean = bool(home_path and home_path.is_dir() and not any((home_path / name).exists() for name in ("AGENTS.md", "skills", "hooks")))
+    overrides = any(arg in ("-c", "--config") or arg.startswith("--config=") for arg in argv)
     return {
         "read_only_sandbox": _flag_value(argv, "--sandbox") == "read-only",
         "skip_git_repo_check": "--skip-git-repo-check" in argv,
-        "codex_home_set": bool(home),
-        "codex_home_clean": clean,
+        "no_config_overrides": not overrides,
+        "codex_home_set": bool(home_path and home_path.is_dir()),
+        "codex_home_clean": codex_home_clean(home_path),
         "cwd_outside_repo": outside,
     }
+
+
+def check_isolation(root: Path, args, template: str, work_dir: Path) -> dict[str, bool]:
+    """The configuration guarantee, evaluated on the argv the runs will use and on the
+    environment before the harness is started for anything, the probe included. A failed
+    check stops the run unless --allow-unisolated, which records the failure in every
+    sidecar instead. --skip-probe skips the diagnostic only and never reaches this check."""
+    cwd = work_dir / "isolation-check"
+    argv = harness_argv(template, model=args.model, cwd=str(cwd), prompt_file=str(cwd / "prompt.md"),
+                        output_file=str(cwd / "last_message.md"))
+    config = isolation_config(args.harness, argv, cwd, root)
+    failed = sorted(name for name, ok in config.items() if not ok)
+    if failed:
+        message = (f"isolation configuration incomplete for {args.harness}: {', '.join(failed)}. "
+                   "Fix the template, CODEX_HOME or the working directory, or pass --allow-unisolated to record anyway")
+        if not getattr(args, "allow_unisolated", False):
+            raise ValueError(message)
+        print(f"WARN {message}", file=sys.stderr)
+    return config
 
 
 def probe_isolation(root: Path, args, template: str, work_dir: Path, version: str | None, attempt: int) -> dict:
@@ -386,7 +449,7 @@ def run_target(root: Path, iteration: str, entry: dict, config: str) -> Path:
 
 def record_result(root: Path, args, entry: dict, config: str, result: HarnessResult, payload: str,
                   loaded: list[dict], order: list[str], argv: list[str], version: str | None,
-                  seed: int, cwd: Path, probe: dict | None = None) -> Path:
+                  seed: int, cwd: Path, isolation: dict[str, bool], probe: dict | None = None) -> Path:
     import record_eval_run as rr
     output = cwd / "output.md"
     output.write_text(result.text, encoding="utf-8")
@@ -404,7 +467,7 @@ def record_result(root: Path, args, entry: dict, config: str, result: HarnessRes
         "output_sha256": sha256_bytes(result.text.encode("utf-8")),
         "loaded_files": loaded, "harness_result": result.raw,
         "isolation_probe": None if probe is None else {k: probe[k] for k in ("path", "sha256", "isolated", "format_ok")},
-        "isolation_config": None if probe is None else probe["isolation_config"],
+        "isolation_config": isolation,
         "skip_probe": probe is None,
     }
     (target / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
@@ -454,6 +517,7 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
         return []
     work_dir = Path(args.work_dir) if args.work_dir else Path(tempfile.mkdtemp(prefix="pilot-"))
     work_dir.mkdir(parents=True, exist_ok=True)
+    isolation = check_isolation(root, args, template, work_dir)
     version = harness_version(harness_argv(template, model=args.model, cwd="", prompt_file="", output_file=""))
     if version not in verified_versions(root, deps_path, args.harness):
         message = (f"harness version {version!r} is not listed under verified_harness_versions for {args.harness} in "
@@ -465,13 +529,6 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
     if not getattr(args, "skip_probe", False):
         probe_attempt = 1 + len(list((work_dir / "isolation-probe").glob("attempt-*"))) if (work_dir / "isolation-probe").exists() else 1
         probe = probe_isolation(root, args, template, work_dir, version, probe_attempt)
-        failed_checks = sorted(name for name, ok in probe["isolation_config"].items() if not ok)
-        if failed_checks:
-            message = (f"isolation configuration incomplete for {args.harness}: {', '.join(failed_checks)}; see {probe['path']}. "
-                       "Fix the template, CODEX_HOME or the working directory, or pass --allow-unisolated to record anyway")
-            if not getattr(args, "allow_unisolated", False):
-                raise ValueError(message)
-            print(f"WARN {message}", file=sys.stderr)
         if not probe["isolated"]:
             message = (f"isolation probe reports tools or instructions, or answered in another shape; see {probe['path']}. "
                        "Fix the isolation (flags, CODEX_HOME, working directory) or pass --allow-unisolated to record anyway")
@@ -500,7 +557,7 @@ def run_pilot(args, root: Path = ROOT) -> list[Path]:
                 identity = (args.harness, result.model)
             elif result.model != identity[1]:
                 raise ValueError(f"model changed inside the iteration: {identity[1]} then {result.model}; stop and use a new iteration")
-            target = record_result(root, args, entry, config, result, payload, loaded, order, argv, version, seed, cwd, probe)
+            target = record_result(root, args, entry, config, result, payload, loaded, order, argv, version, seed, cwd, isolation, probe)
         except (RuntimeError, ValueError, OSError, KeyError, json.JSONDecodeError) as exc:
             stdout = cwd / "harness_stdout.txt"
             log_attempt(root, args.iteration, {**attempt, "status": "failed", "error": str(exc)[:500],
@@ -529,8 +586,8 @@ def main():
     p.add_argument("--skip-recorded", action="store_true", help="resume an interrupted iteration; recorded runs are skipped, never overwritten")
     p.add_argument("--allow-dirty", action="store_true", help="run with uncommitted changes under skills/ (the recorded commit will not describe the payload)")
     p.add_argument("--timeout", type=int, default=900, help="seconds per harness run")
-    p.add_argument("--skip-probe", action="store_true", help="do not run the isolation probe first (the provenance records the gap)")
-    p.add_argument("--allow-unisolated", action="store_true", help="record even when the probe reports tools or instructions in the session")
+    p.add_argument("--skip-probe", action="store_true", help="skip the isolation probe, the diagnostic only; the configuration checks still run and the provenance records the gap")
+    p.add_argument("--allow-unisolated", action="store_true", help="record even when a configuration check fails or the probe reports tools or instructions; the sidecar records both")
     p.add_argument("--allow-unverified", action="store_true", help="run a full iteration on a harness version not yet listed in verified_harness_versions")
     p.add_argument("--work-dir", help="parent directory for the per-run working directories; a fresh temporary directory outside the repo by default")
     args = p.parse_args()

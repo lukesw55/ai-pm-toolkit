@@ -147,17 +147,69 @@ class PilotRunnerTests(unittest.TestCase):
                 parsed = rp.parse_probe(text); self.assertFalse(parsed['isolated']); self.assertFalse(parsed['format_ok'])
 
     def test_configuration_checks_refuse_an_unsafe_template(self):
+        # The guarantee runs before any generation call, with and without the probe; the
+        # review of head ad4f467 found --skip-probe skipping it and the refusal arriving
+        # after the harness had already run once.
         self.args.harness_cmd = f'{sys.executable} {self.fake} --model {{model}}'
-        with self.assertRaisesRegex(ValueError, 'isolation configuration incomplete.*safe_mode'): rp.run_pilot(self.args, self.root)
-        self.assertEqual(self.metas(), [])
-        self.args.allow_unisolated = True; self.args.skill = self.skills[2]
+        for skip_probe in (False, True):
+            with self.subTest(skip_probe=skip_probe):
+                self.args.skip_probe = skip_probe
+                with patch.object(rp, 'run_harness', wraps=rp.run_harness) as spy:
+                    with self.assertRaisesRegex(ValueError, 'isolation configuration incomplete.*safe_mode'): rp.run_pilot(self.args, self.root)
+                self.assertEqual(spy.call_count, 0)
+        self.assertEqual(self.metas(), []); self.assertEqual(self.attempts(), [])
+        self.assertFalse(rp.probe_dir(self.root, 'iteration-fake').exists())
+        self.args.skip_probe = False; self.args.allow_unisolated = True; self.args.skill = self.skills[2]
         recorded = rp.run_pilot(self.args, self.root)
         prov = json.loads((recorded[0] / 'provenance.json').read_text())
         self.assertFalse(prov['isolation_config']['safe_mode']); self.assertTrue(prov['isolation_config']['cwd_outside_repo'])
-        config = rp.isolation_config('codex', ['codex', 'exec', '--sandbox', 'read-only', '--skip-git-repo-check'], Path(self.tmp.name) / 'w', self.root, {'CODEX_HOME': str(self.codex_home)})
-        self.assertTrue(all(config.values()), config)
-        (self.codex_home / 'AGENTS.md').write_text('loaded instructions')
-        self.assertFalse(rp.isolation_config('codex', ['codex', 'exec', '--sandbox', 'read-only', '--skip-git-repo-check'], Path(self.tmp.name) / 'w', self.root, {'CODEX_HOME': str(self.codex_home)})['codex_home_clean'])
+
+    def test_skip_probe_keeps_the_configuration_guarantee(self):
+        self.args.skip_probe = True; self.args.skill = self.skills[2]
+        recorded = rp.run_pilot(self.args, self.root)
+        self.assertTrue(recorded); self.assertFalse(rp.probe_dir(self.root, 'iteration-fake').exists())
+        prov = json.loads((recorded[0] / 'provenance.json').read_text())
+        self.assertTrue(prov['skip_probe']); self.assertIsNone(prov['isolation_probe'])
+        self.assertTrue(all(prov['isolation_config'].values()), prov['isolation_config'])
+
+    def test_codex_home_customisations_are_refused(self):
+        argv = ['codex', 'exec', '--sandbox', 'read-only', '--skip-git-repo-check']
+        w = Path(self.tmp.name) / 'w'
+        def config(home=self.codex_home, args=argv):
+            return rp.isolation_config('codex', args, w, self.root, {'CODEX_HOME': str(home)})
+        self.assertTrue(all(config().values()), config())
+        # Runtime artefacts and a config.toml limited to model and approval keys stay clean.
+        (self.codex_home / 'sessions').mkdir(); (self.codex_home / 'history.jsonl').write_text('')
+        (self.codex_home / 'config.toml').write_text('model = "gpt-5"  # pinned\napproval_policy = "never"\n')
+        self.assertTrue(config()['codex_home_clean'])
+        for text in ('developer_instructions = "be brief"\n', 'model = "gpt-5"\n\n[mcp_servers.example]\ncommand = "npx"\n',
+                     'model_instructions_file = "/tmp/x.md"\n', '[[profiles]]\nname = "x"\n', 'model = "gpt-5"\nnotify = ["say"]\n'):
+            with self.subTest(text=text):
+                (self.codex_home / 'config.toml').write_text(text)
+                self.assertFalse(config()['codex_home_clean'])
+        (self.codex_home / 'config.toml').unlink()
+        for name in ('AGENTS.md', 'prompts', 'skills', 'hooks', 'rules'):
+            with self.subTest(entry=name):
+                path = self.codex_home / name
+                path.mkdir() if name != 'AGENTS.md' else path.write_text('loaded instructions')
+                self.assertFalse(config()['codex_home_clean'])
+                shutil.rmtree(path) if path.is_dir() else path.unlink()
+        self.assertTrue(config()['codex_home_clean'])
+        self.assertFalse(config(args=argv + ['-c', 'mcp_servers.x.command="npx"'])['no_config_overrides'])
+        self.assertFalse(config(args=argv + ['--config', 'developer_instructions="x"'])['no_config_overrides'])
+        self.assertFalse(rp.isolation_config('codex', argv, w, self.root, {})['codex_home_set'])
+        self.assertFalse(rp.isolation_config('codex', argv, w, self.root, {'CODEX_HOME': str(self.codex_home / 'missing')})['codex_home_set'])
+        # Through the runner: a home with instructions and an MCP server is refused before any harness call.
+        (self.codex_home / 'config.toml').write_text('developer_instructions = "be brief"\n\n[mcp_servers.example]\ncommand = "npx"\n')
+        self.args.harness = 'codex'; self.args.harness_cmd = self.codex_template; self.args.skill = self.skills[2]
+        with patch.dict(os.environ, {'FAKE_FORMAT': 'codex', 'CODEX_HOME': str(self.codex_home)}):
+            with patch.object(rp, 'run_harness', wraps=rp.run_harness) as spy:
+                with self.assertRaisesRegex(ValueError, 'isolation configuration incomplete for codex: codex_home_clean'): rp.run_pilot(self.args, self.root)
+            self.assertEqual(spy.call_count, 0); self.assertEqual(self.metas(), [])
+            (self.codex_home / 'config.toml').write_text('model = "gpt-5"\n')
+            recorded = rp.run_pilot(self.args, self.root)
+        prov = json.loads((recorded[0] / 'provenance.json').read_text())
+        self.assertTrue(all(prov['isolation_config'].values()), prov['isolation_config'])
 
     def test_probe_is_immutable_per_invocation_and_bound_to_validation(self):
         self.args.skill = self.skills[1]
