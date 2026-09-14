@@ -212,8 +212,8 @@ fixture(
     We need one plan for the quarter and we need it by Friday. Our team owns
     the rollout; the memo below lists the three decisions.
 
-    Removed "fast-paced landscape" and "leverage"; cut "crucial". Kept the
-    Friday deadline and the three decisions.
+    Removed "fast-paced landscape" and "leverage"; cut "crucial".
+    Kept the Friday deadline and the three decisions.
     """,
     1.0, 1.0,
 )

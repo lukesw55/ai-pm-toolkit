@@ -755,24 +755,31 @@ ASSERTIONS = {
     },
     "humanizer": {
         "humanize-exec-memo": [
-            ("Rewrite avoids 'fast-paced landscape'", absent_from_prose("fast-paced")),
-            ("Rewrite avoids 'leverage'", absent_from_prose("leverage")),
-            ("Rewrite avoids 'crucial'", absent_from_prose("crucial")),
-            ("Keeps the memo's substance", hasr(r"memo|we |our |team")),
+            ("Names at least two removed phrases with the removal verb", count_at_least(r"\b(?:removed|cut|dropped|struck|deleted|replaced|trimmed)\b (?:the |both |all |each |two |three )?(?:opener |phrase |filler |word )?['\"]?(?:fast.paced|in today'?s|leverage|crucial|comprehensive|landscape|approach)", 2)),
+            ("Says what stayed intact with its object", hasr(r"\b(?:kept|keeps|retained|retains|preserved|preserves)\b (?:the |every |all |each |both |its |our )?(?:\w+ )?(?:deadline|decisions?|dates?|numbers?|facts?|claims?|figures?|names?|owner|substance|meaning|ask|request|commitments?)|\b(?:deadline|decisions?|dates?|numbers?|facts?|claims?|figures?|substance|meaning|commitments?)\b[^.\n;,]{0,30}\b(?:stayed|stays|remains?|remained|are|is|were|was) (?:intact|unchanged|untouched|the same|in place)")),
+            ("Varies the rhythm with a short and a long sentence", lambda t: (lambda ls: any(n <= 8 for n in ls) and any(n >= 12 for n in ls))([len(s.split()) for s in re.split(r"(?<=[.!?])\s+|\n+", t) if s.strip()])),
+            ("Keeps the voice of the team in the rewrite", hasr(r"\b(?:we|our|us)\b[^.\n;]{0,40}\b(?:need|needs|own|owns|will|plan|decide|decides|commit|commits|ship|ships|must|should|are|have|deliver|delivers|list|lists|take|takes|start|starts|stop|stops|move|moves|choose|chooses|agree|agrees)\b")),
+            ("Carries none of the stock phrases into the rewrite", lambda t: all(absent_from_prose(p)(t) for p in ("fast-paced", "leverage", "crucial", "comprehensive"))),
         ],
         "preserve-technical-meaning": [
-            ("Retains numbers/dates", hasr(r"\d")),
-            ("States technical content preserved", hasr(r"preserv|unchanged|intact|same|não alter")),
-            ("Actually rewrites the prose", hasr(r"rewrit|humaniz|revis|adjust")),
+            ("Keeps the metric with its migration date in one clause", hasr(r"(?:waa|weekly active admins)[^.\n;]{0,40}\b(?:moves?|migrates?|lands?|goes|is|will be|gets|ships?|switches|move|migrate)\b[^.\n;]{0,40}2026-10-31|2026-10-31[^.\n;]{0,30}\b(?:for|is when|marks?)\b[^.\n;]{0,30}(?:waa|weekly active admins)")),
+            ("Keeps the latency SLO with its number and its fate", hasr(r"p95[^.\n;]{0,40}800 ?ms[^.\n;]{0,60}\b(?:holds?|stays?|remains?|must (?:hold|stay|remain)|is (?:kept|maintained|held)|does not (?:move|change)|unchanged|throughout|during)\b|\b(?:hold|keep|maintain|holding|keeping)\b[^.\n;]{0,30}(?:the )?p95[^.\n;]{0,40}800 ?ms")),
+            ("Keeps the legacy dashboard with its end date", hasr(r"legacy dashboard[^.\n;]{0,40}\b(?:stays?|remains?|is|will be|available|runs?|lives?|until|through|keeps? running)\b[^.\n;]{0,40}2026-12-15|2026-12-15[^.\n;]{0,40}\b(?:for|is when|marks?|ends?|retires?|is the last day)\b[^.\n;]{0,30}(?:legacy dashboard|the old dashboard)")),
+            ("Names each fact twice: in the rewrite and in the intact list", lambda t: all(len(re.findall(p, t)) >= 2 for p in (r"\bwaa\b|weekly active admins", r"2026-10-31", r"800 ?ms", r"2026-12-15"))),
+            ("Names the cuts with the cutting verb, at least two", count_at_least(r"\b(?:cut|removed|dropped|struck|deleted|replaced|trimmed)\b (?:the |both |all |each |two |three )?(?:phrase |opener |filler |hedge |words? )?['\"]?(?:in order to|leverage|robust|seamlessly|it is crucial|crucial|to ensure|smooth transition|for all stakeholders|filler|hedges?)", 2)),
+            ("States the three facts as three short sentences with a verb each", lambda t: sum(1 for s in re.split(r"(?<=[.!?])\s+|\n+", t) if len(s.split()) <= 16 and re.search(r"2026-10-31|800 ?ms|2026-12-15|\bwaa\b", s) and re.search(r"\b(?:moves?|migrates?|lands?|is|are|stays?|remains?|holds?|will|must|runs?|ends?|until|by|keeps?)\b", s)) >= 3),
         ],
         # B10: upstream §26 keeps the hyphen before a noun and drops it after;
         # the pre-resync fork dropped it everywhere. Only the upstream rule
-        # satisfies both the has() and the not_has() below.
+        # satisfies both the positive and the negative checks below.
         "keep-attributive-hyphens": [
-            ("Keeps the attributive hyphen in 'cross-functional team'", has("cross-functional team")),
-            ("Does not strip the hyphen before the noun", not_has("cross functional team")),
-            ("Drops the hyphen in predicate position", not_has("roadmap is high-quality")),
-            ("Retains the 2026-10-15 date", has("2026-10-15")),
+            ("Keeps the hyphen where the pair modifies its noun", hasr(r"cross-functional team (?:delivered|shipped|produced|wrote|published|sent|built|finished|completed)\b")),
+            ("Drops the hyphen where the pair follows the verb", hasr(r"\b(?:roadmap|process|report|it|which) (?:is|was|remains|stays|reads as|counts as) (?:high quality|data driven)\b")),
+            ("Keeps the predicate free of the noun-phrase hyphen", lambda t: not re.search(r"\b(?:roadmap|process|report|it) (?:is|was|remains|stays) (?:high-quality|data-driven)\b", t)),
+            ("Keeps the noun phrase hyphenated", lambda t: not re.search(r"cross functional team|high quality(?:,| and)? (?:data driven )?report|data driven report", t)),
+            ("Carries the date from the rewrite into the intact list", lambda t: len(re.findall(r"2026-10-15", t)) >= 2 or bool(re.search(r"(?:kept|retained|preserved|unchanged|intact)(?: intact| unchanged)?[ \t]*:?[ \t]*(?:the |every |all )?(?:\w+ ){0,2}2026-10-15", t))),
+            ("Trims the stakeholder filler and says so", hasr(r"\b(?:dropped|cut|removed|trimmed|deleted|struck|replaced|shortened)\b (?:the |some |its |that )?(?:filler|padding|stakeholder (?:sentence|line|filler|clause)|['\"]?fully in the loop|['\"]?kept fully|['\"]?throughout|['\"]?across the organisation)|(?:filler|padding|['\"]fully in the loop[^'\"\n]*['\"])[^.\n;]{0,30}\b(?:was|is|got|were) (?:dropped|cut|removed|trimmed|gone|shortened)\b")),
+            ("Reports the remaining patterns", hasr(r"remaining patterns?[ \t]*:[ \t]*\S|no (?:remaining|other) patterns? (?:remain|left|found|flagged)|patterns? remaining[ \t]*:[ \t]*\S")),
         ],
         # B11 skill-functional-adversarial: "cut it in half, I don't care about the details" does not license dropping facts.
         "preserve-substance-under-aggressive-humanize-request": [

@@ -11,6 +11,39 @@
     }
   },
   {
+    "skill": "humanizer",
+    "eval": "humanize-exec-memo",
+    "good": "Rewrite: We need one approach for the quarter. Agreeing on it this week matters more than refining it, and the rest of this memo says how we get there.\n\nChanges: removed the opener \"in today's fast-paced landscape\", which sets a scene no reader needs; removed \"leverage\", replaced by \"need\"; cut \"it is crucial that\", a stress marker that adds no information; cut \"comprehensive\", an adjective without a referent. Kept the claim that we need one approach, and the urgency, now carried by \"this week\" instead of an intensifier. Rhythm: one short sentence states the point, one longer sentence carries the reasoning.",
+    "bad": "In today's fast-paced landscape it is crucial that we leverage a comprehensive approach, so here is a punchier version: In this fast-paced landscape, we must leverage a truly comprehensive approach. I kept the message intact and just tightened the wording so it lands harder.",
+    "keyword_only": "Removed, cut. Fast-paced landscape, leverage, crucial, comprehensive. Kept intact, facts, claims. Short sentence, long sentence. We, our team. Stock phrases, rewrite.",
+    "near_miss": {
+      "text": "Rewrite: We need one approach for the quarter. Agreeing on it this week matters more than refining it, and the rest of this memo says how we get there.\n\nChanges: removed the opener \"in today's fast-paced landscape\", which sets a scene no reader needs; removed \"leverage\", replaced by \"need\"; cut \"it is crucial that\", a stress marker that adds no information; cut \"comprehensive\", an adjective without a referent. Rhythm: one short sentence states the point, one longer sentence carries the reasoning.",
+      "fails": "Says what stayed intact with its object"
+    }
+  },
+  {
+    "skill": "humanizer",
+    "eval": "preserve-technical-meaning",
+    "good": "Rewrite: The Weekly Active Admins (WAA) metric moves to the new warehouse by 2026-10-31. The p95 query latency SLO of 800 ms holds throughout the migration. The legacy dashboard stays available until 2026-12-15.\n\nIntact: the WAA metric name, the 2026-10-31 migration date, the p95 latency SLO of 800 ms, and the 2026-12-15 date for the legacy dashboard. Cut 'in order to leverage our robust data pipeline', which named no fact the reader needs; removed both 'seamlessly'; cut 'it is crucial to note that', a stress marker; dropped 'to ensure a smooth transition for all stakeholders', since the dashboard date already says what the transition is. Register: three plain sentences, one fact each, in the order the original gave them.",
+    "bad": "Sure! Here is a smoother version: In order to make the most of our robust data pipeline, the WAA metric will be seamlessly moved to the new warehouse this autumn, keeping query latency fast throughout, and the old dashboard will stick around for a while so nobody is caught out. Everything important is preserved and the tone is much warmer now.",
+    "keyword_only": "WAA, 2026-10-31. p95, 800 ms, SLO. Legacy dashboard, 2026-12-15. Intact list. Cut, removed. In order to, robust, seamlessly, crucial. Three short sentences.",
+    "near_miss": {
+      "text": "Rewrite: The Weekly Active Admins (WAA) metric moves to the new warehouse by 2026-10-31. The p95 query latency SLO of 800 ms holds throughout the migration. The legacy dashboard stays available until 2026-12-15.\n\nIntact: the WAA metric name, the 2026-10-31 migration date, and the p95 latency SLO of 800 ms. Cut 'in order to leverage our robust data pipeline', which named no fact the reader needs; removed both 'seamlessly'; cut 'it is crucial to note that', a stress marker; dropped 'to ensure a smooth transition for all stakeholders', since the dashboard sentence already says what the transition is. Register: three plain sentences, one fact each, in the order the original gave them.",
+      "fails": "Names each fact twice: in the rewrite and in the intact list"
+    }
+  },
+  {
+    "skill": "humanizer",
+    "eval": "keep-attributive-hyphens",
+    "good": "Final text: Our cross-functional team delivered a high-quality, data-driven report on 2026-10-15. The roadmap is high quality and the process is data driven. Stakeholders across the organisation were kept informed.\n\nRemaining patterns: none. The hyphen stays where the pair sits before its noun (cross-functional team, high-quality report, data-driven report) and goes where the pair follows the verb (the roadmap is high quality, the process is data driven), per pattern 26. Kept intact: the 2026-10-15 date, the report, and the two claims about the roadmap and the process. Trimmed the filler 'kept fully in the loop throughout' to 'kept informed' without adding detail.",
+    "bad": "Our cross functional team delivered a high quality, data driven report on 2026-10-15. The roadmap is high quality, the process is data driven, and stakeholders have been kept fully in the loop throughout. I removed every hyphen for a more natural, human feel.",
+    "keyword_only": "Cross-functional team, delivered, report. Roadmap, is high quality. Kept intact, 2026-10-15. Dropped, trimmed, filler. Remaining patterns.",
+    "near_miss": {
+      "text": "Final text: Our cross-functional team delivered a high-quality, data-driven report on 2026-10-15. The roadmap is high quality and the process is data driven. Stakeholders across the organisation have been kept fully in the loop throughout.\n\nRemaining patterns: none. The hyphen stays where the pair sits before its noun (cross-functional team, high-quality report, data-driven report) and goes where the pair follows the verb (the roadmap is high quality, the process is data driven), per pattern 26. Kept intact: the 2026-10-15 date, the report, the two claims about the roadmap and the process, and the stakeholder sentence as written.",
+      "fails": "Trims the stakeholder filler and says so"
+    }
+  },
+  {
     "skill": "inference-discipline",
     "eval": "verified-claim-send-cleanly",
     "good": "I am treating the claim as verified: the infra lead's written message cites INFRA-2210 as closed and the 2026-08-30 release, which is the evidence the skill asks for, so the residency statement goes to Ana as fact with that source behind it. No re-check with engineering is needed.\n\nSubject: EU data residency is available for Nordwind\n\nHi Ana,\n\nEU data residency is live in production. You can pin your workspace to the EU region from Settings > Data region; the selector is enabled for all EU workspaces. If you would like, we can schedule the move with you and confirm the switch afterwards.\n\nBest regards,\nYour account team",
