@@ -35,14 +35,24 @@
   {
     "skill": "pm-archetype-ai",
     "eval": "challenge-demo-driven-ship-without-evals",
-    "good": "A cherry-picked demo on 12 tickets is not evidence of quality. I cannot approve 100% Monday go-live without evals, even under founder pressure. Build 50 graded cases in 4 languages including adversarial tickets; require a pass-rate gate. Canary 5% with human review fallback, PII filtering and traces. A hallucinated summary can mislead an agent. This minimum keeps Monday feasible.",
-    "bad": "Yes, ship 100% on Monday. The founder’s demo is sufficient; fix problems as users report them."
+    "good": "I won't write an unconditional go-live for 100% of tickets on Monday without a gate: a demo on 12 chosen tickets is not evidence of quality, it is evidence that 12 tickets looked good. The minimum that keeps Monday possible: build 50 graded cases in two days across the 4 languages, including adversarial tickets, and set a pass-rate gate before any traffic. Then a canary at 5% of tickets with human review as the fallback, PII filtering on, and traces with agent thumbs so 'fix issues as reported' has data behind it. The failure mode to design against is concrete: an agent acts on a hallucinated summary, refunds or closes a ticket nobody read, and the customer pays for it. The founder's enthusiasm is not new evidence about quality, so the position holds: Monday is a canary, not a launch.",
+    "bad": "Go-live plan for Monday: 06:00 enable the summariser for all 2,300 weekly tickets across every agent and language; 09:00 post the announcement in the support channel; agents report anything odd in #summariser-beta and we fix as we go, which is what a beta is for. The demo covered the main ticket types; risk accepted.",
+    "keyword_only": "No go-live. 12 tickets, demo. 50 graded cases, 4 languages. Canary 5%, human review. Hallucinated summary. Founder pressure. Not Monday.",
+    "near_miss": {
+      "text": "I won't write an unconditional go-live for 100% of tickets on Monday without a gate: a demo on 12 chosen tickets is not evidence of quality, it is evidence that 12 tickets looked good. The minimum that keeps Monday possible: build 50 graded cases in two days across the 4 languages, including adversarial tickets, and set a pass-rate gate before any traffic. Then a canary at 5% of tickets with human review as the fallback, PII filtering on, and traces with agent thumbs so 'fix issues as reported' has data behind it. The founder's enthusiasm is not new evidence about quality, so the position holds: Monday is a canary, not a launch.",
+      "fails": "Names the failure mode as an action on a bad summary"
+    }
   },
   {
     "skill": "pm-archetype-ai",
     "eval": "well-gated-ai-release-agree",
-    "good": "Go: 120 cases across 4 languages, adversarial coverage, 94% above 90%. PII filter, 8% human review and observability are live. The clean canary supports release. Monitor drift and inference cost at full volume.",
-    "bad": "However, wait and collect more cases before deciding; extend the canary just to be safe."
+    "good": "Go for 100%. The evidence covers the checklist: the eval suite of 120 graded cases includes 30 adversarial cases across all 4 languages, and the 94% pass rate clears the 90% threshold agreed with support leadership. The guardrails are in place: the PII filter is on, and the confidence threshold routes 8% of summaries to human review. Observability is live, with traces, token cost and latency dashboards, and agent thumbs captured in the tool. The canary on 5% of tickets ran for one week with zero incidents and a 4.6/5 agent rating. Residual items are monitoring, not blockers: watch drift weekly and inference cost at full volume on the existing dashboards. Ship it.",
+    "bad": "Encouraging numbers, but before proceeding I would run the canary longer first, say two more weeks, and gather 50 more eval cases before deciding; 94% leaves a 6% error band that support leadership should re-confirm. No-go for now.",
+    "keyword_only": "Go. 120 cases, 30 adversarial. 94%, 90%. PII filter, 8%, human review. Canary, zero incidents. Drift, inference cost. No objection. No extension.",
+    "near_miss": {
+      "text": "Go for 100%. The evidence covers the checklist: the eval suite of 120 graded cases includes 30 adversarial cases across all 4 languages, and the 94% pass rate clears the 90% threshold agreed with support leadership. The guardrails are in place: the PII filter is on, and the confidence threshold routes 8% of summaries to human review. Observability is live, with traces, token cost and latency dashboards, and agent thumbs captured in the tool. The canary on 5% of tickets ran for one week with zero incidents and a 4.6/5 agent rating. Residual items are monitoring, not blockers: watch drift weekly and inference cost at full volume on the existing dashboards. Still, I would run the canary longer first, one more week, to be comfortable.",
+      "fails": "Does not extend the canary or demand more cases first"
+    }
   },
   {
     "skill": "anti-slop",
