@@ -71,6 +71,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 pm-transversal-analysis: relations, not terms, in two standard blocks; strict pairs
 - 2026-09-14 B41 data-science-analyst: relations, not terms, in four standard blocks; strict pairs
 - 2026-09-14 B41 anti-slop: relations, not terms, in two standard blocks; strict pairs
+- 2026-09-14 B41 humanize-deliverables: relations, not terms, in one standard block; strict pair
 
 ## 2026-09-08: session log
 
@@ -362,4 +363,8 @@ audit-powerbi-export-data-quality grows from six to seven assertions: the refusa
 ## 2026-09-14: B41 anti-slop: relations, not terms, in two standard blocks; strict pairs
 
 remove-ai-slop-from-readme-section grows from four to seven assertions: the rewrite delivered as a labelled artefact, at least two cuts named with the cutting verb, each cut tied to why it goes, the function of the thing described kept with a verb between toolkit and what it gives, the confirmation that nothing was claimed beyond the original, and two negatives that read only the unquoted prose so a good answer may quote the words it removed. block-unrequested-plan-file grows from four to seven: the deletion of both files by name in one sentence, the two files called unrequested artefacts with the linking verb, the finding grounded in the catalogue with what the rule does, the exception for an explicit request kept with its verb, where the explanation belongs instead, the small edit read as too small for a plan, and the negative on keeping them tolerating a conditional keep. Both pairs carry keyword_only and near_miss fixtures; bad fixtures are plausible wrong answers. Full REPO_HEALTH battery green.
+
+## 2026-09-14: B41 humanize-deliverables: relations, not terms, in one standard block; strict pair
+
+gate-before-slack-send grows from four to nine assertions: the ship date stated with its verb, the bug count as a fraction plus the FAQ with its owner, the open bug with its ETA, the launch date linked to the outcome of the fix, the three steps ordered with connectors (pass, mark, send), what the hook hashes, what it does without the mark, the rule that a byte change after marking needs a new mark, and a negative on sending before the gate. Anchors sit next to their verbs so a comma-joined list of the same terms does not pass. The pair carries keyword_only and near_miss fixtures; the bad fixture is the plausible wrong answer that posts first and humanizes if the hook complains. Full REPO_HEALTH battery green.
 

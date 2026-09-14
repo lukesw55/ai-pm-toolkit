@@ -218,15 +218,17 @@ def deck_titles_are_claims(t: str) -> bool:
 
 
 def deck_render_is_optional(t: str) -> bool:
-    """Mention the render capability without turning it into the deliverable."""
-    has_render = "pptx" in t or "render" in t
-    has_degradation = (
-        "optional" in t
-        or "harness-dependent" in t
-        or "harness dependent" in t
-        or "storyline is the deliverable" in t
-    )
-    return has_render and has_degradation
+    """Mention the render capability as conditional on the harness, never as
+    the deliverable: `Render: optional`, a render that `is optional`, the
+    storyline named as the deliverable, or the render tied to whether the
+    session offers the skill. The two words merely co-occurring do not count."""
+    return bool(re.search(
+        r"render[ \t]*:[ \t]*optional"
+        r"|render\w*[^.\n;]{0,30}\b(?:is|stays|remains|are)\b[^.\n;]{0,20}(?:optional|harness.dependent)"
+        r"|storyline is the deliverable"
+        r"|(?:pptx|render\w*)[^.\n;]{0,60}\b(?:if|when|where|only if)\b[^.\n;]{0,40}(?:harness|session|skill|offers|available)",
+        t,
+    ))
 
 
 ASSERTIONS = {
@@ -828,18 +830,22 @@ ASSERTIONS = {
     },
     "pm-storytelling": {
         "turn-synthesis-into-narrative-spine": [
-            ("Builds a narrative spine (tension/insight/change)", hasr(r"tension|insight|change|takeaway")),
-            ("Marks evidence gaps instead of inventing", hasr(r"needs source|\[needs|gap|no evidence|não invent")),
-            ("Produces a decision-memo shape", hasr(r"memo|decision|recommend")),
-            ("Anchors claims in the source notes", hasr(r"quote|evidence|note")),
+            ("Recommends funding a scoped version, with the verb", hasr(r"\b(?:recommend|recommendation:|fund|approve|green.?light) (?:that we |we |to |funding )?(?:a |the )?(?:scoped|narrow|small|thin|minimal|first|limited|v1) (?:version|slice|cut|pilot|release)? ?(?:of )?(?:delegat|the feature|approval)|\b(?:fund|approve|recommend\w*) (?:a |the )?delegat\w*[^.\n;,]{0,40}\b(?:scoped|narrow|small|thin|minimal|limited|pilot|v1)\b|recommendation[ \t]*:[ \t]*(?:fund|approve|build|ship)[^.\n;]{0,60}(?:scoped|narrow|small|thin|minimal|limited|slice|v1)")),
+            ("Fills the four spine fields with content", lambda t: sum(1 for f in ("tension", "insight", "change", "takeaway") if re.search(rf"\b{f}[ \t]*:[ \t]*\w", t)) >= 3),
+            ("Counts the participants who named the bottleneck, by id", hasr(r"(?:five|5) of (?:the )?(?:seven|7)[^.\n;]{0,100}\b(?:said|say|named|described|report\w*|told|blame\w*|point\w*)\b[^.\n;]{0,60}(?:one person|single (?:person|approver)|approver|always in meetings|bottleneck|wait)|p0[1-7](?:, p0[1-7]){2,}\)?[^.\n;,]{0,40}\b(?:said|say|named|described|report\w*|told|blame\w*|point\w*)\b")),
+            ("Reads the funnel drop with its sample and window", hasr(r"38 ?%[^.\n;]{0,40}\b(?:at|on|in|drop\w*|fall\w*|lost|abandon\w*)\b[^.\n;]{0,30}step 3[^.\n;]{0,80}(?:4,?120|60 days)|step 3[^.\n;]{0,40}\b(?:drops?|loses|sheds|falls)\b[^.\n;]{0,30}38 ?%[^.\n;]{0,80}(?:4,?120|60 days)")),
+            ("Keeps the two dissenters visible with what they asked for instead", hasr(r"p03[^.\n;]{0,20}p05\)?[^.\n;,]{0,40}\b(?:said|say|called|found|find|asked|want\w*|prefer\w*|disagree\w*|counter\w*)\b|p05[^.\n;]{0,20}p03\)?[^.\n;,]{0,40}\b(?:said|say|called|found|find|asked|want\w*|prefer\w*|disagree\w*|counter\w*)\b|(?:two|2) (?:participants|of (?:the )?seven|dissenters?|ops managers)[^.\n;]{0,40}\(?p03[^.\n;]{0,80}(?:bulk export|step is fine|fine)")),
+            ("Leaves the revenue impact as a placeholder, not a number", hasr(r"revenue(?: impact)?[ \t]*:?[ \t]*\[(?:needs|tbd|unsized)|\[(?:needs (?:metric|source|number|sizing)|tbd|unsized)[ \t]*:[ \t]*[^\]\n]{0,40}revenue|revenue (?:impact )?(?:is |remains |stays )?(?:unsized|not (?:yet )?sized|to be sized|tbd)[^.\n;]{0,40}\b(?:no|not|rather than|instead of|never)\b[^.\n;]{0,30}(?:number|figure|invent\w*|estimate|guess)")),
+            ("Separates what the evidence shows from the spine laid over it", hasr(r"(?:what the evidence shows|evidence)[^\n:]{0,20}:[ \t]*\S[\s\S]{0,800}(?:the spine|spine|narrative|story)[^\n:]{0,30}:|(?:evidence|the notes?|the data)[^.\n;]{0,40}\b(?:shows?|says?|supports?|carries|gives)\b[^.\n;]{0,80}\b(?:the (?:spine|narrative|story|frame))\b[^.\n;]{0,40}\b(?:is|adds|lays|imposes|sits|comes|orders|arranges)\b|\b(?:spine|narrative|story)\b[^.\n;]{0,30}\b(?:is|adds|lays|imposes|sits|comes)\b[^.\n;]{0,60}(?:on top of|over|after|not) the evidence")),
+            ("Invents no number the notes do not carry", lambda t: not re.search(r"\$ ?\d|\d{1,3} ?% of (?:revenue|arr)|(?:roughly|about|around|approximately|estimated) \$?\d[\d,.]* ?(?:k|m|%|hours|seats)? (?:in |of )?(?:revenue|arr|churn|saved|lift)|(?:revenue|arr) (?:impact |upside )?(?:of|is|at|around|roughly|about) \$?\d", t)),
         ],
         "qbr-deck-storyline-assertion-evidence": [
             ("Numbers 6–10 contiguous slides", deck_has_numbered_slides),
             ("Carries Evidence, Visual, and Speaker note under every slide title", deck_has_contract_fields),
             ("Opens with SCQA on slide 1", deck_opens_with_scqa),
             ("Titles every slide as a claim, not a topic label", deck_titles_are_claims),
-            ("Marks a missing number instead of inventing a chart", hasr(r"\[needs (?:source|metric)")),
-            ("Names the render step as optional / harness-dependent", deck_render_is_optional),
+            ("Marks a missing number with the marker and what is missing", hasr(r"\[needs (?:source|metric)[ \t]*:[ \t]*\S")),
+            ("Keeps the render step conditional on the harness", deck_render_is_optional),
         ],
         # B11 skill-functional-adversarial: "make it sing" with no source is a request to invent.
         "refuse-to-invent-evidence-for-the-spine": [
