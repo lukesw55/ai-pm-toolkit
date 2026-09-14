@@ -889,13 +889,14 @@ ASSERTIONS = {
     },
     "pm-prioritization-regua-comum": {
         "score-backlog-with-regua-comum": [
-            ("Scores the business-impact dimension", hasr(r"\bd1\b|business impact|commercial impact|\barr\b")),
-            ("Scores Abrangência dimension", hasr(r"abrang")),
-            ("Scores the strategic & risk dimension", hasr(r"\bd3\b|strateg|regulat")),
-            ("Applies confidence weighting", hasr(r"confian|confidence")),
-            ("Flags the single-account ask against the Abrangência lock", hasr(r"customiz|single account|uma conta|lock")),
-            ("Rates effort and plots the matrix", hasr(r"effort|esforço")),
-            ("Recommends an order of execution", hasr(r"first|primeiro|order|priorit")),
+            ("Scores the three dimensions per item with a number", count_at_least(r"\bd[123]\b(?: (?:business impact|abrangência|abrangencia|strategic(?: & risk| and risk)?))?[ \t]*(?::|=|-|–)?[ \t]*[1-5]\b", 6)),
+            ("Applies confidence with its value", hasr(r"confidence[ \t]+(?:(?:low|medium|high|média|baixa|alta)[ \t]+)?(?:of |at |= |: |is |applied |weight\w* |× |x )?0[.,]\d{1,2}|0[.,]\d{1,2}[ \t]+confidence|final[ \t]*(?::|=)?[ \t]*\d[.,]\d{2}")),
+            ("Flags the single-account ask against the lock with its reason", hasr(r"(?:\(a\)|sso|one (?:large )?account|single account|\$ ?300k)[^.\n;]{0,80}\b(?:is|counts as|reads as|looks like|becomes|would be)\b[^.\n;]{0,30}(?:customi[sz]ation|customização|bespoke|one-off|one.account (?:build|work))|(?:customi[sz]ation|customização|bespoke)[^.\n;]{0,40}\b(?:unless|until|because|since)\b[^.\n;]{0,60}(?:one account|single account|reusable|configurable|generalis|generaliz|\(a\)|sso)|abrang\w*[^.\n;]{0,20}lock[^.\n;]{0,80}\b(?:bites|applies|holds|blocks|caps|fires|triggers|catches)\b")),
+            ("Rates effort per item", count_at_least(r"effort[ \t]*(?::|=|-|–)?[ \t]*(?:low|medium|high|med|baixo|médio|alto|[1-5]|[smlx]l?)\b|\b(?:low|medium|high) effort", 2)),
+            ("Plots impact against effort as a quadrant", hasr(r"\((?:[abc])\)[^.\n;]{0,60}\b(?:quick win|big bet|fill.?in|time sink|money pit)\b|\b(?:quick win|big bet|fill.?in|time sink|money pit)\b[^.\n;]{0,60}\((?:[abc])\)|(?:medium|high|low) impact[^.\n;]{0,10}(?:and|,|at|with)[^.\n;]{0,5}(?:low|medium|high) effort|(?:impact|effort)[^.\n;]{0,10}(?:×|x|by|vs\.?|versus|against|over)[^.\n;]{0,10}(?:effort|impact)[^.\n;]{0,40}\b(?:puts?|lands?|places?|plots?|sits?|falls?|goes)\b")),
+            ("Recommends the order with the first item and its reason", hasr(r"\((?:[abc])\) (?:goes |comes |is |ships )?first\b[^.\n;]{0,80}\b(?:because|since|as|a quick win|at (?:low|medium|high)|given|so that|:)|\b(?:first|primeiro|start with|begin with|lead with)[ \t]*:?[ \t]*\((?:[abc])\)[^.\n;]{0,80}\b(?:because|since|as|given|so that|:|quick win|low effort)|order[ \t]*:[ \t]*\((?:[abc])\)")),
+            ("Keeps the exception path explicit: logged or absent", hasr(r"exception (?:is |was |gets |has been |must be |should be )?(?:logged|recorded|filed|registered) (?:with|naming|under|by)[^.\n;]{0,40}\b(?:owner|rationale|okr|justificativa)\b|(?:no|without an?) exception (?:is |was |gets |has been )?(?:logged|recorded|filed|registered|granted)|log(?:ged|ging|s)? (?:the |an |one )?exception (?:with|naming|under)[^.\n;]{0,40}\b(?:owner|rationale|okr)\b")),
+            ("Does not rank by account size alone", lambda t: not re.search(r"(?:sso|\(a\)|the sso|large account)[^.\n;]{0,40}\b(?:goes|comes|is|ships) first\b[^.\n;]{0,60}(?:revenue|\$ ?300k|arr|big|large|already asking)|(?:revenue|\$ ?300k|arr)[^.\n;]{0,40}\b(?:so|therefore|hence|means)\b[^.\n;]{0,30}(?:sso|\(a\))[^.\n;]{0,20}first", t)),
         ],
         # B11 doctrine-adversarial (PT-BR): HIPO cannot disable the Abrangência lock.
         "resist-hipo-override-of-abrangencia-lock": [
@@ -911,13 +912,14 @@ ASSERTIONS = {
         # and D3 serves accessibility. The last assertion is the point of the eval: an answer
         # that reaches for ARR has scored the origin domain, not the configured one.
         "score-with-non-revenue-ruler-configuration": [
-            ("Scores D1 as the configured non-revenue outcome", hasr(r"support hours|cost avoidance|operational cost")),
-            ("Uses the configured materiality limit instead of inventing one", hasr(r"\b200\b|materialit")),
-            ("Scores the Abrangência dimension", hasr(r"abrang")),
-            ("Cites the quantified evidence from the prompt", hasr(r"6 of 9|6/9|\b340\b|60%")),
-            ("Scores the configured accessibility obligation on D3", hasr(r"wcag|accessib|acessib")),
-            ("Applies the Abrangência lock to the one-team item", hasr(r"\block\b|trava")),
-            ("Logs the exception instead of waiving it", hasr(r"exception|exceç|logged|owner|okr")),
+            ("Scores D1 for the import from the hours against the limit", hasr(r"340[^.\n;]{0,40}\b(?:clears?|exceeds?|is above|beats?|passes|above|over|crosses|tops)\b[^.\n;]{0,20}(?:the )?200|200[^.\n;]{0,30}\b(?:limit|threshold|materiality)\b[^.\n;]{0,40}\b(?:is |are )?(?:cleared|exceeded|met|passed)\b[^.\n;]{0,20}(?:by )?340")),
+            ("Scores D2 for the import from the team count and reuse", hasr(r"6 (?:of|/) 9 (?:internal )?teams? (?:asked|want|requested|need)[^.\n;]{0,60}\b(?:reusable|reuse|shared|generalis\w*|generaliz\w*|configurable|capability)\b|d2[^.\n;]{0,15}[45][^.\n;]{0,10}:[^.\n;]{0,40}6 (?:of|/) 9")),
+            ("Scores D3 for the import as no accessibility angle", hasr(r"d3[ \t]*(?::|=|-)?[ \t]*1\b[^.\n;]{0,10}[:,]?[^.\n;]{0,30}(?:no accessibility|no wcag|nothing accessibility|no a11y|not accessibility)|(?:no accessibility|no wcag|no a11y)[^.\n;]{0,40}\b(?:so|hence|therefore|gives|means|puts)\b[^.\n;]{0,20}d3[ \t]*(?::|=|-)?[ \t]*1\b")),
+            ("Scores D3 for the keyboard item from the audit and the contract", hasr(r"d3[ \t]*(?::|=|-)?[ \t]*5\b[^.\n;]{0,80}(?:wcag|audit|blocker|contractual|renewal)|(?:wcag|audit|blocker|contractual obligation)[^.\n;]{0,80}\b(?:so|hence|therefore|gives|means|puts|scores|earns|makes)\b[^.\n;]{0,20}d3[ \t]*(?::|=|-)?[ \t]*5\b")),
+            ("Names the raw score and the impact band once confidence applies", hasr(r"raw[ \t]*(?::|=)?[ \t]*3[.,]00?[^.\n;]{0,60}\b(?:medium|médio|média)\b|\b(?:medium|médio) impact\b[^.\n;]{0,40}\b(?:once|after|with|when)\b[^.\n;]{0,20}confidence")),
+            ("Applies the lock to the one-team item and logs the exception with its fields", hasr(r"lock[^.\n;]{0,60}\b(?:would hold|holds|would block|blocks|would cap|caps|applies|bites|fires|catches)\b[^.\n;]{0,80}(?:exception|exceção)[^.\n;]{0,40}\b(?:logged|recorded|filed|registered|is logged|gets logged)\b|(?:exception|exceção) (?:is |was |gets |must be |should be )?(?:logged|recorded|filed|registered)[ \t]*(?::|with|naming|under)[^.\n;]{0,80}\b(?:owner|rationale|okr|justificativa)\b")),
+            ("Orders the two items with the reason for the first", hasr(r"\((?:[ab])\) (?:goes |comes |is |ships )?first\b[^.\n;]{0,80}\b(?:because|since|as|given|so that|:)|\b(?:first|primeiro|start with|begin with|lead with)[ \t]*:?[ \t]*\((?:[ab])\)[^.\n;]{0,80}\b(?:because|since|as|given|so that|:)|order[ \t]*:[ \t]*\((?:[ab])\)")),
+            ("Uses the configured limit and invents no other threshold", hasr(r"200(?:-| )?hours? (?:materiality |a quarter |per quarter )?(?:limit|threshold|line|bar)|(?:limit|threshold|materiality)[ \t]*(?:of|at|is|=|set (?:at|to))[ \t]*200|(?:configured|written into|set in|from) (?:the )?(?:ruler|configuration)[^.\n;]{0,30}200")),
             ("Does not fall back to revenue as D1", lambda t: not re.search(r"\barr\b|recurring revenue|revenue impact|receita recorrente", t)),
         ],
         # B11 negative control (PT-BR): a logged, legitimate exception is scored cleanly.
