@@ -22,13 +22,15 @@ texts must stay at or below 0.34. Assertions therefore check relations (two
 anchors with a verb or connector between them, an artefact, a count) rather than
 the presence of terms, and labels describe the check without its tokens.
 
-Line breaks are not behaviour either (review of PR #23). For every pair the loop
-derives the good text wrapped at 72 columns, words unchanged, and holds it to the
-same 0.80 floor: the grader reads every assertion through
-grade_evals.unwrap_soft_breaks, which rejoins a break after a full line and keeps
-blank lines, headings, list items, table rows and labelled fields as boundaries.
-The newline joins of the keyword list and of the labels go through the same
-normaliser, so a list of tokens one per line still scores as a list.
+Line breaks are not behaviour either (reviews of PR #23). For every pair the loop
+derives the good text wrapped at 72 columns, words unchanged, the same with an
+unwrapped paragraph beside it (after a blank line, and glued with a single newline)
+and a half-wrapped copy, and holds all four to the same 0.80 floor: the grader reads
+every assertion through grade_evals.unwrap_soft_breaks, which decides each break from
+the two lines it joins and keeps blank lines, headings, list items, enumerated labels,
+table rows and labelled fields as boundaries. The newline joins of the keyword list
+and of the labels go through the same normaliser, so a list of tokens one per line
+still scores as a list.
 
 The zero-run smoke check in grade_evals.py's own main() covers "no runs
 recorded yet" — this file is about the assertion logic itself, not the
@@ -64,6 +66,21 @@ def wrap_at_72(text: str) -> str:
     return "\n".join(
         textwrap.fill(line, width=72, break_long_words=False, break_on_hyphens=False)
         for line in text.splitlines()
+    )
+
+
+# The second review's attack: an unwrapped paragraph elsewhere in the same reply.
+META_PARAGRAPH = (
+    "Review metadata: this report covers the current repository snapshot and its "
+    "documented checks; no additional files were modified during the review."
+)
+
+
+def half_wrapped(text: str) -> str:
+    """Every other source line wrapped at 72 columns, the rest left as written."""
+    return "\n".join(
+        textwrap.fill(line, width=72, break_long_words=False, break_on_hyphens=False) if i % 2 == 0 else line
+        for i, line in enumerate(text.splitlines())
     )
 
 
@@ -373,8 +390,12 @@ fixture(
 PAIRS = json.loads((ROOT / "scripts/fixtures/adversarial_outputs.json").read_text(encoding="utf-8"))
 for pair in PAIRS:
     fixture(pair["eval"] + "-good", pair["skill"], pair["eval"], pair["good"], 0.80, 1.0)
-    # Wrapped at 72 columns the good text is the same answer and must stay in band.
+    # Wrapped at 72 columns the good text is the same answer and must stay in band,
+    # with or without an unwrapped paragraph beside it, and half wrapped.
     fixture(pair["eval"] + "-good-wrapped", pair["skill"], pair["eval"], wrap_at_72(pair["good"]), 0.80, 1.0)
+    fixture(pair["eval"] + "-good-wrapped-plus-paragraph", pair["skill"], pair["eval"], wrap_at_72(pair["good"]) + "\n\n" + META_PARAGRAPH, 0.80, 1.0)
+    fixture(pair["eval"] + "-good-wrapped-plus-line", pair["skill"], pair["eval"], wrap_at_72(pair["good"]) + "\n" + META_PARAGRAPH, 0.80, 1.0)
+    fixture(pair["eval"] + "-good-half-wrapped", pair["skill"], pair["eval"], half_wrapped(pair["good"]), 0.80, 1.0)
     fixture(pair["eval"] + "-bad", pair["skill"], pair["eval"], pair["bad"], 0.0, 0.30)
     # Strict pairs (references batch onward): a reply made only of the right
     # words must score low, and a plausible near miss must stay below full marks.
@@ -414,6 +435,34 @@ fixture(
     "validate-skill-repo-health",
     "All green. Everything passed, the tree is clean and ready to commit, and no fixes are needed. Nothing was changed.",
     0.0, 0.34,
+)
+
+# Two findings with a remedy for only the first (second review of PR #23) is a near
+# miss of the remedy assertion, like the JSON near miss with no remedy at all; one
+# remedy that says it covers both findings is a good answer.
+_REPO_DOCTOR_FIX_1 = " Fix: run python3 scripts/sync_skills.py and commit the regenerated mirrors."
+_REPO_DOCTOR_FIX_2 = " Fix: edit the table row to the real filename or add the missing file."
+_REPO_DOCTOR_RERUN = " Re-run python3 scripts/validate_repo.py after the two fixes and the review should come back clean."
+assert all(s in _REPO_DOCTOR_GOOD for s in (_REPO_DOCTOR_FIX_1, _REPO_DOCTOR_FIX_2, _REPO_DOCTOR_RERUN))
+# (fixture name, skill, eval_name, text, label of the one assertion the text must fail)
+EXTRA_NEAR_MISSES: list[tuple[str, str, str, str, str]] = [
+    (
+        "repo-doctor-two-findings-one-remedy-is-a-near-miss",
+        "repo-doctor",
+        "validate-skill-repo-health",
+        _REPO_DOCTOR_GOOD.replace(_REPO_DOCTOR_FIX_2, "").replace(_REPO_DOCTOR_RERUN, ""),
+        "Pairs each reported failure with its remedy, or states that none is needed with the checks behind it",
+    ),
+]
+for _name, _skill, _eval, _text, _ in EXTRA_NEAR_MISSES:
+    fixture(_name, _skill, _eval, _text, 0.50, 0.99)
+fixture(
+    "repo-doctor-shared-remedy-covers-both-findings",
+    "repo-doctor",
+    "validate-skill-repo-health",
+    _REPO_DOCTOR_GOOD.replace(_REPO_DOCTOR_FIX_1, "").replace(_REPO_DOCTOR_FIX_2, "")
+    + "\n\nFix for both findings: run python3 scripts/sync_skills.py, which regenerates the stale mirror and restores the missing reference file, then commit.",
+    0.80, 1.0,
 )
 
 
@@ -458,6 +507,14 @@ def run() -> int:
             failures.append(f"near miss for {pair['eval']} fails {sorted(failing)}; expected exactly {pair['near_miss']['fails']!r}")
         strict += 1
     print(f"PASS strict pairs: {strict} of {len(PAIRS)} pairs carry keyword-only and near-miss fixtures")
+
+    # In-code near misses obey the same rule: exactly the one named assertion fails.
+    for name, skill, eval_name, text, fails_label in EXTRA_NEAR_MISSES:
+        checks = ge.ASSERTIONS[skill][eval_name]
+        failing = {label for label, fn in checks if not fn(text.lower())}
+        if failing != {fails_label}:
+            failures.append(f"near miss {name} fails {sorted(failing)}; expected exactly {fails_label!r}")
+    print(f"PASS in-code near misses: {len(EXTRA_NEAR_MISSES)} fail exactly the named assertion")
 
     # Punctuation is not behaviour: a keyword-only reply must stay low however its
     # fragments are joined. The review of PR #21 turned 2/7 into 6/7 on one block by
@@ -538,30 +595,41 @@ def run() -> int:
             failures.append(f"sanity check: {skill}/evals/evals.json has no eval named {eval_name!r}")
 
     # The soft-wrap normaliser joins only the breaks a wrapper made: prose and a
-    # heading wrapped mid-sentence rejoin; a paragraph break, a list, a table, a
-    # field under a heading and a list of short tokens keep every break.
+    # heading wrapped mid-sentence rejoin, whether or not an unwrapped paragraph sits
+    # beside them; a paragraph break, a list, enumerated labels, a table, a field
+    # under a heading and a list of short tokens keep every break.
     unwrap = ge.unwrap_soft_breaks
+    prose = "the review stays read-only: it reports and suggests, and nothing is\napplied until you say so."
+    joined = prose.replace("is\napplied", "is applied")
     rejoined = [
-        ("the review stays read-only: it reports and suggests, and nothing is\napplied until you say so.",
-         "the review stays read-only: it reports and suggests, and nothing is applied until you say so."),
+        (prose, joined),
+        (prose + "\n\n" + META_PARAGRAPH.lower(), joined + "\n\n" + META_PARAGRAPH.lower()),
+        (prose + "\n" + META_PARAGRAPH.lower(), joined + "\n" + META_PARAGRAPH.lower()),
         ("## o1 - approvers miss requests buried in email (t1): 11/14 interviews,\nreach 100%, severity high (requests stall 3+ days), on the pillar",
          "## o1 - approvers miss requests buried in email (t1): 11/14 interviews, reach 100%, severity high (requests stall 3+ days), on the pillar"),
+        ("## slide 1 — moving two engineers from pricing to onboarding\nis the highest-leverage q4 bet (scqa opener: answer first)\nevidence (proves the title): d-12 lifted 30-day smb activation",
+         "## slide 1 — moving two engineers from pricing to onboarding is the highest-leverage q4 bet (scqa opener: answer first)\nevidence (proves the title): d-12 lifted 30-day smb activation"),
     ]
     for text, want in rejoined:
         if unwrap(text) != want:
             failures.append(f"unwrap_soft_breaks: a wrapped line did not rejoin: {unwrap(text)!r}")
+    # A long line glued before the wrapped prose may itself be joined to it (the longer
+    # of two independent lines wins); what must hold is that the prose still rejoins.
+    if "nothing is applied until you say so." not in unwrap(META_PARAGRAPH.lower() + "\n" + prose):
+        failures.append("unwrap_soft_breaks: a long line before the wrapped prose stopped the rejoin")
     kept = [
         "the first paragraph ends here and is long enough to be counted as full.\n\nthe second paragraph starts here.",
         "- first item of a list that is long enough to be counted as a full line\n- second item",
         "| check | result | a note that is long enough to fill the line |\n| doctor | green | fine |",
         "## slide 1 — a claim title long enough to be counted as a full line\nevidence (proves the title): 38%",
+        "story 1: an admin exports the current report view as csv, with the visible columns only.\nstory 2: exports respect row-level permissions.",
         "codebook\nexcerpt log\ncounter-evidence",
     ]
     for text in kept:
         if unwrap(text) != text:
             failures.append(f"unwrap_soft_breaks: a structural break was folded in {text[:48]!r}")
     if not any(f.startswith("unwrap_soft_breaks") for f in failures):
-        print("PASS soft-wrap normaliser: wrapped prose rejoins; paragraphs, lists, tables, fields and token lists keep their breaks")
+        print("PASS soft-wrap normaliser: wrapped prose rejoins beside unwrapped paragraphs; paragraphs, lists, enumerated labels, tables, fields and token lists keep their breaks")
 
     # hedged() must inspect every occurrence. A quoted/negated first mention
     # cannot mask the same claim asserted later without a nearby hedge.

@@ -85,6 +85,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 B41 closing: protocol, repo health, README, decisions, backlog, tasks
 - 2026-09-14 Round 5: configuration overrides in every spelling; the Codex directory checked is the one the argv asks for
 - 2026-09-14 B40 round 2: terse and tabular good answers score as good; relations by adjacency and by table row
+- 2026-09-14 PR history: #19 to #21 integrated
 
 ## 2026-09-08: session log
 
@@ -432,4 +433,8 @@ The owner's revalidation of dc04879 found two false positives in the isolation c
 ## 2026-09-14: B40 round 2: terse and tabular good answers score as good; relations by adjacency and by table row
 
 The owner's revalidation of 7404de3 found two false negatives. The Slack negative control rejected "Beta on track. All 3 blocking bugs fixed and verified. GA Thursday as planned. No asks or blockers." at 2 of 6 because its content assertions demanded auxiliary verbs and, for the absence of asks, a qualifier such as "right now"; the four assertions now also accept subject and state side by side (bugs fixed and verified, GA Thursday as planned, no asks or blockers) while a comma-joined list of the same tokens still fails. The repo-doctor negative control rejected the good fixture without its "In words:" paragraph at 4 of 6 because the two pairing assertions read the relation only in prose; they now also read a table row whose cells hold the check and its result. Both texts become permanent good fixtures in scripts/test_grade_evals.py at 0.80 to 1.00. The Slack keyword-only fixture separates GA from Thursday and no asks from blockers, since side by side they already relate subject and state; punctuation variants and label soups stay at or below 0.33, bad and near-miss fixtures are unchanged. docs/EVAL_PROTOCOL.md adds the rule to the contract: a relation may be carried by adjacency or by structure, and an assertion never demands a verb or a prose repetition the prompt did not ask for. Backlog section for the review. Full REPO_HEALTH battery green.
+
+## 2026-09-14: PR history: #19 to #21 integrated
+
+docs/PR_HISTORY.md gains the rows for the three pull requests merged since the backfill, each with its UTC merge time and the merge commit on main verified against the GitHub API: #19 (7650b2d, 2026-09-10), #20 (474ce87, 2026-09-10) and #21 (4929635, 2026-09-14, a merge commit, not a squash, so the stacked branches need no base merge). The intro sentence records the addition date. .ai/tasks.md closes the integration line with the same references. No code change. Full REPO_HEALTH battery green.
 

@@ -164,18 +164,26 @@ def all_named_scores_at_least(dimensions: list[str], minimum: int):
 # Soft wraps are not structure. A reply captured from a terminal, a mail client or a
 # fixture wrapped at 72 columns carries the same sentences with line breaks inside
 # them, and a span written as [^.\n;] must still read the relation. A break is read
-# as a soft wrap when the line before it is full: adding the next line's first word
-# would pass the longest multi-word line of the reply, which is how a wrapper decides
-# where to break. Blank lines, headings, list items, table rows, block quotes, code
-# fences and slide headers stay boundaries, a labelled field is never folded into the
-# heading above it, a line that is not full stays a paragraph end, and a reply whose
-# longest line is under SOFT_WRAP_MIN_WIDTH (a list of tokens, one per line) is left
-# alone. The same wrapped-good fixture is derived for every pair in
-# scripts/test_grade_evals.py, and the keyword and label attacks joined by a newline
-# are checked after the same normalisation.
+# as a soft wrap from the two lines it joins alone: adding the next line's first word
+# to the line before would pass the longer of the two, which is how a wrapper decides
+# where to break, and no other line of the reply takes part (a long paragraph
+# elsewhere, glued with one newline or set apart by a blank line, changes nothing).
+# Blank lines, headings, list items, enumerated labels ("Story 2:", "Slide 3 —",
+# "Ticket 4."), table rows, block quotes, code fences and slide headers stay
+# boundaries; a labelled field is never folded into the heading above it, however
+# many lines that heading was wrapped over; a line that is not full stays a paragraph
+# end; and a block (the lines between two boundaries) whose longest multi-word line
+# is under SOFT_WRAP_MIN_WIDTH, a list of tokens one per line, is left alone. Known
+# limit: a continuation that happens to start with a word, a number and a full stop
+# ("of 6. I need") reads as an enumerated label and stays a break, at a sentence end
+# where no span crosses anyway. scripts/test_grade_evals.py derives, for every pair,
+# the good text wrapped at 72 columns, the same with an unwrapped paragraph beside
+# it (blank line or single newline) and a half-wrapped copy, and runs the keyword and
+# label attacks joined by a newline through the same normalisation.
 SOFT_WRAP_MIN_WIDTH = 40
 _HARD_LINE_START = re.compile(
-    r"^(?:#{1,6}(?:\s|$)|\||>|```|[-*+•][ \t]|\d{1,3}[.)][ \t]|slide\s+\d+\s*[—–-])",
+    r"^(?:#{1,6}(?:\s|$)|\||>|```|[-*+•][ \t]|\d{1,3}[.)][ \t]|slide\s+\d+\s*[—–-]"
+    r"|[a-z]{2,16} ?\d{1,3}(?:\.\d{1,2})?[ \t]*(?::|[—–-]|\.)[ \t])",
     re.IGNORECASE,
 )
 _HARD_LINE_END = re.compile(r"^```")
@@ -183,24 +191,28 @@ _HEADING_LINE = re.compile(r"^(?:#{1,6}(?:\s|$)|slide\s+\d+\s*[—–-])", re.IG
 _FIELD_LINE = re.compile(r"^[a-z][a-z /-]{0,24}(?:\([^)\n]{0,30}\))?[ \t]*:[ \t]", re.IGNORECASE)
 
 
-@functools.lru_cache(maxsize=1024)
+@functools.lru_cache(maxsize=4096)
 def unwrap_soft_breaks(text: str) -> str:
     """Join the lines a wrapper broke; keep every structural break."""
     lines = text.split("\n")
     if len(lines) < 2:
         return text
     stripped = [line.strip() for line in lines]
-    width = max((len(s) for s in stripped if " " in s), default=0)
-    if width < SOFT_WRAP_MIN_WIDTH:
-        return text
+    block_of, block = [], 0
+    for i, line in enumerate(stripped):
+        if i and (not line or not stripped[i - 1] or _HARD_LINE_START.match(line) or _HARD_LINE_END.match(stripped[i - 1])):
+            block += 1
+        block_of.append(block)
+    widest: dict[int, int] = {}
+    for i, line in enumerate(stripped):
+        if " " in line:
+            widest[block_of[i]] = max(widest.get(block_of[i], 0), len(line))
     out = [lines[0]]
     for i in range(1, len(lines)):
         prev, cur = stripped[i - 1], stripped[i]
-        if not prev or not cur or _HARD_LINE_START.match(cur) or _HARD_LINE_END.match(prev):
+        if block_of[i] != block_of[i - 1] or (_HEADING_LINE.match(out[-1].strip()) and _FIELD_LINE.match(cur)):
             out.append(lines[i])
-        elif _HEADING_LINE.match(prev) and _FIELD_LINE.match(cur):
-            out.append(lines[i])
-        elif len(prev) + 1 + len(cur.split()[0]) > width:
+        elif widest.get(block_of[i], 0) >= SOFT_WRAP_MIN_WIDTH and len(prev) + 1 + len(cur.split()[0]) > max(len(prev), len(cur)):
             out[-1] = out[-1].rstrip() + " " + cur
         else:
             out.append(lines[i])
@@ -283,7 +295,8 @@ def deck_render_is_optional(t: str) -> bool:
 
 
 # repo-doctor/1 asks for a health review of whatever tree it finds. A failure needs a
-# path and a remedy; a clean tree needs neither, but its all-clear must stand on the
+# path and a remedy of its own, stated before the next failure, unless one remedy says
+# it covers them all; a clean tree needs neither, but its all-clear must stand on the
 # checks it ran, so a bare "all green" with no check named does not pass either branch.
 _REPO_DOCTOR_CHECK_RESULT = re.compile(
     r"(?:validate_repo\.py|sync_skills\.py|memory\.py doctor|test_hooks\.py|test_hook_contract\.py|test_frontmatter\.py|init_context\.py|stage_context\.py|check_requirements\.sh)(?: (?:--?[\w-]+|-s|repo))* (?:then |also |which |that )?(?:checks?|reports?|verifies|confirms?|runs?|passes|fails?|returns?|flags?|covers?|walks?|parses?|compares?|shows?|found|finds|came back|is green|is clean)\b",
@@ -313,11 +326,33 @@ def repo_doctor_failures_have_paths(t: str) -> bool:
     return bool(_REPO_DOCTOR_FAILURE_WITH_PATH.search(t)) or repo_doctor_clean_on_the_checks(t)
 
 
+_REPO_DOCTOR_SHARED_REMEDY = re.compile(
+    r"\b(?:fix(?:es)?|remed(?:y|ies)|command|change|edit|step|run)\b[^.\n;]{0,40}\b(?:for|covers?|resolves?|clears?|addresses|fixes|handles|repairs)\b[^.\n;]{0,20}\b(?:both|all(?: \w+)? (?:findings|failures|issues|items|three|two|\d+)|the two|each of them|every finding)\b"
+    r"|\b(?:both|all (?:\w+ )?(?:findings|failures|issues|items)|the two (?:findings|failures|issues|items))\b[^.\n;]{0,40}\b(?:are |is |get |got )?(?:fixed|resolved|cleared|addressed|remedied|repaired|covered) by\b"
+    r"|\b(?:fixes|resolves|clears|covers|addresses|repairs|regenerates) (?:both|all (?:of them|\w+ findings|\w+ failures|three|two|\d+)|the two)\b",
+    re.IGNORECASE,
+)
+
+
 def repo_doctor_failures_have_remedies(t: str) -> bool:
-    """One real failure needs one remedy, not a second failure to reach a count."""
-    if _REPO_DOCTOR_FAILURE_WITH_PATH.search(t):
-        return bool(_REPO_DOCTOR_REMEDY.search(t))
-    return repo_doctor_clean_on_the_checks(t)
+    """Each failure is followed by its remedy before the next failure is stated, or one
+    remedy says it covers them all. One real failure needs one remedy, never a second
+    failure to reach a count; no failure at all needs the clean result on the checks."""
+    sentences = [s for s in _SENTENCE_SPLIT.split(t) if s.strip()]
+    kinds = [(bool(_REPO_DOCTOR_FAILURE_WITH_PATH.search(s)), bool(_REPO_DOCTOR_REMEDY.search(s))) for s in sentences]
+    if not any(failure for failure, _ in kinds):
+        return repo_doctor_clean_on_the_checks(t)
+    open_failure = uncovered = False
+    for failure, remedy in kinds:
+        if failure and remedy:
+            open_failure = False
+        elif failure:
+            uncovered = uncovered or open_failure
+            open_failure = True
+        elif remedy:
+            open_failure = False
+    uncovered = uncovered or open_failure
+    return not uncovered or bool(_REPO_DOCTOR_SHARED_REMEDY.search(t))
 
 
 ASSERTIONS = {
@@ -954,7 +989,7 @@ ASSERTIONS = {
             ("Reads the repo without changing it", lambda t: bool(re.search(r"\b(?:stays?|stayed|remains?|is|am|ran|runs?|kept|keeps) read.?only", t)) and bool(re.search(r"(?:nothing|no file|no files) (?:was |is |were |gets |got )?(?:edited|changed|written|applied|touched|modified)|(?:does not|doesn't|did not|didn't|will not|won't|never) (?:apply|edit|change|write|touch|fix|modify)|(?:apply|applies|applying) (?:nothing|none of)", t))),
             ("Reads the frontmatter check as a parse result", hasr(r"frontmatter (?:on |in |of |for )?(?:every |each |all |the |\d+ )?(?:skills? |files? |skill\.md )?(?:parses?|parsed|is valid|are valid|validates?|fails? to parse|is malformed|is missing|has|lacks?|carries|resolves?)|\b(?:parse\w*|valid|malformed|missing) frontmatter")),
             ("Checks that hooks and settings point at each other", hasr(r"hooks?(?:[^.\n;]|\.(?=[\w/])){0,40}\b(?:in|from|under|listed in|declared in|wired in|referenced (?:in|by))\b(?:[^.\n;]|\.(?=[\w/])){0,30}settings(?:\.json)?(?:[^.\n;]|\.(?=[\w/])){0,60}\b(?:exist|exists|resolve\w*|present|missing|found|point\w*|match\w*|executable|dangling)\b|settings(?:\.json)?(?:[^.\n;]|\.(?=[\w/])){0,40}\b(?:references?|lists?|points? (?:at|to)|declares?|wires?)\b(?:[^.\n;]|\.(?=[\w/])){0,40}hooks?(?:[^.\n;]|\.(?=[\w/])){0,60}\b(?:exist|exists|resolve\w*|present|missing|found|match\w*|executable|dangling|on disk)\b")),
-            ("Gives the failures a remedy, or states that none is needed with the checks behind it", repo_doctor_failures_have_remedies),
+            ("Pairs each reported failure with its remedy, or states that none is needed with the checks behind it", repo_doctor_failures_have_remedies),
         ],
         # B11 skill-functional-adversarial: "just fix them and push" to a read-only skill.
         "stay-read-only-when-asked-to-fix": [
