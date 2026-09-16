@@ -343,12 +343,25 @@ def main() -> int:
     # hardens, and main() runs it first, so every shape that suite feeds must be tolerated
     # here too. A finding is fine; an exception aborts the validator before the check that
     # reports the schema defect ever runs.
-    def readme_tree(td: str, payload: object, skills_said: int = 1) -> Path:
+    def readme_tree(td: str, payload: object, skills_said: int = 1, evals_said: int = 9,
+                    orphan: object = None, extra_skill: bool = False,
+                    raw: "bytes | None" = None) -> Path:
         tree = Path(td)
         (tree / "skills" / "fake-skill" / "evals").mkdir(parents=True)
         (tree / "skills" / "fake-skill" / "SKILL.md").write_text("x", encoding="utf-8")
-        body = payload if isinstance(payload, str) else json.dumps(payload)
-        (tree / "skills" / "fake-skill" / "evals" / "evals.json").write_text(body, encoding="utf-8")
+        manifest = tree / "skills" / "fake-skill" / "evals" / "evals.json"
+        if raw is not None:
+            manifest.write_bytes(raw)  # not UTF-8: read_text raises a ValueError, not an OSError
+        else:
+            body = payload if isinstance(payload, str) else json.dumps(payload)
+            manifest.write_text(body, encoding="utf-8")
+        if orphan is not None:  # a manifest under a directory that is not a canonical skill
+            (tree / "skills" / "orphan" / "evals").mkdir(parents=True)
+            (tree / "skills" / "orphan" / "evals" / "evals.json").write_text(
+                json.dumps(orphan), encoding="utf-8")
+        if extra_skill:  # a canonical skill that ships no manifest at all
+            (tree / "skills" / "second-skill").mkdir(parents=True)
+            (tree / "skills" / "second-skill" / "SKILL.md").write_text("x", encoding="utf-8")
         (tree / "hooks").mkdir()
         (tree / "hooks" / "one-gate.sh").write_text("x", encoding="utf-8")
         (tree / ".github" / "agents").mkdir(parents=True)
@@ -356,14 +369,14 @@ def main() -> int:
         (tree / "scripts").mkdir()
         (tree / "README.md").write_text("\n".join([
             "# t", "",
-            f"{skills_said} hard-skill PM skills, 1 blocking hooks, 1 agents, 9 eval cases:",
+            f"{skills_said} hard-skill PM skills, 1 blocking hooks, 1 agents, {evals_said} eval cases:",
             "9 standard, 0 doctrine-adversarial, 0 skill-functional-adversarial and 0 negative controls.",
             "", "- [First](#first)", "", "## First", "", "done.", ""]), encoding="utf-8")
         return tree
 
-    def run_readme_contract(payload: object, skills_said: int = 1) -> tuple[list[str], str]:
+    def run_readme_contract(payload: object, skills_said: int = 1, **kwargs) -> tuple[list[str], str]:
         with tempfile.TemporaryDirectory(prefix="test-readme-contract-") as td:
-            tree = readme_tree(td, payload, skills_said)
+            tree = readme_tree(td, payload, skills_said, **kwargs)
             saved = (vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README)
             vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = tree, tree / "skills", tree / "hooks", tree / "README.md"
             try:
@@ -392,8 +405,37 @@ def main() -> int:
         failures += 1
         print(f"      {raised or scoped}")
 
+    # The counts come from the canonical skill set (skills/*/SKILL.md), the same discovery
+    # check_eval_coverage uses. So a manifest under a directory that is not a skill cannot
+    # inflate them, a skill that ships no manifest cannot leave them looking complete, a
+    # category outside the taxonomy is not counted, and a file that is not UTF-8 is skipped
+    # rather than raised: UnicodeDecodeError is a ValueError, which no OSError clause catches.
+    def manifest(name: str, n: int, first: str = "standard") -> dict:
+        return {"skill_name": name,
+                "evals": [{"id": i, "name": f"{name}-{i}",
+                           "category": "standard" if i else first} for i in range(n)]}
+
+    canonical_cases = [
+        ("a manifest with no SKILL.md beside it is not counted",
+         run_readme_contract(manifest("fake-skill", 9), orphan=manifest("orphan", 3))),
+        ("a canonical skill with no manifest leaves the counts incomplete",
+         run_readme_contract(manifest("fake-skill", 9), skills_said=2, evals_said=99,
+                             extra_skill=True)),
+        ("a category outside the taxonomy is not counted against the README",
+         run_readme_contract(manifest("fake-skill", 9, first="not-a-category"))),
+        ("a manifest that is not UTF-8 is skipped, never raised",
+         run_readme_contract(None, raw=b'{"evals": [{"category": "standard\xff"}]}')),
+    ]
+    for name, (found, raised) in canonical_cases:
+        ok = not raised and not found
+        print(f"{'PASS' if ok else 'FAIL'}  readme contract: {name}")
+        if not ok:
+            failures += 1
+            print(f"      {raised or found}")
+
     total = (len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases)
-             + len(consulted_cases) + len(readme_cases) + len(schema_cases) + 1)
+             + len(consulted_cases) + len(readme_cases) + len(schema_cases)
+             + len(canonical_cases) + 1)
     if failures:
         print(f"\ntest_validate_repo: {failures}/{total} case(s) failed")
         return 1

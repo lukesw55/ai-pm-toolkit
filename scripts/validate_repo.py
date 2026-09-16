@@ -424,20 +424,29 @@ README_COUNTS = (
 
 
 def eval_categories() -> tuple[dict[str, int], bool]:
-    """(counts per category, every manifest was readable and the right shape).
+    """(counts per category, every canonical skill's manifest was readable and valid).
 
-    check_eval_coverage is the check that reports a malformed manifest, and it runs whatever
-    this one finds. So this one only counts, and skips what it cannot count: a file that does
-    not parse, a top level that is not an object, an `evals` that is not a list, a case that is
-    not an object, a category that is not a string. Assuming any of those here would raise
-    before the check designed to turn them into a finding ever ran, which is the traceback the
-    whole test_validate_repo.py suite exists to prevent."""
+    The skill set is skills/*/SKILL.md, the same discovery check_eval_coverage uses, so an
+    orphan evals/evals.json under a directory with no SKILL.md never reaches the README totals,
+    and a canonical skill with no manifest lowers completeness instead of passing for a complete
+    count. check_eval_coverage is the check that reports a malformed manifest, and it runs
+    whatever this one finds. So this one only counts, and skips what it cannot count: a manifest
+    that is missing, unreadable, not UTF-8 or not JSON, a top level that is not an object, an
+    `evals` that is not a list, a case that is not an object, a category that is not a string or
+    not one of EVAL_CATEGORIES. Assuming any of those here would raise before the check designed
+    to turn them into a finding ever ran, which is the traceback the whole test_validate_repo.py
+    suite exists to prevent."""
     counts: dict[str, int] = {}
     complete = True
-    for manifest in sorted(SKILLS.glob("*/evals/evals.json")):
+    for skill_md in sorted(SKILLS.glob("*/SKILL.md")):
+        manifest = skill_md.parent / "evals" / "evals.json"
         try:
             data = json.loads(manifest.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
+        except Exception:
+            # Missing, unreadable, not UTF-8, or not JSON. The net is this wide deliberately:
+            # UnicodeDecodeError is a ValueError, so no OSError clause catches it, and this
+            # helper reports nothing of its own. Raising here would end the run before
+            # check_eval_coverage got to say what is wrong with the file.
             complete = False
             continue
         cases = data.get("evals") if isinstance(data, dict) else None
@@ -446,7 +455,7 @@ def eval_categories() -> tuple[dict[str, int], bool]:
             continue
         for case in cases:
             category = case.get("category") if isinstance(case, dict) else None
-            if not isinstance(category, str):
+            if not isinstance(category, str) or category not in EVAL_CATEGORIES:
                 complete = False
                 continue
             counts[category] = counts.get(category, 0) + 1
