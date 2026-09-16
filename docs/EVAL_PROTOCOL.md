@@ -63,8 +63,14 @@ that nothing in it ever has to name its own commit.
 
 Before the smoke, commit the decision criteria: for each pilot skill the conditions that would make
 it a keep, a fix, a simplify or a remove, plus any critical failure that blocks keep on its own, and
-the name of the annotated tag the measured iteration will run from. That block is immutable from
-that commit onward. Criteria written once the results are in describe the results.
+the name of the annotated tag the measured iteration will run from. The block also carries the field
+aggregate_rule: `docs/EVAL_PROTOCOL.md#reading-the-pilot-as-a-whole`, which names the run-level
+procedure instead of copying it. The value is written as a path in backticks of its own, carrying
+the `docs/` prefix, because that is the form `check_backtick_paths` in `scripts/validate_repo.py`
+resolves: it follows a backticked token that holds a directory separator and no whitespace, and it
+drops the fragment before resolving. A pre-registration file is scanned by that check like any other
+document, so the reference is verified on every run of the validator rather than trusted. That block is
+immutable from that commit onward. Criteria written once the results are in describe the results.
 
 After the smoke, add the factual metadata the smoke established, which is the harness, the verified
 harness version and the model, without touching the criteria block. Commit that state and tag it
@@ -150,8 +156,10 @@ it as one.
 
 Rule 3 pre-registers a decision for each pilot skill. It does not say what the pilot as a whole
 means, and deciding that after the results are in has the same defect as writing the per-skill
-criteria then: the outcome describes the results. So the verdict for the run is pre-registered in
-the same file and the same commit as the per-skill conditions, before any measured output exists.
+criteria then: the outcome describes the results. So the run-level verdict is pre-registered too,
+and by reference rather than by copy: the procedure lives here, the pre-registration file names it
+in its criteria block, and the annotated tag freezes this version of this file together with those
+criteria. One commit, one tag, nothing kept in sync by hand and no hundred lines duplicated.
 
 **One verdict per harness.** The comparison is paired inside one harness, two harnesses run
 different models, and the protocol forbids attributing a difference to the harness when the models
@@ -209,8 +217,15 @@ verdict.
 - **A skill regresses materially**: its human margin is negative.
 - **A skill regresses on critical failures**: any pair that is not contaminated carries a
   pre-registered critical failure under `with_skill` that its `without_skill` counterpart does not.
-- **A negative control is materially worse**: its human verdict category drops, or it gains a
+- **A negative-control pair is materially worse**: its human verdict category drops, or it gains a
   pre-registered critical failure.
+- **The negative controls are clear**: every negative-control pair in the iteration is resolved, and
+  none of them is materially worse. Being resolved is half the condition, not an oversight. The
+  margin rule above asks only whether the unresolved set could change a skill's direction, and those
+  are different properties: a split or contaminated negative control can leave a direction intact
+  while the guardrail that pair exists to provide goes unobserved, so the run would claim a guarantee
+  it cannot support. A negative-control pair is one of its skill's six, five or four, so an
+  unresolved one keeps step 4 from firing and the iteration reaches the residual step instead.
 - **A skill's improvement is explained by length**: for every up pair behind its positive margin, the
   labeler's recorded reason cites added length or the wording of the assertion rather than the
   behaviour that assertion names.
@@ -241,8 +256,8 @@ verdict.
    materially and every material improvement is explained by length. A run in which nothing moves at
    all lands here on the first of the two: flat pairs are evidence of no effect, and step 2 has
    already taken out the runs whose pairs could not be read.
-4. **Useful signal**, only if all of: at least two of the three skills improve materially; no
-   negative control is materially worse; grader and human agree on every skill.
+4. **Useful signal**, only if all of: at least two of the three skills improve materially; the
+   negative controls are clear; grader and human agree on every skill.
 5. **Inconclusive** otherwise. This is the residual case and it is reached deliberately, so an
    evidence state that satisfies nothing above still has exactly one verdict.
 
