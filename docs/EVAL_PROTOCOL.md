@@ -275,10 +275,11 @@ trusting a `grading.json` that an edited assertion block may have left stale, an
 markdown proposal with a JSON sibling under `docs/benchmarks/<iteration>/proposals/`, plus an
 index naming every label key and its outcome. Five categories: a run whose labels are all
 against another rubric asks for a relabel, not a correction; a split is reported and never
-resolved to the worse verdict; an `eval-defect` handle outranks the others and counts how many
-labels go stale if the prompt or the expected output changes; and a false accept or a false
-reject carries a fixture candidate. Agreement in either direction proposes nothing, and neither
-does a run nobody labelled: a proposal exists because a human wrote a verdict and a reason, and
+resolved to the worse verdict; an `eval-defect` handle outranks a false accept and a false
+reject, though a stale rubric and a split are read before it, and it counts how many labels go
+stale if the prompt or the expected output changes; and a false accept or a false reject
+carries a fixture candidate. Agreement in either direction proposes nothing, and neither does a
+run nobody labelled: a proposal exists because a human wrote a verdict and a reason, and
 harvesting an unlabelled run would be the grader learning from the output it is meant to judge.
 
 It proposes and never applies. No code path writes to an eval manifest, to the assertion blocks
@@ -293,17 +294,18 @@ second object: the file holds exactly one object per eval and all of them exist,
 coverage checks are subset tests that would not notice a duplicate. Direction is recorded
 because it decides whether the loop hardens the grader or corrupts it. A negative fixture taken
 from a run that really failed defends against a failure that happened. A positive one copied
-from a run the grader already accepts makes it agree with that model by construction, so a
-`good` candidate is marked for a rewrite by hand, and the test that the rewrite worked is that
-the reworded text still scores in band: if only the original passes, the assertion memorised a
-phrasing rather than a behaviour.
+from a model's own output makes the grader agree with that model by construction, so a `good`
+candidate, which comes from a run the grader rejected and a human accepted, is marked for a
+rewrite by hand, and the test that the rewrite worked is that the reworded text still scores in
+band: if only the original passes, the assertion memorised a phrasing rather than a behaviour.
 
 `check` runs after a person has pasted a candidate. It judges the shape of the pasted object
 first, so a missing key or a duplicate is a sentence rather than a traceback, then runs the
-suite once and reports the eight fixtures derived from that pair against their bands, the
-declared against the actual near-miss failure, the discrimination gap, the nine derived attacks,
-and any fixture the change moved elsewhere in the suite. A green run means the fixtures the
-suite has do not contradict the assertion. It does not mean the assertion is right.
+suite once and reports every fixture the suite ran for that eval against its band, the eight
+derived from the pair and any written in code beside them, the declared against the actual
+near-miss failure, the discrimination gap, the nine derived attacks, and any fixture the change
+moved elsewhere in the suite. A green run means the fixtures the suite has do not contradict
+the assertion. It does not mean the assertion is right.
 
 Excerpts in a proposal are bounded by default. Runs live under `skills/*/workspace/`, which is
 gitignored, while `docs/` is tracked: `--full-output` publishes the whole text into git

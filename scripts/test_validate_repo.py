@@ -254,7 +254,33 @@ def main() -> int:
         if not ok:
             failures += 1
 
-    total = len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases)
+    # The regex is half the claim; the other half is that both document checks consult it.
+    # Same broken document in two places under docs/benchmarks/, one skipped and one not.
+    broken = "# A doc\n\nSee [the plan](nope.md) and `skills/nope/SKILL.md`.\n"
+    with tempfile.TemporaryDirectory() as td:
+        tree = Path(td)
+        iteration = tree / "docs" / "benchmarks" / "iteration-1"
+        (iteration / "proposals").mkdir(parents=True)
+        (iteration / "report.md").write_text(broken, encoding="utf-8")
+        (iteration / "proposals" / "a-skill__eval-1-a-name__with_skill__abc123.md").write_text(broken, encoding="utf-8")
+        saved = (vr.ROOT, vr.MIRRORS, vr.SKILLS)
+        vr.ROOT, vr.MIRRORS, vr.SKILLS = tree, [], tree / "skills"
+        try:
+            link_errors, path_errors = [], []
+            vr.check_markdown_links(link_errors)
+            vr.check_backtick_paths(path_errors)
+        finally:
+            vr.ROOT, vr.MIRRORS, vr.SKILLS = saved
+    consulted_cases = [("check_markdown_links", link_errors), ("check_backtick_paths", path_errors)]
+    for name, errors in consulted_cases:
+        ok = len(errors) == 1 and "report.md" in errors[0] and "proposals/" not in errors[0]
+        print(f"{'PASS' if ok else 'FAIL'}  {name} skips a proposal and still checks the report beside it")
+        if not ok:
+            failures += 1
+            for e in errors:
+                print(f"      {e}")
+
+    total = len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases) + len(consulted_cases)
     if failures:
         print(f"\ntest_validate_repo: {failures}/{total} case(s) failed")
         return 1

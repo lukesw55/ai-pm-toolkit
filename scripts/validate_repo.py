@@ -349,7 +349,8 @@ HISTORICAL_DOCS = {".ai/backlog.md", ".ai/changelog.md"}
 # scripts/propose_eval_updates.py and quote a recorded model output verbatim. The quoted
 # text can contain anything, including a backticked path that never existed or one under
 # the gitignored workspace, and a dated record of one run must not turn CI red on every
-# clone. Reports and labels in the same tree stay checked; only the generated cards skip.
+# clone. A report.md in the same tree stays checked like any other document; only the
+# generated cards skip. Both checks read markdown, so a labels.jsonl was never in scope.
 GENERATED_RECORDS = re.compile(r"^docs/benchmarks/[^/]+/proposals/")
 # Runtime memory and gate state are gitignored by design: absent on a fresh
 # clone, present locally. A token pointing there must not change the verdict —

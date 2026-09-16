@@ -21,6 +21,8 @@ class ProposeTests(unittest.TestCase):
         self.root=Path(self.tmp.name)
         self.skill='pm-prioritization-regua-comum'
         shutil.copytree(rr.ROOT/'skills'/self.skill,self.root/'skills'/self.skill,ignore=shutil.ignore_patterns('workspace','__pycache__'))
+        (self.root/'scripts').mkdir(parents=True,exist_ok=True)
+        shutil.copy(rr.ROOT/'scripts'/'grade_evals.py',self.root/'scripts'/'grade_evals.py')
         subprocess.run(['git','init','-q',str(self.root)],check=True)
         subprocess.run(['git','-C',str(self.root),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','--allow-empty','-qm','fixture'],check=True)
         manifest=json.loads((self.root/'skills'/self.skill/'evals/evals.json').read_text())
@@ -144,6 +146,13 @@ class ProposeTests(unittest.TestCase):
         self.assertEqual([row['outcome'] for row in index['outcomes']],['agreement'])
         self.assertEqual(self.written(),['index.json','index.md'])
 
+    def test_agreement_when_both_reject_proposes_nothing(self):
+        """The other direction of agreement: the assertions rejected the run and so did a human."""
+        self.label(config='without_skill',verdict='fail',classification=['wrong-decision'],reason='wrong call')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['agreement'])
+        self.assertEqual(self.written(),['index.json','index.md'])
+
     def test_split_is_reported_not_proposed(self):
         self.label(verdict='good',reason='fine',labeler='lucas')
         self.label(verdict='fail',classification=['wrong-decision'],reason='wrong call',labeler='ana')
@@ -209,7 +218,9 @@ class ProposeTests(unittest.TestCase):
 
     def test_nothing_is_applied(self):
         pair=self.write_fixture_pair()
-        before={p:p.read_bytes() for p in (self.root/pe.FIXTURES,self.root/'skills'/self.skill/'evals/evals.json')}
+        before={p:p.read_bytes() for p in (self.root/pe.FIXTURES,
+                                          self.root/'skills'/self.skill/'evals/evals.json',
+                                          self.root/'scripts'/'grade_evals.py')}
         self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
         self.propose()
         for path,payload in before.items():

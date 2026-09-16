@@ -185,9 +185,10 @@ def fixture_suggestion(category: str, verdict: str | None, index: int | None, pa
     same eval would pass the suite unnoticed because the coverage checks are subset tests.
 
     The direction matters and is recorded. A negative fixture taken from a run that really
-    failed hardens the grader against a failure that happened, which is the point of the
-    loop. A positive fixture copied from a run that really passed makes the grader agree
-    with that model by construction, so a good candidate is marked for a rewrite by hand.
+    failed hardens the grader against a failure that happened, which is the point of the loop.
+    A positive fixture copied from a model's own output makes the grader agree with that model
+    by construction; a good candidate comes from a run the grader rejected and a human
+    accepted, which is why it exists at all, so it is marked for a rewrite by hand.
     """
     if category not in ("false-accept", "false-reject") or pair is None:
         return None
@@ -504,9 +505,10 @@ def render_markdown(proposal: dict) -> str:
                    f"{suggestion['band'][0]} to {suggestion['band'][1]}.")
         out.append("")
         if suggestion["rewrite_required"]:
-            out.append("**Rewrite this before pasting it.** A good fixture copied from a run the grader already accepts makes "
-                       "the grader agree with that model by construction. Reword it, keeping the substance, and the test that "
-                       "the assertion checks behaviour rather than phrasing is that the reworded text still scores in band.")
+            out.append("**Rewrite this before pasting it.** A good fixture copied from a model's own output makes the grader "
+                       "agree with that model by construction. This one comes from a run the grader rejected and a human "
+                       "accepted, which is why it is a candidate at all. Reword it, keeping the substance; the test that the "
+                       "assertion checks behaviour rather than phrasing is that the reworded text still scores in band.")
         else:
             out.append("This is a negative fixture taken from a run that really failed, which is the direction that hardens the "
                        "grader against a failure that happened. It is the recorded output, verbatim.")
@@ -766,8 +768,8 @@ def shape_errors(pairs: object, root: Path) -> list[str]:
         # of the file; inside near_miss it is cosmetic and the file already mixes both.
         if not isinstance(near, dict) or set(near) != {"text", "fails"}:
             problems.append(f"{where}: near_miss must be an object with exactly text and fails")
-        elif not str(near["text"]).strip() or not str(near["fails"]).strip():
-            problems.append(f"{where}: near_miss text and fails must be non-empty")
+        elif not all(isinstance(near[key], str) and near[key].strip() for key in ("text", "fails")):
+            problems.append(f"{where}: near_miss text and fails must be non-empty strings")
         key = (pair["skill"], pair["eval"])
         if key in seen:
             problems.append(f"{where}: a second object for an eval that already has one; the candidate replaces a slot of the first")
@@ -815,8 +817,12 @@ def check(args, root: Path = ROOT) -> int:
             cwd=root, capture_output=True, text=True, timeout=args.timeout,
         )
         if not summary_path.is_file():
-            print("  FAIL  the suite wrote no summary; this checkout may predate --json-summary")
-            print(completed.stdout[-2000:] or completed.stderr[-2000:])
+            print("  FAIL  the suite wrote no summary. Either it stopped before writing one, in which case its "
+                  "output is below, or this checkout predates --json-summary.")
+            for stream, text in (("stdout", completed.stdout), ("stderr", completed.stderr)):
+                if text.strip():
+                    print(f"  --- suite {stream}, last 2000 characters ---")
+                    print(text[-2000:])
             return 1
         summary = json.loads(summary_path.read_text(encoding="utf-8"))
     counts = summary["counts"]
