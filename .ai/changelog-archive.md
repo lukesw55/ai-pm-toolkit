@@ -90,6 +90,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-14 PR history: #22 integrated
 - 2026-09-15 B41 review 2: soft-wrap width from the two lines joined; each failure needs its own remedy
 - 2026-09-16 B41 review 3: a failure remedied in the same sentence does not settle the one before it
+- 2026-09-16 PR history: #23 integrated
 
 ## 2026-09-08: session log
 
@@ -457,4 +458,8 @@ unwrap_soft_breaks decides each break from the two lines it joins: when the next
 ## 2026-09-16: B41 review 3: a failure remedied in the same sentence does not settle the one before it
 
 repo_doctor_failures_have_remedies lost state when a sentence carried a new failure and its own remedy: the branch cleared the open failure without recording that the earlier one was still uncovered, so "does not exist; Fix: edit ..." scored 6/6 where "does not exist. Fix: edit ..." scored 5/6. The branch now records the open failure as uncovered before closing on the new one, as the owner suggested. test_grade_evals: two in-code near misses derived from the good fixture (first Fix and re-run removed; the second Fix kept after a full stop and, separately, after a semicolon), both checked to fail exactly the remedy assertion; zero, one and two covered findings, the shared remedy and the first-only remedy controls unchanged. 705 fixtures. Docs: EVAL_PROTOCOL rule 8 sentence, backlog third-round paragraph, tasks. Manifests untouched. Validation: full docs/REPO_HEALTH.md battery green before the commit.
+
+## 2026-09-16: PR history: #23 integrated
+
+docs/PR_HISTORY.md gains the row for PR #23 (B41), merged into main on 2026-09-16T00:08:43Z as the merge commit 44b7e5164852156b12b6e63d6148d77bea2b4abc, read from the fetched main rather than from memory; the intro sentence now covers #19 to #23 and names both backfill dates. .ai/tasks.md closes #23 in the integration line, so no PR from that batch is left open. Docs only; full battery green before the commit.
 

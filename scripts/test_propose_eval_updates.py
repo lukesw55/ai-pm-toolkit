@@ -296,5 +296,90 @@ class ProposeTests(unittest.TestCase):
         self.assertIn('labels.jsonl:1:',str(caught.exception))
 
 
+class CheckTests(unittest.TestCase):
+    """The check mode runs the real suite, so the green path uses the real tree read-only and
+    the red paths use a copy of the two directories the suite reads."""
+
+    def check_args(self,**over):
+        base=dict(skill='repo-doctor',eval='validate-skill-repo-health',timeout=600)
+        base.update(over);return argparse.Namespace(**base)
+
+    def copy_tree(self):
+        tmp=tempfile.TemporaryDirectory();self.addCleanup(tmp.cleanup)
+        root=Path(tmp.name)
+        ignore=shutil.ignore_patterns('workspace','__pycache__')
+        shutil.copytree(rr.ROOT/'scripts',root/'scripts',ignore=ignore)
+        shutil.copytree(rr.ROOT/'skills',root/'skills',ignore=ignore)
+        return root
+
+    def edit_pairs(self,root,mutate):
+        path=root/pe.FIXTURES
+        pairs=json.loads(path.read_text(encoding='utf-8'))
+        mutate(pairs)
+        path.write_text(json.dumps(pairs,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+
+    def run_check(self,root,**over):
+        from io import StringIO
+        from contextlib import redirect_stdout
+        buffer=StringIO()
+        with redirect_stdout(buffer):
+            code=pe.check(self.check_args(**over),root)
+        return code,buffer.getvalue()
+
+    def test_green_pair_reports_every_step(self):
+        code,text=self.run_check(rr.ROOT)
+        self.assertEqual(code,0,text)
+        for step in range(1,8):
+            self.assertIn(f'step {step}/7',text)
+        for suffix in ('-good','-good-wrapped','-good-wrapped-plus-paragraph','-good-wrapped-plus-line',
+                       '-good-half-wrapped','-bad','-keyword-only','-near-miss'):
+            self.assertIn(f'validate-skill-repo-health{suffix}:',text)
+        self.assertIn('does not mean the assertion is right',text)
+
+    def test_a_candidate_outside_its_band_is_named(self):
+        root=self.copy_tree()
+        def swap(pairs):
+            pair=next(p for p in pairs if p['eval']=='validate-skill-repo-health')
+            pair['near_miss']['text']=pair['bad']          # a near miss that is really a bad answer
+        self.edit_pairs(root,swap)
+        code,text=self.run_check(root)
+        self.assertEqual(code,1)
+        self.assertIn('FAIL  validate-skill-repo-health-near-miss',text)
+        self.assertIn('step 4/7',text)
+        self.assertIn('Change the near-miss text, not the assertions.',text)
+
+    def test_a_declared_label_no_assertion_carries(self):
+        root=self.copy_tree()
+        def rename(pairs):
+            next(p for p in pairs if p['eval']=='validate-skill-repo-health')['near_miss']['fails']='no assertion says this'
+        self.edit_pairs(root,rename)
+        code,text=self.run_check(root)
+        self.assertEqual(code,1)
+        self.assertIn("declared  'no assertion says this'",text)
+        self.assertIn('a near miss must fail exactly the assertion it names',text)
+
+    def test_shape_problems_stop_before_the_suite(self):
+        root=self.copy_tree()
+        def duplicate(pairs):
+            pairs.append(json.loads(json.dumps(next(p for p in pairs if p['eval']=='validate-skill-repo-health'))))
+        self.edit_pairs(root,duplicate)
+        code,text=self.run_check(root)
+        self.assertEqual(code,1)
+        self.assertIn('a second object for an eval that already has one',text)
+        self.assertIn('The suite is not run',text)
+        self.assertNotIn('step 2/7',text)
+
+    def test_a_malformed_paste_is_a_sentence_not_a_traceback(self):
+        root=self.copy_tree()
+        def break_keys(pairs):
+            pair=next(p for p in pairs if p['eval']=='validate-skill-repo-health')
+            pair.pop('keyword_only')
+        self.edit_pairs(root,break_keys)
+        code,text=self.run_check(root)
+        self.assertEqual(code,1)
+        self.assertIn('keys are',text)
+        self.assertNotIn('Traceback',text)
+
+
 if __name__=='__main__':
     unittest.main(verbosity=2)

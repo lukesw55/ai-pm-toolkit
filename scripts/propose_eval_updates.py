@@ -25,7 +25,9 @@ from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 import sys
+import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -581,6 +583,143 @@ def propose(args, root: Path = ROOT) -> dict:
     return index
 
 
+def shape_errors(pairs: object, root: Path) -> list[str]:
+    """What a human's paste can break that nothing else checks. The suite assumes the file
+    is well formed: a missing key or a reordered object surfaces as a KeyError traceback
+    rather than a sentence, and a second object for an eval that already has one used to
+    pass silently. Run before the suite so the report starts with the paste, not with a
+    stack trace."""
+    problems: list[str] = []
+    if not isinstance(pairs, list):
+        return ["the fixtures file must hold a list of objects"]
+    seen: set[tuple] = set()
+    for position, pair in enumerate(pairs):
+        where = f"object {position}"
+        if not isinstance(pair, dict):
+            problems.append(f"{where}: not an object")
+            continue
+        if tuple(pair) != FIXTURE_KEYS:
+            problems.append(f"{where}: keys are {tuple(pair)}, expected {FIXTURE_KEYS} in that order")
+            continue
+        where = f"{pair['skill']}/{pair['eval']}"
+        for key in ("good", "bad", "keyword_only"):
+            if not isinstance(pair[key], str) or not pair[key].strip():
+                problems.append(f"{where}: {key} must be a non-empty string")
+        near = pair["near_miss"]
+        # Order matters for the object's own keys, because a paste should read like the rest
+        # of the file; inside near_miss it is cosmetic and the file already mixes both.
+        if not isinstance(near, dict) or set(near) != {"text", "fails"}:
+            problems.append(f"{where}: near_miss must be an object with exactly text and fails")
+        elif not str(near["text"]).strip() or not str(near["fails"]).strip():
+            problems.append(f"{where}: near_miss text and fails must be non-empty")
+        key = (pair["skill"], pair["eval"])
+        if key in seen:
+            problems.append(f"{where}: a second object for an eval that already has one; the candidate replaces a slot of the first")
+        seen.add(key)
+        if not ge.ASSERTIONS.get(pair["skill"], {}).get(pair["eval"]):
+            problems.append(f"{where}: no assertion block in scripts/grade_evals.py")
+        try:
+            rr.eval_spec(root, pair["skill"], pair["eval"])
+        except (ValueError, OSError, KeyError):
+            problems.append(f"{where}: not an eval in that skill's evals.json")
+    return problems
+
+
+def check(args, root: Path = ROOT) -> int:
+    """Run the grader suite against what a human pasted and report it step by step. A green
+    suite means the fixtures it has do not contradict the assertion, not that the assertion
+    is right; the verdict says so."""
+    skill, eval_name = args.skill, args.eval
+    print(f"Checking {skill} / {eval_name}\n")
+
+    print("step 1/7  the pasted pair, before anything runs")
+    path = root / FIXTURES
+    try:
+        pairs = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"  FAIL  {FIXTURES} does not parse: {exc}")
+        return 1
+    problems = shape_errors(pairs, root)
+    for problem in problems:
+        print(f"  FAIL  {problem}")
+    index, pair = find_pair(pairs, skill, eval_name)
+    if pair is None:
+        print(f"  FAIL  no object for {skill} / {eval_name}")
+        return 1
+    if problems:
+        print("\n  The suite is not run: fix the paste first, or the failures below would be about its shape.")
+        return 1
+    print(f"  ok    one object at index {index}, six keys in order, near miss declared to fail: {pair['near_miss']['fails']!r}")
+
+    print("\nstep 2/7  the grader suite")
+    with tempfile.TemporaryDirectory(prefix="propose-check-") as td:
+        summary_path = Path(td) / "summary.json"
+        completed = subprocess.run(
+            [sys.executable, str(root / "scripts" / "test_grade_evals.py"), "--json-summary", str(summary_path)],
+            cwd=root, capture_output=True, text=True, timeout=args.timeout,
+        )
+        if not summary_path.is_file():
+            print("  FAIL  the suite wrote no summary; this checkout may predate --json-summary")
+            print(completed.stdout[-2000:] or completed.stderr[-2000:])
+            return 1
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    counts = summary["counts"]
+    print(f"  {'ok   ' if summary['exit_code'] == 0 else 'FAIL '} {counts['fixtures']} fixtures, "
+          f"{counts['pairs']} pairs, {counts['failures']} failure(s) in the whole suite")
+
+    mine = [row for row in summary["fixtures"] if (row["skill"], row["eval"]) == (skill, eval_name)]
+    print(f"\nstep 3/7  the fixtures derived from this pair ({len(mine)})")
+    for row in sorted(mine, key=lambda r: r["name"]):
+        print(f"  {'ok   ' if row['ok'] else 'FAIL '} {row['name']}: {row['pass_rate']:.2f} in [{row['min']}, {row['max']}]")
+        for expectation in row.get("expectations", []):
+            print(f"          {'PASS' if expectation['passed'] else 'FAIL'} {expectation['text']}")
+
+    pair_row = next((row for row in summary["pairs"] if (row["skill"], row["eval"]) == (skill, eval_name)), None)
+    print("\nstep 4/7  near miss: declared against actual")
+    if pair_row is None:
+        print("  FAIL  the suite reported no pair row for this eval")
+    else:
+        print(f"  declared  {pair_row['near_miss_declared']!r}")
+        print(f"  actual    {pair_row['near_miss_failing']}")
+        print(f"  {'ok   ' if pair_row['near_miss_ok'] else 'FAIL '} a near miss must fail exactly the assertion it names")
+
+    print("\nstep 5/7  discrimination gap")
+    if pair_row:
+        print(f"  {'ok   ' if pair_row['gap_ok'] else 'FAIL '} good {pair_row['good_rate']:.2f} - bad "
+              f"{pair_row['bad_rate']:.2f} = {pair_row['gap']:.2f} (floor 0.50)")
+
+    print("\nstep 6/7  the derived attacks on this pair")
+    if pair_row:
+        for kind, rows in (("keyword-only", pair_row["keyword_variants"]), ("label soup", pair_row["label_soup"])):
+            for row in rows:
+                print(f"  {'ok   ' if row['ok'] else 'FAIL '} {kind} joined by {row['sep']!r}: {row['rate']:.2f} (ceiling 0.34)")
+
+    mine_names = {row["name"] for row in mine}
+    collateral = [f for f in summary["failures"] if not any(f.startswith(name) for name in mine_names)
+                  and eval_name not in f]
+    print(f"\nstep 7/7  collateral elsewhere in the suite ({len(collateral)})")
+    for failure in collateral:
+        print(f"  FAIL  {failure}")
+    if not collateral:
+        print("  ok    nothing else moved")
+
+    print("")
+    if summary["exit_code"] == 0:
+        print("Verdict: green. The suite passing does not mean the assertion is right; it means the fixtures it has "
+              "do not contradict it.")
+        return 0
+    if pair_row and not pair_row["near_miss_ok"]:
+        print("Verdict: red. A near miss that fails more than the assertion it names is a bad fixture, not a bad "
+              "assertion: loosening the block to let it through would also let the bad fixture through. Change the "
+              "near-miss text, not the assertions.")
+    elif collateral:
+        print("Verdict: red, and not only here. The assertion change moved fixtures in other pairs; those are listed "
+              "in step 7 and are the real cost of the change.")
+    else:
+        print("Verdict: red. Read step 3: the band a fixture missed says whether the candidate or the assertion is wrong.")
+    return 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -595,12 +734,18 @@ def main() -> int:
     p.add_argument("--force", action="store_true", help="overwrite a proposal a human edited")
     p.add_argument("--dry-run", action="store_true", help="print what would be written, write nothing")
     p.set_defaults(func=propose)
+    c = sub.add_parser("check", help="run the grader suite against a pasted candidate and report it step by step")
+    c.add_argument("--skill", required=True)
+    c.add_argument("--eval", required=True)
+    c.add_argument("--timeout", type=int, default=600, help="seconds to allow the suite")
+    c.set_defaults(func=check)
     args = parser.parse_args()
     try:
-        args.func(args)
-    except (ValueError, OSError, KeyError) as exc:
+        result = args.func(args)
+    except (ValueError, OSError, KeyError, subprocess.SubprocessError) as exc:
         parser.exit(1, f"propose_eval_updates: {exc}\n")
-    return 0
+    # propose returns its index; check returns the exit code the steps earned.
+    return result if isinstance(result, int) else 0
 
 
 if __name__ == "__main__":
