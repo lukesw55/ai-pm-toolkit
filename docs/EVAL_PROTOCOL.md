@@ -87,8 +87,8 @@ instrument from the pre-registered one. A single mismatch invalidates the iterat
 costing it one run, because a matching output cannot be told apart from a non-matching one without
 already knowing which revision produced it. The report records the resolved identifier next to the
 tag name, and the pre-registration still contains no identifier of its own, so the circularity stays
-solved. Neither check exists in the runner today; enforcing them there is a backlog candidate, not a
-promise this section makes.
+solved. Neither check exists in the runner today; enforcing them there is tracked under B46,
+post-B25 hardening, and is not a promise this section makes.
 
 ### The order of operations
 
