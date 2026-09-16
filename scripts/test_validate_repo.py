@@ -339,8 +339,61 @@ def main() -> int:
             for e in readme_errors:
                 print(f"      {e}")
 
+    # check_readme_contract derives its counts from the same manifests check_eval_coverage
+    # hardens, and main() runs it first, so every shape that suite feeds must be tolerated
+    # here too. A finding is fine; an exception aborts the validator before the check that
+    # reports the schema defect ever runs.
+    def readme_tree(td: str, payload: object, skills_said: int = 1) -> Path:
+        tree = Path(td)
+        (tree / "skills" / "fake-skill" / "evals").mkdir(parents=True)
+        (tree / "skills" / "fake-skill" / "SKILL.md").write_text("x", encoding="utf-8")
+        body = payload if isinstance(payload, str) else json.dumps(payload)
+        (tree / "skills" / "fake-skill" / "evals" / "evals.json").write_text(body, encoding="utf-8")
+        (tree / "hooks").mkdir()
+        (tree / "hooks" / "one-gate.sh").write_text("x", encoding="utf-8")
+        (tree / ".github" / "agents").mkdir(parents=True)
+        (tree / ".github" / "agents" / "one.agent.md").write_text("x", encoding="utf-8")
+        (tree / "scripts").mkdir()
+        (tree / "README.md").write_text("\n".join([
+            "# t", "",
+            f"{skills_said} hard-skill PM skills, 1 blocking hooks, 1 agents, 9 eval cases:",
+            "9 standard, 0 doctrine-adversarial, 0 skill-functional-adversarial and 0 negative controls.",
+            "", "- [First](#first)", "", "## First", "", "done.", ""]), encoding="utf-8")
+        return tree
+
+    def run_readme_contract(payload: object, skills_said: int = 1) -> tuple[list[str], str]:
+        with tempfile.TemporaryDirectory(prefix="test-readme-contract-") as td:
+            tree = readme_tree(td, payload, skills_said)
+            saved = (vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README)
+            vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = tree, tree / "skills", tree / "hooks", tree / "README.md"
+            try:
+                found: list[str] = []
+                vr.check_readme_contract(found)
+                return found, ""
+            except Exception as exc:  # the regression this case exists for
+                return [], f"{type(exc).__name__}: {exc}"
+            finally:
+                vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = saved
+
+    schema_cases = list(CASES) + [("not even JSON", "{{{ broken", "")]
+    for name, payload, _expected in schema_cases:
+        _found, raised = run_readme_contract(payload)
+        ok = not raised
+        print(f"{'PASS' if ok else 'FAIL'}  readme contract survives a malformed manifest: {name}")
+        if not ok:
+            failures += 1
+            print(f"      {raised}")
+
+    # and the skip is scoped: the counts that do not come from a manifest are still compared
+    scoped, raised = run_readme_contract(CASES[-1][1], skills_said=9)
+    ok = not raised and len(scoped) == 1 and "says skills 9" in scoped[0]
+    print(f"{'PASS' if ok else 'FAIL'}  readme contract still checks the counts a manifest cannot break")
+    if not ok:
+        failures += 1
+        print(f"      {raised or scoped}")
+
     total = (len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases)
-             + len(consulted_cases) + len(readme_cases))
+             + len(consulted_cases) + len(readme_cases) + len(schema_cases) + 1)
     if failures:
         print(f"\ntest_validate_repo: {failures}/{total} case(s) failed")
         return 1

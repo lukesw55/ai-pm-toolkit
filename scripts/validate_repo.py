@@ -423,12 +423,40 @@ README_COUNTS = (
 )
 
 
-def readme_facts() -> dict[str, tuple[int, ...]]:
-    """The same counts, read from the tree rather than from a constant in this file."""
-    categories: dict[str, int] = {}
+def eval_categories() -> tuple[dict[str, int], bool]:
+    """(counts per category, every manifest was readable and the right shape).
+
+    check_eval_coverage is the check that reports a malformed manifest, and it runs whatever
+    this one finds. So this one only counts, and skips what it cannot count: a file that does
+    not parse, a top level that is not an object, an `evals` that is not a list, a case that is
+    not an object, a category that is not a string. Assuming any of those here would raise
+    before the check designed to turn them into a finding ever ran, which is the traceback the
+    whole test_validate_repo.py suite exists to prevent."""
+    counts: dict[str, int] = {}
+    complete = True
     for manifest in sorted(SKILLS.glob("*/evals/evals.json")):
-        for case in json.loads(manifest.read_text(encoding="utf-8")).get("evals", []):
-            categories[case["category"]] = categories.get(case["category"], 0) + 1
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            complete = False
+            continue
+        cases = data.get("evals") if isinstance(data, dict) else None
+        if not isinstance(cases, list):
+            complete = False
+            continue
+        for case in cases:
+            category = case.get("category") if isinstance(case, dict) else None
+            if not isinstance(category, str):
+                complete = False
+                continue
+            counts[category] = counts.get(category, 0) + 1
+    return counts, complete
+
+
+def readme_facts() -> tuple[dict[str, tuple[int, ...]], bool]:
+    """The same counts, read from the tree rather than from a constant in this file. The flag
+    says whether the manifest-derived ones mean anything on this tree."""
+    categories, manifests_ok = eval_categories()
     return {
         "skills": (len(list(SKILLS.glob("*/SKILL.md"))),),
         "blocking hooks": (len(list(HOOKS.glob("*-gate.sh"))),),
@@ -437,7 +465,12 @@ def readme_facts() -> dict[str, tuple[int, ...]]:
         "eval categories": tuple(categories.get(name, 0) for name in
                                  ("standard", "doctrine-adversarial", "skill-functional-adversarial",
                                   "negative-control")),
-    }
+    }, manifests_ok
+
+
+# The two counts that come from the eval manifests. A malformed manifest makes their totals
+# meaningless, so they are skipped rather than reported against a number a broken file produced.
+MANIFEST_COUNTS = ("eval cases", "eval categories")
 
 
 def anchor(heading: str) -> str:
@@ -454,8 +487,10 @@ def check_readme_contract(errors: list[str]) -> None:
         err(errors, "README.md: missing")
         return
     text = README.read_text(encoding="utf-8")
-    facts = readme_facts()
+    facts, manifests_ok = readme_facts()
     for name, pattern in README_COUNTS:
+        if not manifests_ok and name in MANIFEST_COUNTS:
+            continue  # check_eval_coverage reports the manifest itself; see eval_categories
         found = re.findall(pattern, text)
         if len(found) != 1:
             err(errors, f"README.md: the {name} count must be stated exactly once as a digit; "
