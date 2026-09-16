@@ -62,8 +62,10 @@ failed attempt and is kept as one, never repaired into a recorded output.
 that nothing in it ever has to name its own commit.
 
 Before the smoke, commit the decision criteria: for each pilot skill the conditions that would make
-it a keep, a fix, a simplify or a remove, plus any critical failure that blocks keep on its own, and
-the name of the annotated tag the measured iteration will run from. The block also carries the field
+it a keep, a fix, a simplify or a remove, plus any critical failure that blocks keep on its own,
+each carrying a short stable identifier (`CF-1`, `CF-2`) because the adjudication record below
+references them by identifier, and the name of the annotated tag the measured iteration will run
+from. The block also carries the field
 aggregate_rule: `docs/EVAL_PROTOCOL.md#reading-the-pilot-as-a-whole`, which names the run-level
 procedure instead of copying it. The value is written as a path in backticks of its own, carrying
 the `docs/` prefix, because that is the form `check_backtick_paths` in `scripts/validate_repo.py`
@@ -124,7 +126,9 @@ to be.
    prompts in both configurations.
 8. A fresh isolated session for every output.
 9. Keep every attempt, the failed ones included.
-10. Label each output `good`, `weak` or `fail`, with a classification and a reason.
+10. Label each output `good`, `weak` or `fail`, with a classification and a reason, and adjudicate
+    every pre-registered critical failure for both configurations of every pair into
+    `docs/benchmarks/<iteration>/critical-failures.md`.
 11. Blind the first human read to the configuration where the tooling allows it. Where it does not,
     say so in the report rather than leaving the read to look blind.
 12. Report paired counts, critical failures, negative controls, grader disagreement, token cost and
@@ -181,6 +185,31 @@ Nothing below is a statistical test. Each term is defined by something observabl
 run, and each verdict is reached by an ordered procedure, so one evidence state maps to exactly one
 verdict.
 
+#### Where the critical-failure evidence comes from
+
+Steps 1 and 4 both turn on whether a pre-registered critical failure appeared under `with_skill`,
+which is a comparison of two sets rather than a property of one run. Its evidence is a tracked file,
+`docs/benchmarks/<measured-iteration>/critical-failures.md`, written by the same labelers from the
+same recorded outputs: one row per pair per pre-registered critical-failure identifier, with an
+explicit state for each configuration.
+
+| skill | eval | failure | `without_skill` | `with_skill` | adjudicated by |
+|---|---|---|---|---|---|
+
+A state is `present`, `absent` or `unsettled`, and `unsettled` is what the labelers of that
+configuration write when they do not agree about that failure. The baseline column is not optional.
+Without it the same evidence reads two ways, because a failure carried by both runs is a flat signal
+while the same failure seen only under `with_skill` fires step 1, and "both runs were labelled" does
+not tell those apart.
+
+`labels.jsonl` cannot carry this. Schema 2 in `scripts/label_eval_run.py` records a verdict, a
+classification drawn from ten generic handles, a reason and a labeler, and has no field for a
+pre-registered critical-failure identifier in either configuration, so which failure sat in which run
+would have to be reconstructed from prose after the fact, which is the post-hoc freedom this section
+exists to remove and would be at the strongest veto in the procedure. Carrying the identifiers in the
+label schema instead is a runtime change, tracked under B46, post-B25 hardening, and deliberately not
+made here.
+
 #### What the terms mean, fixed before the run
 
 - **The category signal** of a pair: *up* when the human verdict category is better under
@@ -188,10 +217,13 @@ verdict.
   grader score that moves without changing the human category is not a signal.
 - **The critical-failure signal** of a pair: *down* when `with_skill` carries any pre-registered
   critical failure its counterpart does not, *up* when it carries none of those and the counterpart
-  carries at least one it does not, *flat* when the two sets are the same.
-- **The human direction of a pair**, exactly one per pair. A pair is **unresolved** when it is
-  contaminated, when the labelers split so it has no consolidated human verdict, or when its two
-  signals point in opposite directions. Otherwise it is **up** when both signals are up or one is up
+  carries at least one it does not, *flat* when the two sets are the same. Both sets are read from
+  the adjudication record above, never from a labeler's prose.
+- **The human direction of a pair**, exactly one per pair. A pair is **unresolved** when its
+  critical-failure comparison is not settled, which covers contamination, when the labelers split so
+  it has no consolidated human verdict, or when its two signals point in opposite directions. An
+  unsettled identifier leaves the critical-failure signal undetermined rather than flat: a baseline
+  nobody could agree on is missing evidence, and missing evidence is not the value `absent`. Otherwise it is **up** when both signals are up or one is up
   and the other flat, **down** when both are down or one is down and the other flat, and **flat**
   when both are flat.
 - **The grader direction of a pair**: **up** when the `without_skill` run scores below the pass
@@ -217,24 +249,29 @@ verdict.
 - **A skill improves materially**: its human margin is positive and none of its pairs is down by
   gaining a critical failure.
 - **A skill regresses materially**: its human margin is negative.
-- **A skill regresses on critical failures**: any pair that is not contaminated carries a
-  pre-registered critical failure under `with_skill` that its `without_skill` counterpart does not.
-- **The critical-failure guardrail is clear**: every pair in the iteration establishes whether a
-  pre-registered critical failure appeared under `with_skill`, and none did. A pair establishes that
-  when both configurations were recorded and labelled and the labelers of the `with_skill` run agree
-  on which pre-registered critical failures it carries; they may still split on the verdict category,
-  which is a different question. A contaminated pair never establishes it: a missing configuration
-  leaves nothing to compare against, and a mismatched envelope means the recorded output is not the
-  one the instrument describes. This is not the margin rule in another form. Step 1 excludes
+- **A skill regresses on critical failures**: any pair that is not contaminated carries, in the
+  adjudication record, a pre-registered critical failure under `with_skill` that its `without_skill`
+  counterpart does not.
+- **A pair's critical-failure comparison is settled** when, for every pre-registered
+  critical-failure identifier of that skill, the adjudication record carries an explicit `present` or
+  `absent` in **both** configurations. An identifier left `unsettled` in either column does not
+  settle it, and a contaminated pair never settles: a missing configuration leaves nothing to
+  adjudicate, and a mismatched envelope means the recorded output is not the one the instrument
+  describes. Settling is about the failure set, not the verdict category; labelers may still split on
+  the category, which is a different question.
+- **The critical-failure guardrail is clear**: every pair in the iteration has a settled
+  critical-failure comparison, and no identifier is `present` under `with_skill` while `absent` under
+  `without_skill`. Being settled is half the condition. This is not the margin rule in another
+  form. Step 1 excludes
   contaminated pairs on purpose, so contaminated evidence cannot convict, and the same evidence must
   not acquit either; the margin rule asks only whether the unresolved set could change a sign, while
   the pair it leaves unread may be exactly the one where the veto would have fired. The practical
   effect is that one contaminated pair in any skill keeps step 4 from firing, while a pair left
   unresolved only because the labelers split on the category, or because its two signals conflict,
-  does not: in both of those the critical-failure state is on the record, and a conflict in which a
-  critical failure appeared has already fired step 1.
-- **A negative-control pair is materially worse**: its human verdict category drops, or it gains a
-  pre-registered critical failure.
+  does not: in both of those the comparison can still be settled, and a conflict in which a critical
+  failure appeared has already fired step 1.
+- **A negative-control pair is materially worse**: its human verdict category drops, or the
+  adjudication record shows it gaining a pre-registered critical failure.
 - **The negative controls are clear**: every negative-control pair in the iteration is resolved, and
   none of them is materially worse. Being resolved is half the condition, not an oversight. The
   margin rule above asks only whether the unresolved set could change a skill's direction, and those
