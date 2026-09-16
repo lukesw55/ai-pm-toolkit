@@ -337,7 +337,9 @@ _REPO_DOCTOR_SHARED_REMEDY = re.compile(
 def repo_doctor_failures_have_remedies(t: str) -> bool:
     """Each failure is followed by its remedy before the next failure is stated, or one
     remedy says it covers them all. One real failure needs one remedy, never a second
-    failure to reach a count; no failure at all needs the clean result on the checks."""
+    failure to reach a count; no failure at all needs the clean result on the checks. A
+    sentence that states a new failure with its own remedy does not settle an earlier
+    failure still open."""
     sentences = [s for s in _SENTENCE_SPLIT.split(t) if s.strip()]
     kinds = [(bool(_REPO_DOCTOR_FAILURE_WITH_PATH.search(s)), bool(_REPO_DOCTOR_REMEDY.search(s))) for s in sentences]
     if not any(failure for failure, _ in kinds):
@@ -345,6 +347,7 @@ def repo_doctor_failures_have_remedies(t: str) -> bool:
     open_failure = uncovered = False
     for failure, remedy in kinds:
         if failure and remedy:
+            uncovered = uncovered or open_failure
             open_failure = False
         elif failure:
             uncovered = uncovered or open_failure

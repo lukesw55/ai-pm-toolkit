@@ -80,8 +80,9 @@ scored by an assertion block in `scripts/grade_evals.py` and defended by a stric
 8. An assertion that counts findings, failures or remedies accepts the honest zero when the
    reply names the checks it stands on: one real failure needs one path and one remedy, never a
    second failure to reach a count; each failure is followed by its remedy before the next
-   failure is stated, or one remedy says it covers them all; and an isolated "all green" that
-   names no check passes neither branch.
+   failure is stated, or one remedy says it covers them all, and a sentence that states a new
+   failure with its own remedy does not settle the one before it; and an isolated "all green"
+   that names no check passes neither branch.
 
 The test derives three more kinds of text from each strict pair: the good text wrapped at 72
 columns, the same beside an unwrapped paragraph (after a blank line, and glued with a single

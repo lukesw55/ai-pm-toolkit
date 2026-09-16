@@ -437,13 +437,18 @@ fixture(
     0.0, 0.34,
 )
 
-# Two findings with a remedy for only the first (second review of PR #23) is a near
-# miss of the remedy assertion, like the JSON near miss with no remedy at all; one
-# remedy that says it covers both findings is a good answer.
+# Two findings with a remedy for only one of them (second and third reviews of PR
+# #23) is a near miss of the remedy assertion, like the JSON near miss with no remedy
+# at all: only the first remedied, only the second remedied after a full stop, and
+# only the second remedied in the same sentence as that finding, which must not settle
+# the first. One remedy that says it covers both findings is a good answer.
 _REPO_DOCTOR_FIX_1 = " Fix: run python3 scripts/sync_skills.py and commit the regenerated mirrors."
 _REPO_DOCTOR_FIX_2 = " Fix: edit the table row to the real filename or add the missing file."
 _REPO_DOCTOR_RERUN = " Re-run python3 scripts/validate_repo.py after the two fixes and the review should come back clean."
 assert all(s in _REPO_DOCTOR_GOOD for s in (_REPO_DOCTOR_FIX_1, _REPO_DOCTOR_FIX_2, _REPO_DOCTOR_RERUN))
+assert "does not exist." + _REPO_DOCTOR_FIX_2 in _REPO_DOCTOR_GOOD
+_REPO_DOCTOR_REMEDY_LABEL = "Pairs each reported failure with its remedy, or states that none is needed with the checks behind it"
+_REPO_DOCTOR_SECOND_ONLY = _REPO_DOCTOR_GOOD.replace(_REPO_DOCTOR_FIX_1, "").replace(_REPO_DOCTOR_RERUN, "")
 # (fixture name, skill, eval_name, text, label of the one assertion the text must fail)
 EXTRA_NEAR_MISSES: list[tuple[str, str, str, str, str]] = [
     (
@@ -451,7 +456,21 @@ EXTRA_NEAR_MISSES: list[tuple[str, str, str, str, str]] = [
         "repo-doctor",
         "validate-skill-repo-health",
         _REPO_DOCTOR_GOOD.replace(_REPO_DOCTOR_FIX_2, "").replace(_REPO_DOCTOR_RERUN, ""),
-        "Pairs each reported failure with its remedy, or states that none is needed with the checks behind it",
+        _REPO_DOCTOR_REMEDY_LABEL,
+    ),
+    (
+        "repo-doctor-second-finding-only-remedied-is-a-near-miss",
+        "repo-doctor",
+        "validate-skill-repo-health",
+        _REPO_DOCTOR_SECOND_ONLY,
+        _REPO_DOCTOR_REMEDY_LABEL,
+    ),
+    (
+        "repo-doctor-second-finding-remedied-in-the-same-sentence-is-a-near-miss",
+        "repo-doctor",
+        "validate-skill-repo-health",
+        _REPO_DOCTOR_SECOND_ONLY.replace("does not exist." + _REPO_DOCTOR_FIX_2, "does not exist;" + _REPO_DOCTOR_FIX_2),
+        _REPO_DOCTOR_REMEDY_LABEL,
     ),
 ]
 for _name, _skill, _eval, _text, _ in EXTRA_NEAR_MISSES:
