@@ -117,6 +117,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-16 Merge the B42 branch: the three review fixes
 - 2026-09-16 B43 review 2: the README claims only what the routes and the CLI actually do
 - 2026-09-16 PR history: #24 integrated
+- 2026-09-16 B43 review 3: a malformed eval manifest must not abort the validator
 
 ## 2026-09-08: session log
 
@@ -591,4 +592,8 @@ Three findings from your re-review, and two more of the same class that the swee
 ## 2026-09-16: PR history: #24 integrated
 
 You merged #24 by merge commit efcba28 at 14:47:25Z, so main carries B42 and this branch merges it back in. The merge brought no content, since the branch already held every commit under that merge; it only reconciles the histories. By the convention from the B41 round, the row for an integrated pull request enters the next open one, which is this. docs/PR_HISTORY.md gains the #24 row with the full sha from the merge metadata, and the backfill sentence now covers #19 to #24. The integration line in .ai/tasks.md names it and says #25 is the only one still open. Full docs/REPO_HEALTH.md battery green before the commit.
+
+## 2026-09-16: B43 review 3: a malformed eval manifest must not abort the validator
+
+You are right, and this one is mine: I reintroduced the exact failure the test_validate_repo.py suite exists to prevent. readme_facts assumed every evals.json is an object, that evals is a list, that each case is an object, and that category is a hashable string. I ran the shapes against it: all of them raise. AttributeError when the top level is a list, TypeError when evals is not a list or a case is not an object, TypeError on an unhashable category when it is a list or an object, KeyError when the key is absent, and JSONDecodeError on a file that is not JSON at all. Five of those are fixtures that already live in CASES. Since main() calls check_readme_contract before check_eval_coverage, the validator died with a traceback before the check whose job is to turn those shapes into findings ever ran. Moving the call after check_eval_coverage would not have fixed it. The exception still propagates, just after the findings are collected, and the validator still exits without printing them. The function had to stop assuming. The counting is now its own helper and skips what it cannot count: a file that does not parse, a top level that is not an object, an evals that is not a list, a case that is not an object, a category that is not a string. Each skip lowers a completeness flag, and check_readme_contract then compares only the three counts that do not come from a manifest, since comparing the README against a total a broken file produced would stack a confusing finding on top of the real one. check_eval_coverage keeps ownership of reporting the schema defect, which is what it was written for. The regression is your acceptance criterion: all eight CASES payloads, plus a file that is not JSON, go through check_readme_contract and none may raise. A finding is fine there; an exception is not. One more case proves the skip is scoped, feeding a malformed manifest together with a wrong skill count and requiring that the skill-count finding still comes out. Reverting the helper turns six of them red. 77 cases in the file. Full docs/REPO_HEALTH.md battery green before the commit.
 

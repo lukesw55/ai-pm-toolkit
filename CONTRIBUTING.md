@@ -4,7 +4,7 @@ Three rules are not guessable from the tree. Everything else follows the code yo
 
 ## 1. Run the battery before every commit
 
-`docs/REPO_HEALTH.md` holds the full checklist and CI runs the same commands. The short version, from the repo root:
+`docs/REPO_HEALTH.md` holds the full checklist. These are the commands that run on a clean clone in any state, from the repo root:
 
 ```bash
 bash scripts/check_requirements.sh
@@ -26,10 +26,12 @@ python3 scripts/test_golden_set.py
 python3 scripts/test_validate_repo.py
 python3 scripts/test_frontmatter.py
 python3 scripts/grade_evals.py
-python3 scripts/memory.py doctor
+python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-dry-run --model dry-run --dry-run --allow-dirty
 ```
 
 `python3 -S scripts/validate_repo.py` is the second run on purpose: it disables site packages, so the validator has to parse frontmatter without PyYAML and reach the same verdict. CI runs both ways on Python 3.10 and 3.11.
+
+`memory.py doctor` is absent on purpose. Real memory is gitignored, so a fresh checkout has no active project and the command exits 1 by definition; CI bootstraps a throwaway project before calling it, and the bootstrap smoke test in `docs/REPO_HEALTH.md` is the sequence to run by hand. You lose no coverage by leaving it out: `validate_repo.py` already runs that whole bootstrap in a copy of the tree, so the contract is checked without writing to the memory in your clone.
 
 Toolkit changes are logged with `python3 scripts/memory.py log repo "<what changed and how it was validated>"`, which writes the versioned changelog. A `Stop` hook reminds you when files changed and no entry followed.
 
