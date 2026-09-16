@@ -75,16 +75,21 @@ def find_pair(pairs: list[dict], skill: str, eval_name: str) -> tuple[int | None
     return None, None
 
 
-def excerpt(text: str, limit: int, full: bool) -> dict:
-    """Bounded by default. The workspace is gitignored and docs/ is tracked, so a full
-    output would publish model text into git permanently and grow a corpus of it beside
-    the fixtures file, one directory from where an assertion author would look. The hash
-    and the run path make the excerpt a pointer with evidence attached."""
+def excerpt(text: str, limit: int, full: bool, embed: bool) -> dict:
+    """Withheld by default. The workspace is gitignored and docs/ is tracked, and
+    record_eval_run.py records whatever output its caller hands it, so copying that text
+    into a proposal would put arbitrary model output into git permanently, by default, with
+    nothing proving it came from the isolated pilot. The card carries the hash, the run path
+    and the grading instead, which is what a reviewer decides on; --embed-output writes the
+    text in when someone wants it there."""
+    if not embed:
+        return {"text": "", "chars": 0, "truncated": False, "embedded": False, "output_chars": len(text)}
     body = text if full else text[:limit]
     return {
         "text": body,
         "chars": len(body),
         "truncated": not full and len(text) > limit,
+        "embedded": True,
         "output_chars": len(text),
     }
 
@@ -203,7 +208,12 @@ def checks_to_flip(grading: dict) -> int | None:
     return passed
 
 
-def fixture_suggestion(category: str, verdict: str | None, index: int | None, pair: dict | None, text: str) -> dict | None:
+def candidate_placeholder(locator: str) -> str:
+    return f"<the recorded output at {locator}; re-run propose with --embed-output to write it here>"
+
+
+def fixture_suggestion(category: str, verdict: str | None, index: int | None, pair: dict | None, text: str,
+                       *, embed: bool, locator: str) -> dict | None:
     """A slot replacement inside the existing object, never a new array element: the file
     holds exactly one object per eval and all of them exist, and a second object for the
     same eval would pass the suite unnoticed because the coverage checks are subset tests.
@@ -221,11 +231,16 @@ def fixture_suggestion(category: str, verdict: str | None, index: int | None, pa
     else:
         slot = "good"
     snippet = {key: pair[key] for key in FIXTURE_KEYS if key in pair}
+    # The candidate is the recorded output itself, so it is the second way model text would
+    # reach a tracked file. Without --embed-output the slot carries a placeholder naming where
+    # the text is; everything a reviewer decides on (slot, band, what it replaces, whether it
+    # collides) is computed from the real text and stays.
+    body = text if embed else candidate_placeholder(locator)
     if slot == "near_miss":
-        value: object = {"text": text, "fails": "<the assertion label you are about to write>"}
+        value: object = {"text": body, "fails": "<the assertion label you are about to write>"}
         band = [0.50, 0.99]
     else:
-        value = text
+        value = body
         band = [0.80, 1.0] if slot == "good" else [0.0, 0.30]
     current_value = json.dumps(pair.get(slot), sort_keys=True, ensure_ascii=False)
     snippet[slot] = value
@@ -245,7 +260,8 @@ def fixture_suggestion(category: str, verdict: str | None, index: int | None, pa
         "snippet": snippet,
         "collides_with_slots": collides,
         "derived_from": "model output",
-        "verbatim": True,
+        "verbatim": embed,
+        "candidate_embedded": embed,
         "rewrite_required": slot == "good",
     }
 
@@ -317,7 +333,8 @@ def decisions_for(category: str, run: dict, iteration: str) -> list[dict]:
     ]
 
 
-def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, *, limit: int, full: bool) -> dict:
+def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, *, limit: int, full: bool,
+                   embed: bool) -> dict:
     """One proposal, or an outcome that explains why there is none. Never raises for a run
     that is simply absent: a label whose run is not on this machine is reported, the way
     grade_all already reports one, and never an error."""
@@ -340,6 +357,7 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
         return {**base, "outcome": "hash-mismatch"}
 
     output_path = directory / "outputs" / "output.md"
+    provenance_present = (directory / "provenance.json").is_file()
     text = output_path.read_text(encoding="utf-8", errors="replace")
     grading = ge.grade_run(output_path, skill, eval_name)
     if grading is None:
@@ -362,6 +380,9 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
     marks = implicated(category, grading, checks, pair)
     verdict = grading["human_verdict"]
     stored = read_stored_grading(directory, f"{skill} eval {eval_id} {config}")
+    if embed and not provenance_present:
+        print(f"WARN {skill} eval {eval_id} {config}: embedding output from a run with no provenance.json; "
+              "nothing proves it came from the isolated pilot", file=sys.stderr)
 
     proposal = {
         "schema": SCHEMA,
@@ -377,6 +398,7 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
             "recorded_at": meta["recorded_at"],
             "output_path": output_path.relative_to(root).as_posix(),
             "output_words": grading["word_count"],
+            "provenance_present": provenance_present,
         },
         "human": {
             "verdict": verdict,
@@ -395,11 +417,12 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
             "stored_grading_matches": None if stored is None else stored.get("pass_rate") == grading["pass_rate"],
         },
         "implicated_assertions": marks,
-        "fixture_suggestion": fixture_suggestion(category, verdict, index, pair, text),
+        "fixture_suggestion": fixture_suggestion(category, verdict, index, pair, text,
+                                                 embed=embed, locator=output_path.relative_to(root).as_posix()),
         "assertion_change": assertion_change(category, marks, current, grading),
         "rubric_impact": rubric_impact(labels_by_key, skill, eval_id) if category == "eval-defect" else None,
         "human_decisions": decisions_for(category, {"skill": skill, "eval_name": eval_name, "config": config}, iteration),
-        "excerpt": excerpt(text, limit, full),
+        "excerpt": excerpt(text, limit, full, embed),
     }
     return {**base, "outcome": category, "proposal": proposal}
 
@@ -462,14 +485,22 @@ def render_markdown(proposal: dict) -> str:
     out.append("")
     ex = proposal["excerpt"]
     out.append(f"sha256 {run['output_sha256']}, {ex['output_chars']} characters, recorded at "
-               f"{run['output_path']} (the workspace is not tracked, so this path exists only where the run was recorded).")
+               f"{run['output_path']} (the workspace is not tracked, so this path exists only where the run was recorded). "
+               + ("Provenance sidecar present." if run["provenance_present"]
+                  else "No provenance sidecar: nothing here proves this run came from the isolated pilot."))
     out.append("")
-    out.append(f"First {ex['chars']} characters:" if ex["truncated"] else "Full output:")
-    out.append("")
-    fence = fence_for(ex["text"])
-    out.append(f"{fence}text")
-    out.append(ex["text"])
-    out.append(fence)
+    if ex["embedded"]:
+        out.append(f"First {ex['chars']} characters:" if ex["truncated"] else "Full output:")
+        out.append("")
+        fence = fence_for(ex["text"])
+        out.append(f"{fence}text")
+        out.append(ex["text"])
+        out.append(fence)
+    else:
+        out.append("The text itself is not copied into this file. This page is tracked, the run is not, and the "
+                   "recorder takes whatever output its caller hands it, so publishing that text by default would "
+                   "put arbitrary model output into git. Read it at the path above, or re-run with "
+                   "`--embed-output` to write it here.")
     out.append("")
     marks = proposal["implicated_assertions"]
     if marks is None:
@@ -553,6 +584,12 @@ def render_markdown(proposal: dict) -> str:
                        + "` slot of the same pair.** One text cannot be both the answer to accept and the answer to reject, so "
                        "pasting it as it stands would make the pair contradict itself. Either the labelled run is a text the "
                        "fixtures already hold, or the label is the thing to revisit.")
+        out.append("")
+        if not suggestion["candidate_embedded"]:
+            out.append("")
+            out.append("The candidate is that recorded output, so it is not written here either, for the reason the "
+                       "output section gives. The slot, the band, the value it would replace and the collision check "
+                       "are all computed from the real text and stand as they are; `--embed-output` fills the text in.")
         out.append("")
         out.append(f"Replace the `{suggestion['slot']}` value of that object with this, and leave its other keys alone. "
                    "The whole candidate object is in the JSON sibling of this file.")
@@ -742,7 +779,8 @@ def propose(args, root: Path = ROOT) -> dict:
             continue
         if args.eval and labels_by_key[key][0]["eval_name"] != args.eval:
             continue
-        built = build_proposal(root, args.iteration, key, labels_by_key, limit=args.excerpt_chars, full=args.full_output)
+        built = build_proposal(root, args.iteration, key, labels_by_key, limit=args.excerpt_chars,
+                               full=args.full_output, embed=args.embed_output or args.full_output)
         row = {"key": built["key"], "outcome": built["outcome"]}
         if built["outcome"] in ("no-run-here", "hash-mismatch", "invalid-run", "orphan-eval", "no-assertions"):
             print(f"WARN {built['outcome']}: {skill} eval {eval_id} {config} output {key[3][:12]}", file=sys.stderr)
@@ -927,7 +965,10 @@ def main() -> int:
     p.add_argument("--eval", help="only this eval name")
     p.add_argument("--out", help="override docs/benchmarks/<iteration>/proposals/")
     p.add_argument("--excerpt-chars", type=int, default=EXCERPT_CHARS)
-    p.add_argument("--full-output", action="store_true", help="publish the whole output into the tracked proposal")
+    p.add_argument("--embed-output", action="store_true",
+                   help="write the recorded output into the tracked proposal; off by default")
+    p.add_argument("--full-output", action="store_true",
+                   help="embed the whole output rather than the first --excerpt-chars characters")
     p.add_argument("--force", action="store_true", help="overwrite a proposal a human edited")
     p.add_argument("--dry-run", action="store_true", help="print what would be written, write nothing")
     p.set_defaults(func=propose)

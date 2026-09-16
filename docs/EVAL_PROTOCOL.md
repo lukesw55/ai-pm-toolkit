@@ -307,11 +307,16 @@ near-miss failure, the discrimination gap, the nine derived attacks, and any fix
 moved elsewhere in the suite. A green run means the fixtures the suite has do not contradict
 the assertion. It does not mean the assertion is right.
 
-Excerpts in a proposal are bounded by default. Runs live under `skills/*/workspace/`, which is
-gitignored, while `docs/` is tracked: `--full-output` publishes the whole text into git
-permanently, and a growing corpus of model output beside the fixtures file is one directory from
-where the next assertion author would look. The proposal carries the output hash and the run
-path instead, so the excerpt is a pointer with evidence attached.
+A proposal carries no model text by default. Runs live under `skills/*/workspace/`, which is
+gitignored, while `docs/` is tracked, and `record_eval_run.py` records whatever output its
+caller hands it, so nothing in a card proves the text came from the isolated pilot. Publishing
+it by default would put arbitrary model output into git permanently and grow a corpus of it one
+directory from where the next assertion author would look. Two things would carry it: the
+excerpt and the fixture candidate, which is that same output. Both are withheld, and the card
+carries the output hash, the run path, whether a provenance sidecar exists, the grading and the
+labeler's reason, which is what the decision rests on. `--embed-output` writes the bounded
+excerpt and the candidate text in when someone wants them there, `--full-output` drops the
+bound, and embedding a run with no provenance sidecar warns.
 
 This is the toolkit's own evals. The product-side equivalent, a golden set for a feature a team
 is shipping, lives in the project's memory and is written with `scripts/golden_set.py`, per

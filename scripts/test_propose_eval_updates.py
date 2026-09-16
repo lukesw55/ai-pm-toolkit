@@ -76,7 +76,7 @@ class ProposeTests(unittest.TestCase):
 
     def args(self,**over):
         base=dict(iteration=self.iteration,labels=None,skill=None,eval=None,out=None,
-                  excerpt_chars=pe.EXCERPT_CHARS,full_output=False,force=False,dry_run=False)
+                  excerpt_chars=pe.EXCERPT_CHARS,embed_output=False,full_output=False,force=False,dry_run=False)
         base.update(over);return argparse.Namespace(**base)
 
     def propose(self,**over):
@@ -407,7 +407,7 @@ class ProposeTests(unittest.TestCase):
         self.record_pair('iteration-long',{'with_skill':long_text,'without_skill':'gamma'})
         self.label(iteration='iteration-long',verdict='weak',classification=['skipped-method'],reason='misses the lock')
         with patch.dict(ge.ASSERTIONS,self.assertions):
-            pe.propose(self.args(iteration='iteration-long',excerpt_chars=100),self.root)
+            pe.propose(self.args(iteration='iteration-long',excerpt_chars=100,embed_output=True),self.root)
         out=pe.proposals_dir(self.root,'iteration-long')
         proposal=json.loads([p for p in out.iterdir() if p.suffix=='.json' and p.stem!='index'][0].read_text())
         self.assertIs(proposal['excerpt']['truncated'],True)
@@ -417,6 +417,52 @@ class ProposeTests(unittest.TestCase):
             pe.propose(self.args(iteration='iteration-long',full_output=True,force=True),self.root)
         proposal=json.loads([p for p in out.iterdir() if p.suffix=='.json' and p.stem!='index'][0].read_text())
         self.assertIs(proposal['excerpt']['truncated'],False)
+
+    # -- what reaches a tracked file ---------------------------------------------------
+    CANARY = 'alpha beta canary-4f2a-present-only-in-the-recorded-run'
+
+    def canary_run(self):
+        self.record_pair('iteration-canary',{'with_skill':self.CANARY,'without_skill':self.bad})
+        self.write_fixture_pair()
+        self.label(iteration='iteration-canary',verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        return pe.proposals_dir(self.root,'iteration-canary')
+
+    def card_files(self,out):
+        md=[p for p in out.iterdir() if p.suffix=='.md' and p.stem!='index'][0]
+        js=[p for p in out.iterdir() if p.suffix=='.json' and p.stem!='index'][0]
+        return md.read_text(encoding='utf-8'),js.read_text(encoding='utf-8')
+
+    def test_the_default_publishes_no_model_text(self):
+        """docs/ is tracked, the workspace is not, and the recorder takes whatever output its
+        caller hands it. Neither the excerpt nor the fixture candidate may carry that text."""
+        out=self.canary_run()
+        with patch.dict(ge.ASSERTIONS,self.assertions):
+            pe.propose(self.args(iteration='iteration-canary'),self.root)
+        markdown,raw=self.card_files(out)
+        for name,body in (('markdown',markdown),('json sibling',raw)):
+            self.assertNotIn('canary-4f2a',body,f'the recorded output must not reach the tracked {name}')
+        proposal=json.loads(raw)
+        self.assertIs(proposal['excerpt']['embedded'],False)
+        self.assertIs(proposal['fixture_suggestion']['candidate_embedded'],False)
+        self.assertIs(proposal['fixture_suggestion']['verbatim'],False)
+        self.assertEqual(proposal['excerpt']['output_chars'],len(self.CANARY))
+        # what a reviewer needs instead: the hash, the path, and the command that writes it in
+        self.assertIn(proposal['run']['output_sha256'],markdown)
+        self.assertIn(proposal['run']['output_path'],markdown)
+        self.assertIn('--embed-output',markdown)
+        self.assertIs(proposal['run']['provenance_present'],False)
+        self.assertIn('no provenance sidecar',markdown.lower())
+
+    def test_embed_output_writes_the_text_in(self):
+        out=self.canary_run()
+        with patch.dict(ge.ASSERTIONS,self.assertions):
+            pe.propose(self.args(iteration='iteration-canary',embed_output=True),self.root)
+        markdown,raw=self.card_files(out)
+        self.assertIn('canary-4f2a',markdown)
+        self.assertIn('canary-4f2a',raw)
+        proposal=json.loads(raw)
+        self.assertIs(proposal['excerpt']['embedded'],True)
+        self.assertIs(proposal['fixture_suggestion']['candidate_embedded'],True)
 
     # -- inputs the pass does not control ---------------------------------------------
     @staticmethod
@@ -463,7 +509,7 @@ class ProposeTests(unittest.TestCase):
         self.record_pair('iteration-fenced',{'with_skill':fenced,'without_skill':self.bad})
         self.label(iteration='iteration-fenced',verdict='weak',classification=['skipped-method'],reason='misses the lock')
         with patch.dict(ge.ASSERTIONS,self.assertions):
-            pe.propose(self.args(iteration='iteration-fenced'),self.root)
+            pe.propose(self.args(iteration='iteration-fenced',embed_output=True),self.root)
         out=pe.proposals_dir(self.root,'iteration-fenced')
         markdown=[p for p in out.iterdir() if p.suffix=='.md' and p.stem!='index'][0].read_text(encoding='utf-8')
         headings,balanced=self.headings_outside_fences(markdown)
