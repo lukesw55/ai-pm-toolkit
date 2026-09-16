@@ -30,7 +30,7 @@ python3 scripts/run_eval_pilot.py --harness claude-code --iteration iteration-dr
 `validate_repo.py` covers:
 
 - `SKILL.md` YAML frontmatter for the root skill and every skill under the canonical `skills/` tree.
-- Local markdown links and backtick-quoted file paths (canonical + repo docs; the `.claude/skills/` and `.agents/skills/` mirrors are byte copies, checked separately by drift).
+- Local markdown links and backtick-quoted file paths (canonical + repo docs; the `.claude/skills/` and `.agents/skills/` mirrors are byte copies, checked separately by drift). Generated eval proposals under `docs/benchmarks/<iteration>/proposals/` are skipped by both checks: a proposal quotes a recorded model output verbatim, so its text can carry a path that never existed or one under the gitignored workspace, and a dated record of one run must not turn the validator red on every clone. Reports and label files in the same tree stay checked.
 - `skills/WORKFLOW.md` parsing into the canonical eight-stage contract.
 - `.claude/settings.json` and `.codex/hooks.json` hook shape, unsupported matchers, timeout units, and that every referenced command target exists.
 - Hook wiring contract: every route in `hooks/contract.json` (event, tool, ordered handlers, per harness) resolves to exactly those handlers in the adapter, using separate matcher semantics: Claude Code accepts exact-name lists or regex; Codex uses regex, without Claude's comma-separated-list rule; malformed adapter JSON produces findings, never a traceback.

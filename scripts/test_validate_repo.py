@@ -21,6 +21,11 @@ load_frontmatter: one canonical fixture checks the parsed *value*, not just
 the absence of a finding, so a block-scalar marker such as ">-" cannot pass as
 a description the way it used to.
 
+check_backtick_paths and check_markdown_links: a generated eval proposal quotes a
+recorded output, so it may carry a path that never existed. Two cases assert the
+skip is scoped to the proposals directory and does not spread to the rest of
+docs/benchmarks/, where a report is a live contract like any other doc.
+
 Usage: python3 scripts/test_validate_repo.py
 Exits 0 if every case passes, 1 otherwise.
 """
@@ -234,7 +239,22 @@ def main() -> int:
             for e in errors:
                 print(f"      {e}")
 
-    total = len(CASES) + (len(AGENT_CASES) + 1) * len(modes)
+    # A proposal quotes a recorded output; a report in the same tree does not.
+    generated_cases = [
+        ("docs/benchmarks/iteration-1/proposals/a-skill__eval-1-a-name__with_skill__abc123.md", True),
+        ("docs/benchmarks/iteration-1/proposals/index.md", True),
+        ("docs/benchmarks/iteration-1/report.md", False),
+        ("docs/benchmarks/pilot-deps.json", False),
+        ("docs/EVAL_PROTOCOL.md", False),
+    ]
+    for rel_path, expected in generated_cases:
+        got = bool(vr.GENERATED_RECORDS.match(rel_path))
+        ok = got is expected
+        print(f"{'PASS' if ok else 'FAIL'}  generated-record skip: {rel_path} -> {got}")
+        if not ok:
+            failures += 1
+
+    total = len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases)
     if failures:
         print(f"\ntest_validate_repo: {failures}/{total} case(s) failed")
         return 1
