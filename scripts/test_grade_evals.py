@@ -37,11 +37,16 @@ recorded yet" — this file is about the assertion logic itself, not the
 pipeline around it.
 
 Usage: python3 scripts/test_grade_evals.py
-Exits 0 if every fixture's pass_rate lands in its expected band, 1 otherwise.
+       python3 scripts/test_grade_evals.py --json-summary <path>
+Exits 0 if every fixture's pass_rate lands in its expected band, 1 otherwise. The optional
+summary is written to a file, never to stdout, so the printed output is the same either
+way; scripts/propose_eval_updates.py reads it to report a pasted candidate step by step
+instead of parsing these lines, which would turn the prints below into an undeclared API.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -485,8 +490,10 @@ fixture(
 )
 
 
-def run() -> int:
+def run(json_summary: Path | None = None) -> int:
     failures: list[str] = []
+    fixture_rows: list[dict] = []
+    pair_rows: list[dict] = []
     with tempfile.TemporaryDirectory(prefix="test-grade-evals-") as td:
         tmp = Path(td)
         for name, skill, eval_name, text, min_rate, max_rate in FIXTURES:
@@ -497,6 +504,8 @@ def run() -> int:
                 failures.append(f"{name}: grade_run returned None (missing output file?)")
                 continue
             rate = grading["pass_rate"]
+            row = {"name": name, "skill": skill, "eval": eval_name, "pass_rate": rate,
+                   "min": min_rate, "max": max_rate, "ok": min_rate <= rate <= max_rate}
             if min_rate <= rate <= max_rate:
                 print(f"PASS {name}: pass_rate {rate:.2f} in [{min_rate}, {max_rate}]")
             else:
@@ -504,12 +513,23 @@ def run() -> int:
                     f"{'PASS' if e['passed'] else 'FAIL'} {e['text']}" for e in grading["expectations"]
                 )
                 failures.append(f"{name}: pass_rate {rate:.2f} outside [{min_rate}, {max_rate}] — {detail}")
+                # Only for a fixture that failed: the per-assertion detail exists nowhere
+                # else in machine-readable form, and emitting it for all 705 would bloat
+                # the file for no reader.
+                row["expectations"] = [{"text": e["text"], "passed": e["passed"]} for e in grading["expectations"]]
+            fixture_rows.append(row)
 
+    by_pair: dict[tuple, dict] = {}
     for pair in PAIRS:
         checks = ge.ASSERTIONS[pair["skill"]][pair["eval"]]
         rates = [sum(bool(fn(pair[k].lower())) for _, fn in checks) / len(checks) for k in ("good", "bad")]
         if rates[0] - rates[1] < 0.50:
             failures.append(f"discrimination gap below 0.50: {pair['eval']}: {rates}")
+        row = {"skill": pair["skill"], "eval": pair["eval"], "good_rate": rates[0], "bad_rate": rates[1],
+               "gap": rates[0] - rates[1], "gap_ok": rates[0] - rates[1] >= 0.50,
+               "keyword_variants": [], "label_soup": []}
+        by_pair[(pair["skill"], pair["eval"])] = row
+        pair_rows.append(row)
 
     # Strict pairs travel as a set: keyword_only and near_miss together, and the
     # near miss fails exactly the assertion it was written to fail, nothing else.
@@ -524,8 +544,19 @@ def run() -> int:
         failing = {label for label, fn in checks if not fn(pair["near_miss"]["text"].lower())}
         if failing != {pair["near_miss"]["fails"]}:
             failures.append(f"near miss for {pair['eval']} fails {sorted(failing)}; expected exactly {pair['near_miss']['fails']!r}")
+        row = by_pair[(pair["skill"], pair["eval"])]
+        row["near_miss_declared"] = pair["near_miss"]["fails"]
+        row["near_miss_failing"] = sorted(failing)
+        row["near_miss_ok"] = failing == {pair["near_miss"]["fails"]}
         strict += 1
     print(f"PASS strict pairs: {strict} of {len(PAIRS)} pairs carry keyword-only and near-miss fixtures")
+
+    # One object per eval, and all of them exist. A second object for an eval that already
+    # has one would pass every check above: the strict-pair set collapses the duplicate and
+    # the coverage tests below are subset tests. Nothing catches it, so this does.
+    distinct = {(pair["skill"], pair["eval"]) for pair in PAIRS}
+    if len(distinct) != len(PAIRS):
+        failures.append(f"duplicate pair objects in the fixtures file: {len(PAIRS)} objects, {len(distinct)} distinct (skill, eval)")
 
     # In-code near misses obey the same rule: exactly the one named assertion fails.
     for name, skill, eval_name, text, fails_label in EXTRA_NEAR_MISSES:
@@ -549,6 +580,7 @@ def run() -> int:
             rate = sum(bool(fn(text)) for _, fn in checks) / len(checks)
             if rate > 0.34:
                 failures.append(f"keyword-only variant joined by {sep!r} scores {rate:.2f} on {pair['eval']}")
+            by_pair[(pair["skill"], pair["eval"])]["keyword_variants"].append({"sep": sep, "rate": rate, "ok": rate <= 0.34})
             variants += 1
     print(f"PASS punctuation variants: {variants} keyword-only variants stay at or below 0.34")
 
@@ -567,6 +599,7 @@ def run() -> int:
             rate = sum(bool(fn(text)) for _, fn in checks) / len(checks)
             if rate > 0.34:
                 failures.append(f"label soup joined by {sep!r} scores {rate:.2f} on {pair['eval']}")
+            by_pair[(pair["skill"], pair["eval"])]["label_soup"].append({"sep": sep, "rate": rate, "ok": rate <= 0.34})
             soups += 1
     print(f"PASS label soup: {soups} label-soup texts stay at or below 0.34")
 
@@ -582,6 +615,9 @@ def run() -> int:
             required.add((data["skill_name"], ev["name"]))
     high = {(f[1], f[2]) for f in FIXTURES if f[4] >= 0.80}
     low = {(f[1], f[2]) for f in FIXTURES if f[5] <= 0.34}
+    coverage = {"required": len(required),
+                "missing_high": sorted(f"{s}/{e}" for s, e in required - high),
+                "missing_low": sorted(f"{s}/{e}" for s, e in required - low)}
     for skill, eval_name in sorted(required - high):
         failures.append(f"coverage: no fixture that must score >= 0.80 for ({skill}, {eval_name})")
     for skill, eval_name in sorted(required - low):
@@ -594,6 +630,7 @@ def run() -> int:
     # (punctuation variants and label soup) run against every block, not only
     # the ones someone remembered to harden.
     strict_pairs = {(p["skill"], p["eval"]) for p in PAIRS if "keyword_only" in p and "near_miss" in p}
+    coverage["missing_strict_pair"] = sorted(f"{s}/{e}" for s, e in required - strict_pairs)
     for skill, eval_name in sorted(required - strict_pairs):
         failures.append(f"coverage: eval without a strict pair (keyword_only + near_miss): ({skill}, {eval_name})")
     if required <= strict_pairs:
@@ -673,6 +710,18 @@ def run() -> int:
     else:
         print("PASS no-manufactured-objection: connector+action fires, connector or action alone does not")
 
+    if json_summary:
+        json_summary.parent.mkdir(parents=True, exist_ok=True)
+        json_summary.write_text(json.dumps({
+            "schema": 1,
+            "exit_code": 1 if failures else 0,
+            "counts": {"fixtures": len(FIXTURES), "pairs": len(PAIRS), "failures": len(failures)},
+            "fixtures": fixture_rows,
+            "pairs": pair_rows,
+            "coverage": coverage,
+            "failures": failures,
+        }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
     if failures:
         print("\nFAILURES:")
         for f in failures:
@@ -683,5 +732,12 @@ def run() -> int:
     return 0
 
 
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Fixture tests for the grader's assertion blocks.")
+    parser.add_argument("--json-summary", type=Path,
+                        help="also write a machine-readable summary here; the printed output is unchanged")
+    return run(parser.parse_args().json_summary)
+
+
 if __name__ == "__main__":
-    raise SystemExit(run())
+    raise SystemExit(main())

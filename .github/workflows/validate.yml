@@ -46,6 +46,12 @@ jobs:
       - name: Human label regressions
         run: python3 scripts/test_label_eval_run.py
 
+      - name: Eval proposal regressions (proposal-only, never edits the manifests)
+        run: python3 scripts/test_propose_eval_updates.py
+
+      - name: Golden-set regressions (project confinement, PII refusal)
+        run: python3 scripts/test_golden_set.py
+
       - name: Compile check all scripts
         run: python3 -m py_compile scripts/*.py
 

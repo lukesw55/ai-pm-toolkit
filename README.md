@@ -204,12 +204,16 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `record_eval_run.py` | record one externally produced eval output with provenance (model, source, commit, hashes); never generates output |
 | `run_eval_pilot.py` | drive a harness CLI through the pilot: payloads from the dependency manifest, fresh directory per run, seeded order, isolation probe, attempts log, provenance sidecar bound to the run's validation, verified-version gate |
 | `label_eval_run.py` | append a human verdict and classification to a recorded run, keyed by run identity and output hash; corrections supersede, history stays |
+| `propose_eval_updates.py` | turn labelled grader disagreements into review proposals under `docs/benchmarks/<iteration>/proposals/`; it proposes and never edits a manifest, an assertion block or the fixtures file |
+| `golden_set.py` | create, append to and check a product golden set inside a project's memory; every field comes from a flag a person typed, never from a model's output |
 | `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap, Copilot agent schema and repo policy |
 | `test_hooks.py` | synthetic payloads through the shared gates, the Codex `apply_patch` adapter, and the soft session-close reminder |
 | `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low; every eval carries a strict pair whose keyword-only reply stays low in five punctuation joins, whose near miss fails exactly one named assertion and whose block fails its own labels read back as a reply; the good text re-wrapped at 72 columns stays in band, with or without unwrapped paragraphs beside it |
 | `test_record_eval_run.py` | the eval recorder refuses missing provenance, changed output and overwrites; renders the HTML report from a recorded pair |
 | `test_run_eval_pilot.py` | the pilot runner against a fake harness: recorded runs, provenance, seeded order, probe, attempts, version gate, refusals (code paths, not CLI compatibility) |
 | `test_label_eval_run.py` | the label file, run identity and hash binding, supersede and split rules, the grader's two disagreement rates and the investigate flag |
+| `test_propose_eval_updates.py` | which disagreements become proposals and which deliberately do not, the slot-replacement candidate, idempotence and the hand-edit guard, and that a pass leaves the manifests, the assertions and the fixtures byte-identical |
+| `test_golden_set.py` | golden sets in a throwaway project: confinement and the PII denylist, CSV quoting, the refusal to append to a sheet someone corrupted by hand, and the rule that a set with no real failure in it is not a test |
 | `test_context_scripts.py` | slug traversal, symlink escapes, idempotent bootstrap, the org layer, project switching, legacy migration and the preflight version check |
 | `test_hook_contract.py` | malformed Codex envelopes block with exit 2; adapter routes match `hooks/contract.json`; the configured write commands really block a marker |
 | `test_frontmatter.py` | the portable frontmatter grammar gives the same values and verdicts with and without PyYAML |
@@ -237,6 +241,8 @@ python3 scripts/test_context_scripts.py
 python3 scripts/test_record_eval_run.py
 python3 scripts/test_run_eval_pilot.py
 python3 scripts/test_label_eval_run.py
+python3 scripts/test_propose_eval_updates.py
+python3 scripts/test_golden_set.py
 python3 scripts/test_validate_repo.py
 python3 scripts/test_frontmatter.py
 python3 scripts/grade_evals.py
