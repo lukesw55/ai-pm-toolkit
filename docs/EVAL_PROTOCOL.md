@@ -37,6 +37,56 @@ runner's code paths, not compatibility with the real CLIs; compatibility for a g
 established by the smoke run below and recorded in `verified_harness_versions` in
 `docs/benchmarks/pilot-deps.json`.
 
+## The measured iteration
+
+Three rules govern an iteration from its first recorded output to its published report. Breaking
+one invalidates the iteration rather than weakening it.
+
+**1. The measurement instrument is frozen for the whole iteration.** The instrument is not only the
+grader. It is the repository commit, the eval manifests and their prompts, the expected outputs, the
+skill bundle and the dependency hashes in `docs/benchmarks/pilot-deps.json`, the assertion blocks,
+the fixtures, the thresholds, the model, the harness version, the runner arguments and the isolation
+configuration. Change any one of them and the runs recorded before the change stop being comparable
+with the runs after it, so the change starts a new iteration under a new identifier. This matters
+more now that the proposal loop exists: applying a proposal in the middle of an iteration swaps the
+grader underneath outputs that are already recorded.
+
+**2. A model output is never edited by hand.** Not for formatting, not for whitespace, not to make an
+assertion match. What the harness returned is what gets recorded, graded and labelled. An output
+that cannot be parsed is a failed attempt and is kept as one.
+
+**3. The decision criteria are pre-registered.** Before reading any output, write down what would
+make each pilot skill a keep, a fix, a simplify or a remove. Criteria chosen after the results are
+in describe the results.
+
+### The order of operations
+
+This sequences what the sections below specify. It does not replace them.
+
+1. One real smoke `--eval` per harness.
+2. From that smoke, verify the harness version, the model identifier, the session identifier, the
+   usage envelope, the isolation configuration and the probe output.
+3. Add a harness version to `verified_harness_versions` only after its own smoke succeeds.
+4. Record 30 outputs per harness: 15 prompts in both configurations.
+5. A fresh isolated session for every output.
+6. Keep every attempt, the failed ones included.
+7. Label each output `good`, `weak` or `fail`, with a classification and a reason.
+8. Blind the first human read to the configuration where the tooling allows it. Where it does not,
+   say so in the report rather than leaving the read to look blind.
+9. Report paired counts, critical failures, negative controls, grader disagreement, token cost and
+   duration.
+10. Write one report per harness.
+11. Attribute no difference to the harness when the models differ.
+12. Write the keep, fix, simplify or remove decision for each pilot skill.
+
+### What five prompts per skill can carry
+
+Each skill contributes five prompts per harness, so a per-skill rate moves in steps of twenty points
+and one output changes it. Report paired cases and counts: how many pairs moved, in which direction,
+which ones they were, and what the critical failures were. A percentage computed from five cases is
+another way of writing a count, not an estimate with a confidence interval, and the report must not
+present it as one.
+
 ## Assertion and fixture contract
 
 Every graded eval (doctrine-adversarial, skill-functional-adversarial and negative-control) is
