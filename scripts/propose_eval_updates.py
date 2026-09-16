@@ -513,7 +513,7 @@ def write_proposal(out_dir: Path, stem: str, proposal: dict, *, force: bool, dry
     record["content_sha256"] = hashlib.sha256(markdown.encode("utf-8")).hexdigest()
     if json_path.is_file():
         existing = json.loads(json_path.read_text(encoding="utf-8"))
-        if existing.get("status") not in (None, "proposed"):
+        if existing.get("status") not in (None, "proposed", "retracted"):
             return "decided", f"status {existing.get('status')}"
         if md_path.is_file():
             on_disk = hashlib.sha256(md_path.read_bytes()).hexdigest()
@@ -547,6 +547,82 @@ def write_proposal(out_dir: Path, stem: str, proposal: dict, *, force: bool, dry
     return "written", ""
 
 
+def retract_proposal(out_dir: Path, stem: str, outcome: str, *, dry_run: bool) -> tuple[str, str]:
+    """A card written for a disagreement that later became an agreement or a split contradicts
+    the labels it cites. It is not deleted, because a person may already have acted on it: the
+    status becomes retracted and the markdown says so in its first line. ("", "") when there is
+    nothing to do, which includes a card a human decided or edited by hand."""
+    md_path, json_path = out_dir / f"{stem}.md", out_dir / f"{stem}.json"
+    if not json_path.is_file():
+        return "", ""
+    try:
+        existing = json.loads(json_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        print(f"WARN {stem}.json does not parse; it now reads as {outcome} and was left as it is", file=sys.stderr)
+        return "", ""
+    status = existing.get("status") if isinstance(existing, dict) else None
+    if status == "retracted":
+        return "", ""  # already said so; a repeated pass stays quiet and byte-stable
+    if status != "proposed":
+        return "kept", f"status {status}; a card a human decided is never rewritten"
+    if md_path.is_file():
+        on_disk = hashlib.sha256(md_path.read_bytes()).hexdigest()
+        if existing.get("content_sha256") and on_disk != existing["content_sha256"]:
+            print(f"WARN {stem}.md was edited by hand and now reads as {outcome}; left as it is", file=sys.stderr)
+            return "", ""
+    if dry_run:
+        return "dry-run", f"would retract: now {outcome}"
+    banner = (f"> Retracted: the labels on this run now read as **{outcome}**, so the recommendation below no "
+              "longer follows from them. Nothing here was ever applied; the file is kept because someone may "
+              "have acted on it.\n\n")
+    markdown = banner + (md_path.read_text(encoding="utf-8") if md_path.is_file() else "")
+    existing["status"] = "retracted"
+    existing["retracted_because"] = outcome
+    existing["content_sha256"] = hashlib.sha256(markdown.encode("utf-8")).hexdigest()
+    md_path.write_text(markdown, encoding="utf-8")
+    json_path.write_text(json.dumps(existing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return "retracted", f"now {outcome}"
+
+
+def card_status(out_dir: Path, stem: str) -> str | None:
+    path = out_dir / f"{stem}.json"
+    if not path.is_file():
+        return None
+    try:
+        record = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return record.get("status") if isinstance(record, dict) else None
+
+
+def row_key(row: object) -> tuple | None:
+    key = row.get("key") if isinstance(row, dict) else None
+    if not isinstance(key, dict):
+        return None
+    try:
+        return (str(key["skill"]), int(key["eval_id"]), str(key["config"]), str(key["output_sha256"]))
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def carried_rows(out_dir: Path, covered: set) -> list[dict]:
+    """The rows of a previous pass this one did not visit. A --skill or --eval pass covers part
+    of the iteration while the index claims to cover all of it, so dropping them would leave the
+    cards they name on disk and unreferenced."""
+    path = out_dir / "index.json"
+    if not path.is_file():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"WARN the existing index does not parse ({exc}); this pass writes it from scratch", file=sys.stderr)
+        return []
+    rows = payload.get("outcomes") if isinstance(payload, dict) else None
+    if not isinstance(rows, list):
+        return []
+    return [row for row in rows if row_key(row) is not None and row_key(row) not in covered]
+
+
 def render_index(iteration: str, rows: list[dict]) -> str:
     out = [f"# Proposal pass — {iteration}", ""]
     out.append("Every label in this iteration and what came of it. A proposal is written only for a run where a "
@@ -574,6 +650,7 @@ def propose(args, root: Path = ROOT) -> dict:
     labels_by_key = lr.load_labels(labels_file, args.iteration)
     out_dir = Path(args.out) if args.out else proposals_dir(root, args.iteration)
     rows: list[dict] = []
+    written = 0
     for key in sorted(labels_by_key):
         skill, eval_id, config, _sha = key
         if args.skill and skill != args.skill:
@@ -584,21 +661,31 @@ def propose(args, root: Path = ROOT) -> dict:
         row = {"key": built["key"], "outcome": built["outcome"]}
         if built["outcome"] in ("no-run-here", "hash-mismatch", "invalid-run", "orphan-eval", "no-assertions"):
             print(f"WARN {built['outcome']}: {skill} eval {eval_id} {config} output {key[3][:12]}", file=sys.stderr)
+        stem = proposal_stem(skill, eval_id, built["key"]["eval_name"], config, key[3])
         if "proposal" in built:
-            stem = proposal_stem(skill, eval_id, built["key"]["eval_name"], config, key[3])
             state, detail = write_proposal(out_dir, stem, built["proposal"], force=args.force, dry_run=args.dry_run)
             row["stem"] = stem
-            row["state"] = state
+            if state in ("written", "updated"):
+                written += 1
             print(f"{state} {stem}" + (f": {detail}" if detail else ""))
+        elif built["outcome"] in ("agreement", "split"):
+            state, detail = retract_proposal(out_dir, stem, built["outcome"], dry_run=args.dry_run)
+            if state:
+                print(f"{state} {stem}" + (f": {detail}" if detail else ""))
+            # The row names the card either way, so a file on disk is never unreferenced. The
+            # state written is the card's, not this pass's, so a second pass changes no byte.
+            status = card_status(out_dir, stem)
+            if status:
+                row["stem"], row["state"] = stem, status
         rows.append(row)
-    index = {"schema": SCHEMA, "iteration": args.iteration, "outcomes": rows}
+    all_rows = sorted(rows + carried_rows(out_dir, {row_key(row) for row in rows}), key=row_key)
+    index = {"schema": SCHEMA, "iteration": args.iteration, "outcomes": all_rows}
     if not args.dry_run and rows:
         out_dir.mkdir(parents=True, exist_ok=True)
-        (out_dir / "index.md").write_text(render_index(args.iteration, rows), encoding="utf-8")
-        payload = dict(index)
-        payload["generated_at"] = datetime.now().astimezone().isoformat()
-        (out_dir / "index.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    written = sum(1 for row in rows if row.get("state") in ("written", "updated"))
+        (out_dir / "index.md").write_text(render_index(args.iteration, all_rows), encoding="utf-8")
+        # No timestamp, for the reason render_markdown carries one comment about: this file is
+        # tracked, and a pass that changed nothing must produce no diff.
+        (out_dir / "index.json").write_text(json.dumps(index, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"{len(rows)} label key(s) read, {written} proposal(s) written or updated"
           + (" (dry run, nothing written)" if args.dry_run else ""))
     return index

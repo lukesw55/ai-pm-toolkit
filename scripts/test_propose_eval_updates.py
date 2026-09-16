@@ -241,6 +241,71 @@ class ProposeTests(unittest.TestCase):
         self.assertEqual(proposal['human']['verdict'],'fail')
         self.assertEqual(proposal['fixture_suggestion']['slot'],'bad')
 
+    def second_eval(self):
+        """A second labelled run in the same skill, so a --eval filter has something to leave out."""
+        spec=json.loads((self.root/'skills'/self.skill/'evals/evals.json').read_text())['evals'][1]
+        out=self.root/'second.md';out.write_text(self.good)
+        rr.record(argparse.Namespace(skill=self.skill,eval=spec['name'],config='with_skill',iteration=self.iteration,
+                                     harness='codex',model='fixture',source='synthetic-test-only',output=out,
+                                     tokens=None,duration_ms=None),self.root)
+        lr.label(argparse.Namespace(skill=self.skill,eval=spec['name'],config='with_skill',iteration=self.iteration,
+                                    verdict='weak',classification=['skipped-method'],reason='misses it here too',
+                                    labeler='lucas',labels_file=None,supersede=False),self.root)
+        block=self.assertions[self.skill][self.eval]
+        return spec,{self.skill:{self.eval:block,spec['name']:block}}
+
+    def test_a_filtered_pass_keeps_the_index_of_the_iteration(self):
+        """The index says it covers every label in the iteration, so a --eval pass may not shrink
+        it to the one eval it visited and leave the other card on disk, unreferenced."""
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        spec,both=self.second_eval()
+        with patch.dict(ge.ASSERTIONS,both):
+            self.assertEqual(len(pe.propose(self.args(),self.root)['outcomes']),2)
+            index=pe.propose(self.args(eval=spec['name']),self.root)
+        self.assertEqual(sorted(row['key']['eval_name'] for row in index['outcomes']),sorted([self.eval,spec['name']]))
+        written=json.loads((self.out_dir()/'index.json').read_text())
+        named={row['stem'] for row in written['outcomes'] if row.get('stem')}
+        on_disk={path.stem for path in self.out_dir().iterdir() if path.suffix=='.json' and path.stem!='index'}
+        self.assertEqual(named,on_disk,'a filtered pass must not orphan a card')
+
+    def test_the_index_does_not_churn(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        first=(self.out_dir()/'index.json').read_bytes()
+        self.propose()
+        self.assertEqual((self.out_dir()/'index.json').read_bytes(),first,'a pass that changed nothing must write no diff')
+
+    def test_a_card_whose_labels_stopped_disagreeing_is_retracted(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        self.label(verdict='good',reason='sound on a second read',labeler='ana')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['split'])
+        proposal,markdown=self.one_proposal()
+        self.assertEqual(proposal['status'],'retracted')
+        self.assertEqual(proposal['retracted_because'],'split')
+        self.assertTrue(markdown.startswith('> Retracted:'),markdown[:80])
+        self.assertEqual(index['outcomes'][0].get('state'),'retracted')
+        self.assertEqual(index['outcomes'][0].get('stem'),[p.stem for p in self.out_dir().iterdir()
+                                                           if p.suffix=='.json' and p.stem!='index'][0])
+        before=markdown
+        self.propose()
+        self.assertEqual(self.one_proposal()[1],before,'retracting twice must not stack banners')
+
+    def test_a_card_a_human_decided_is_never_retracted(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        card=[p for p in self.out_dir().iterdir() if p.suffix=='.json' and p.stem!='index'][0]
+        record=json.loads(card.read_text());record['status']='accepted'
+        card.write_text(json.dumps(record,indent=2)+'\n')
+        self.label(verdict='good',reason='sound on a second read',labeler='ana')
+        self.propose()
+        self.assertEqual(json.loads(card.read_text())['status'],'accepted')
+
     def test_dry_run_writes_nothing(self):
         self.write_fixture_pair()
         self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
