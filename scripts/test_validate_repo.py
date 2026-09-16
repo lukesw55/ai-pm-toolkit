@@ -21,6 +21,11 @@ load_frontmatter: one canonical fixture checks the parsed *value*, not just
 the absence of a finding, so a block-scalar marker such as ">-" cannot pass as
 a description the way it used to.
 
+check_readme_contract: six cases build a tiny tree with two skills, one gate, one agent
+and two scripts, then feed the check a README that matches it and five that drift — a
+wrong count, a count stated twice, a missing table row, a row for a script that is gone,
+and a contents list out of step with the headings.
+
 check_backtick_paths and check_markdown_links: a generated eval proposal quotes a
 recorded output, so it may carry a path that never existed. Two cases assert the
 skip is scoped to the proposals directory and does not spread to the rest of
@@ -280,7 +285,62 @@ def main() -> int:
             for e in errors:
                 print(f"      {e}")
 
-    total = len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases) + len(consulted_cases)
+    # check_readme_contract: every count comes from the tree, so a README that drifts is a
+    # finding rather than a thing someone notices six months later.
+    readme_cases = [
+        ("a README that matches the tree", lambda t: t, [], 0),
+        ("a count that drifted", lambda t: t.replace("2 hard-skill", "9 hard-skill"),
+         ["says skills 9; the tree has 2"], 1),
+        ("a count stated twice", lambda t: t + "\n\nStill 2 hard-skill PM skills.\n",
+         ["stated exactly once as a digit", "matched 2 time(s)"], 1),
+        ("a script with no row", lambda t: t.replace("| `two.py` | second |\n", ""),
+         ["no row for scripts/two.py"], 1),
+        ("a row for a script that is gone", lambda t: t.replace("| `two.py` |", "| `three.py` |"),
+         ["no row for scripts/two.py", "names scripts/three.py, which does not exist"], 2),
+        ("a contents list out of step with the headings",
+         lambda t: t.replace("- [Second](#second)\n", ""),
+         ["contents list and the top-level headings disagree"], 1),
+    ]
+    for name, mutate, expected, expected_count in readme_cases:
+        with tempfile.TemporaryDirectory() as td:
+            tree = Path(td)
+            for skill in ("alpha", "beta"):
+                (tree / "skills" / skill / "evals").mkdir(parents=True)
+                (tree / "skills" / skill / "SKILL.md").write_text("x", encoding="utf-8")
+                (tree / "skills" / skill / "evals" / "evals.json").write_text(json.dumps(
+                    {"skill_name": skill, "evals": [{"name": "a", "category": "standard"},
+                                                    {"name": "b", "category": "negative-control"}]}), encoding="utf-8")
+            (tree / "hooks").mkdir()
+            (tree / "hooks" / "only-gate.sh").write_text("x", encoding="utf-8")
+            (tree / ".github" / "agents").mkdir(parents=True)
+            (tree / ".github" / "agents" / "one.agent.md").write_text("x", encoding="utf-8")
+            (tree / "scripts").mkdir()
+            for script in ("one.py", "two.py"):
+                (tree / "scripts" / script).write_text("x", encoding="utf-8")
+            readme = "\n".join([
+                "# t", "", "2 hard-skill PM skills, 1 blocking hooks, 1 agents, 4 eval cases:",
+                "2 standard, 0 doctrine-adversarial, 0 skill-functional-adversarial and 2 negative controls.",
+                "", "- [First](#first)", "- [Second](#second)", "",
+                "## First", "", "| Script | Purpose |", "|---|---|",
+                "| `one.py` | first |", "| `two.py` | second |", "", "## Second", "", "done.", ""])
+            (tree / "README.md").write_text(mutate(readme), encoding="utf-8")
+            saved = (vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README)
+            vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = tree, tree / "skills", tree / "hooks", tree / "README.md"
+            try:
+                readme_errors: list[str] = []
+                vr.check_readme_contract(readme_errors)
+            finally:
+                vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = saved
+        joined = " ".join(readme_errors)
+        ok = len(readme_errors) == expected_count and all(want in joined for want in expected)
+        print(f"{'PASS' if ok else 'FAIL'}  readme contract: {name}")
+        if not ok:
+            failures += 1
+            for e in readme_errors:
+                print(f"      {e}")
+
+    total = (len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases)
+             + len(consulted_cases) + len(readme_cases))
     if failures:
         print(f"\ntest_validate_repo: {failures}/{total} case(s) failed")
         return 1

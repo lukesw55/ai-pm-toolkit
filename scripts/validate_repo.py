@@ -408,6 +408,79 @@ def check_backtick_paths(errors: list[str]) -> None:
                 err(errors, f"{rel_path}:{line}: backtick path not found -> {token}")
 
 
+README = ROOT / "README.md"
+# Every number the README states about the tree, and where the tree says it. Each pattern has
+# to match exactly once. Zero matches means the sentence was reworded and the check quietly
+# stopped protecting anything, which is worse than a wrong number, and more than one means the
+# count is written twice and the copies will drift. So: a validated count is a digit, said once.
+README_COUNTS = (
+    ("skills", r"\b(\d+) hard-skill PM skills\b"),
+    ("blocking hooks", r"\b(\d+) blocking hooks\b"),
+    ("agents", r"\b(\d+) agents\b"),
+    ("eval cases", r"\b(\d+) eval cases\b"),
+    ("eval categories", r"\b(\d+) standard, (\d+) doctrine-adversarial, (\d+) skill-functional-adversarial"
+                       r" and (\d+) negative controls\b"),
+)
+
+
+def readme_facts() -> dict[str, tuple[int, ...]]:
+    """The same counts, read from the tree rather than from a constant in this file."""
+    categories: dict[str, int] = {}
+    for manifest in sorted(SKILLS.glob("*/evals/evals.json")):
+        for case in json.loads(manifest.read_text(encoding="utf-8")).get("evals", []):
+            categories[case["category"]] = categories.get(case["category"], 0) + 1
+    return {
+        "skills": (len(list(SKILLS.glob("*/SKILL.md"))),),
+        "blocking hooks": (len(list(HOOKS.glob("*-gate.sh"))),),
+        "agents": (len(list((ROOT / ".github" / "agents").glob("*.agent.md"))),),
+        "eval cases": (sum(categories.values()),),
+        "eval categories": tuple(categories.get(name, 0) for name in
+                                 ("standard", "doctrine-adversarial", "skill-functional-adversarial",
+                                  "negative-control")),
+    }
+
+
+def anchor(heading: str) -> str:
+    """GitHub's own rule for a heading anchor: lowercase, punctuation dropped, spaces hyphened."""
+    kept = "".join(c for c in heading.lower() if c.isalnum() or c in " -")
+    return kept.strip().replace(" ", "-")
+
+
+def check_readme_contract(errors: list[str]) -> None:
+    """B43: the README states counts, lists every script and carries a table of contents, and
+    nothing checked any of the three. A 22nd skill or a new script is meant to fail here until
+    the README is updated; that is the point, and CONTRIBUTING.md says so."""
+    if not README.is_file():
+        err(errors, "README.md: missing")
+        return
+    text = README.read_text(encoding="utf-8")
+    facts = readme_facts()
+    for name, pattern in README_COUNTS:
+        found = re.findall(pattern, text)
+        if len(found) != 1:
+            err(errors, f"README.md: the {name} count must be stated exactly once as a digit; "
+                        f"the pattern for it matched {len(found)} time(s)")
+            continue
+        stated = tuple(int(n) for n in (found[0] if isinstance(found[0], tuple) else (found[0],)))
+        if stated != facts[name]:
+            err(errors, f"README.md: says {name} {', '.join(str(n) for n in stated)}; the tree has "
+                        f"{', '.join(str(n) for n in facts[name])}")
+
+    listed = set(re.findall(r"^\| `([a-z0-9_]+\.(?:py|sh))` \|", text, re.M))
+    on_disk = {path.name for path in (ROOT / "scripts").iterdir() if path.suffix in (".py", ".sh")}
+    for missing in sorted(on_disk - listed):
+        err(errors, f"README.md: the scripts table has no row for scripts/{missing}")
+    for extra in sorted(listed - on_disk):
+        err(errors, f"README.md: the scripts table names scripts/{extra}, which does not exist")
+
+    headings = [line[3:].strip() for line in text.splitlines() if line.startswith("## ")]
+    linked = re.findall(r"^- \[[^\]]+\]\(#([a-z0-9-]+)\)$", text, re.M)
+    expected = [anchor(h) for h in headings]
+    if linked != expected:
+        err(errors, "README.md: the contents list and the top-level headings disagree; "
+                    f"listed {linked}, headings {expected}")
+
+
 def check_workflow_contract(errors: list[str]) -> None:
     sys.path.insert(0, str(ROOT / "scripts"))
     try:
@@ -915,6 +988,7 @@ def main() -> int:
     check_skill_frontmatter(errors)
     check_markdown_links(errors)
     check_backtick_paths(errors)
+    check_readme_contract(errors)
     check_workflow_contract(errors)
     check_hook_contract(errors)
     check_hook_syntax(errors, warnings)
