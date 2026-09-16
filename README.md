@@ -186,7 +186,7 @@ PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py
 
 **An exec wants a go/no-go memo by Friday.** Invoke `pm-transversal-stakeholder` for the memo and the decision rights, then let `humanize-deliverables` run before it leaves the workspace. The publish gate blocks the send until the prose has had a `humanizer` pass, so what lands in Slack or Confluence does not read like a press release.
 
-**An AI feature needs a quality bar before it ships.** Invoke `pm-archetype-ai` for the eval design, then `python3 scripts/golden_set.py init <slug> --feature <feature>` to create the scenario sheet and the golden set in the project's memory. `golden_set.py check` enforces the rule that makes it a test rather than a scrapbook: at least one row is a failure the team has really seen.
+**An AI feature needs a quality bar before it ships.** Invoke `pm-archetype-ai` for the eval design, then `python3 scripts/golden_set.py init <slug> --feature <feature>` to create the scenario sheet and the golden set in the project's memory. `golden_set.py check` applies the rule that makes it a test rather than a scrapbook: once the set has rows, one of them has to be a failure the team has really seen, and the check exits non-zero when none is. The empty set is the gap: it is a warning, so a release gate runs `check --strict`, where a warning fails too.
 
 ## Under the hood
 
