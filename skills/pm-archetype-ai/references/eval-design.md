@@ -107,4 +107,4 @@ Method adapted from Dean Peters, *Evals for Product Managers* (https://github.co
 
 ## Files
 
-Scenario sheet → `.ai/memory/projects/<slug>/evals/<feature>/scenario.md`. Golden set → `.ai/memory/projects/<slug>/evals/<feature>/golden-set.csv`, or a shared sheet linked from there. Decision rule → also in `decisions.md`. Hazard changes → logged with `memory.py log`.
+Scenario sheet → `.ai/memory/projects/<slug>/evals/<feature>/scenario.md`. Golden set → `.ai/memory/projects/<slug>/evals/<feature>/golden-set.csv`, or a shared sheet linked from there. Decision rule → also in `decisions.md`. Hazard changes → logged with `memory.py log`. `scripts/golden_set.py` creates both files from the tracked templates (`init`), appends one row at a time from flags a person typed (`add`), prints the counts by label, source and handle (`show`), and checks the rules above that can be checked mechanically (`check`), including the one that decides whether this is a test or a scrapbook: at least one row is a failure the team has really seen. It never reads a model's output, because a row whose expected behaviour came from what the model produced makes the set agree with the model.
