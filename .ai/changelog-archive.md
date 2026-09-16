@@ -121,6 +121,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-16 B43 review 3: the hook contract is per harness, and Codex trust covers its own adapter file
 - 2026-09-16 B43 review 4: the eval counts come from the canonical skill set
 - 2026-09-16 B43 review 4: the contributor battery runs on a clean clone
+- 2026-09-16 B43 review 4: the golden-set claim matches what the default command does
 
 ## 2026-09-08: session log
 
@@ -611,4 +612,8 @@ You are right on all four points, and they compound: the helper I added last rou
 ## 2026-09-16: B43 review 4: the contributor battery runs on a clean clone
 
 Reproduced: a checkout of the tracked tree ships .ai/memory with only README.md, _templates and active-context.example.md, because real memory is gitignored, so memory.py doctor exits 1 with "active-context.md missing". That was the last line of the block, under a sentence claiming CI runs the same commands. CI does not: it runs init_context.py "CI Bootstrap Demo" first, with a comment in the workflow saying exactly why. The block also omitted the pilot dry-run that both CI and docs/REPO_HEALTH.md carry. I took the second option you offered. The displayed block is now the stateless subset, with the pilot dry-run added and the doctor removed, and the intro no longer claims CI runs it verbatim; it says these commands run on a clean clone in any state, which I checked by running every one of them in a fresh archive of HEAD. All nineteen pass there, the dry-run included. The doctor gets its own paragraph rather than a footnote, because a contributor should know why it is missing and where it went: it belongs to the bootstrap smoke test in docs/REPO_HEALTH.md, CI bootstraps a throwaway project before calling it, and nothing is lost by leaving it out of the block, since check_memory_bootstrap already runs init_context.py, --org, the doctor and stage_context.py against a copy of the tree on every validate_repo.py run. The contract is checked; the contributor's own memory is not written to. Full docs/REPO_HEALTH.md battery green before the commit.
+
+## 2026-09-16: B43 review 4: the golden-set claim matches what the default command does
+
+Confirmed, and the same sentence appears twice, so both are fixed: the README use case and the closing paragraph of skills/pm-archetype-ai/references/eval-design.md, which you did not cite. Fixing one and leaving the other would have cost a fifth round. I ran the four states to write the replacement rather than reasoning from the code. An empty set warns "no rows yet" and exits 0, and only --strict turns that into a 1. A set whose rows carry no real-trace failure is an error and exits 1 without --strict, and that includes every all-synthetic set, because a synthetic row can never be the real trace the rule asks for. A set with a real-trace failure passes. My first draft said the empty set and the all-synthetic set are both warnings. That was wrong in the same direction the review is about, so it did not ship: the all-synthetic case already fails on the rule. Both sentences now say that the rule bites once rows exist, that the empty set is the gap, and that a gate runs check --strict, where a warning fails too. Mirrors regenerated for the reference edit. Full docs/REPO_HEALTH.md battery green before the commit.
 

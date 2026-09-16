@@ -39,8 +39,9 @@ established by the smoke run below and recorded in `verified_harness_versions` i
 
 ## The measured iteration
 
-Three rules govern an iteration from its first recorded output to its published report. Breaking
-one invalidates the iteration rather than weakening it.
+Three rules govern an iteration from its first recorded output to its published report. Two are new
+here. The third restates an instruction that Record outputs already carried and makes it stricter.
+Breaking any of them invalidates the iteration rather than weakening it.
 
 **1. The measurement instrument is frozen for the whole iteration.** The instrument is not only the
 grader. It is the repository commit, the eval manifests and their prompts, the expected outputs, the
@@ -51,41 +52,64 @@ with the runs after it, so the change starts a new iteration under a new identif
 more now that the proposal loop exists: applying a proposal in the middle of an iteration swaps the
 grader underneath outputs that are already recorded.
 
-**2. A model output is never edited by hand.** Not for formatting, not for whitespace, not to make an
-assertion match. What the harness returned is what gets recorded, graded and labelled. An output
-that cannot be parsed is a failed attempt and is kept as one.
+**2. A model output is never edited by hand.** Record outputs already says to save the assistant
+output as UTF-8 without editing it. What "without editing" covers is stated here: not formatting,
+not whitespace, not a change that makes an assertion match. An output that cannot be parsed is a
+failed attempt and is kept as one, never repaired into a recorded output.
 
-**3. The decision criteria are pre-registered.** Before reading any output, write down what would
-make each pilot skill a keep, a fix, a simplify or a remove. Criteria chosen after the results are
-in describe the results.
+**3. The decision criteria are pre-registered in a tracked file.** Before any output is inspected
+for quality, write `docs/benchmarks/<measured-iteration>/pre-registration.md` and commit it. It
+records the measured commit, the harness, the harness version and the model, and for each pilot
+skill the conditions that would make it a keep, a fix, a simplify or a remove, plus any critical
+failure that blocks keep on its own. Criteria written once the results are in describe the results.
 
 ### The order of operations
 
 This sequences what the sections below specify. It does not replace them.
 
-1. One real smoke `--eval` per harness.
-2. From that smoke, verify the harness version, the model identifier, the session identifier, the
+The smoke run and the measured run are deliberately different iterations. Step 4 changes
+`docs/benchmarks/pilot-deps.json`, and rule 1 forbids that inside an iteration that has already
+recorded outputs, which a smoke `--eval` has: it records both configurations. Nothing in the runner
+catches the mix for you, because `existing_identity` compares the harness and the model on resume
+and not the repository commit or the manifest. Keeping the identifiers apart is the operator's job.
+
+1. Write and commit the pre-registration.
+2. Run one real smoke `--eval` per harness, under `iteration-<harness>-smoke-<n>`.
+3. From that smoke, verify the harness version, the model identifier, the session identifier, the
    usage envelope, the isolation configuration and the probe output.
-3. Add a harness version to `verified_harness_versions` only after its own smoke succeeds.
-4. Record 30 outputs per harness: 15 prompts in both configurations.
-5. A fresh isolated session for every output.
-6. Keep every attempt, the failed ones included.
-7. Label each output `good`, `weak` or `fail`, with a classification and a reason.
-8. Blind the first human read to the configuration where the tooling allows it. Where it does not,
-   say so in the report rather than leaving the read to look blind.
-9. Report paired counts, critical failures, negative controls, grader disagreement, token cost and
-   duration.
-10. Write one report per harness.
-11. Attribute no difference to the harness when the models differ.
-12. Write the keep, fix, simplify or remove decision for each pilot skill.
+4. Add the harness version to `verified_harness_versions` only after its own smoke succeeds, and
+   commit that change.
+5. Record the resulting commit in the pre-registration as the measured commit.
+6. Start a fresh `iteration-<harness>-<n>` and record 30 outputs per harness: 15 prompts in both
+   configurations.
+7. A fresh isolated session for every output.
+8. Keep every attempt, the failed ones included.
+9. Label each output `good`, `weak` or `fail`, with a classification and a reason.
+10. Blind the first human read to the configuration where the tooling allows it. Where it does not,
+    say so in the report rather than leaving the read to look blind.
+11. Report paired counts, critical failures, negative controls, grader disagreement, token cost and
+    duration.
+12. Write one report per harness, with the smoke outputs excluded from it.
+13. Attribute no difference to the harness when the models differ.
+14. Write the keep, fix, simplify or remove decision for each pilot skill, against the conditions
+    the pre-registration set.
 
-### What five prompts per skill can carry
+### What the per-skill counts can carry
 
-Each skill contributes five prompts per harness, so a per-skill rate moves in steps of twenty points
-and one output changes it. Report paired cases and counts: how many pairs moved, in which direction,
-which ones they were, and what the critical failures were. A percentage computed from five cases is
-another way of writing a count, not an estimate with a confidence interval, and the report must not
-present it as one.
+The three pilot skills contribute different numbers of prompts, so there is no single per-skill
+denominator and no single step size:
+
+| Skill | Prompts per harness | Pairs | What one pair is worth |
+|---|---|---|---|
+| `pm-phase-discover` | 6 | 6 | 16.7 points |
+| `pm-transversal-comms` | 5 | 5 | 20 points |
+| `pm-prioritization-regua-comum` | 4 | 4 | 25 points |
+
+The report names the pair count and the denominator for each skill instead of describing all three
+as one sample size. Report paired cases and counts: how many pairs moved, in which direction, which
+ones they were, and what the critical failures were. A percentage over four to six cases is another
+way of writing a count, not an estimate with a confidence interval, and the report must not present
+it as one.
 
 ## Assertion and fixture contract
 
