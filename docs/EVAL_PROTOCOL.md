@@ -57,11 +57,25 @@ output as UTF-8 without editing it. What "without editing" covers is stated here
 not whitespace, not a change that makes an assertion match. An output that cannot be parsed is a
 failed attempt and is kept as one, never repaired into a recorded output.
 
-**3. The decision criteria are pre-registered in a tracked file.** Before any output is inspected
-for quality, write `docs/benchmarks/<measured-iteration>/pre-registration.md` and commit it. It
-records the measured commit, the harness, the harness version and the model, and for each pilot
-skill the conditions that would make it a keep, a fix, a simplify or a remove, plus any critical
-failure that blocks keep on its own. Criteria written once the results are in describe the results.
+**3. The decision criteria are pre-registered in a tracked file, in two phases.** The file is
+`docs/benchmarks/<measured-iteration>/pre-registration.md`, and it is written across two commits so
+that nothing in it ever has to name its own commit.
+
+Before the smoke, commit the decision criteria: for each pilot skill the conditions that would make
+it a keep, a fix, a simplify or a remove, plus any critical failure that blocks keep on its own, and
+the name of the annotated tag the measured iteration will run from. That block is immutable from
+that commit onward. Criteria written once the results are in describe the results.
+
+After the smoke, add the factual metadata the smoke established, which is the harness, the verified
+harness version and the model, without touching the criteria block. Commit that state and tag it
+`pilot-<harness>-<n>-instrument`. The measured iteration runs from that tag, which is the one exact
+revision the whole iteration is measured at.
+
+The pre-registration names that tag and never a commit identifier of its own, because a file cannot
+carry the identifier of the commit that contains that version of the file. The 40-character
+identifier the tag resolves to is carried by the run metadata instead: `record_eval_run.py` writes
+`repo_commit` from `git rev-parse HEAD` into every recorded run, and the report quotes it from
+there.
 
 ### The order of operations
 
@@ -71,17 +85,20 @@ The smoke run and the measured run are deliberately different iterations. Step 4
 `docs/benchmarks/pilot-deps.json`, and rule 1 forbids that inside an iteration that has already
 recorded outputs, which a smoke `--eval` has: it records both configurations. Nothing in the runner
 catches the mix for you, because `existing_identity` compares the harness and the model on resume
-and not the repository commit or the manifest. Keeping the identifiers apart is the operator's job.
+and not the repository revision or the manifest. Keeping the identifiers apart is the operator's
+job, and so is running the measured iteration from the tag rather than from whatever HEAD happens
+to be.
 
-1. Write and commit the pre-registration.
+1. Commit the decision criteria and the intended tag name. They are immutable from here.
 2. Run one real smoke `--eval` per harness, under `iteration-<harness>-smoke-<n>`.
-3. From that smoke, verify the harness version, the model identifier, the session identifier, the
-   usage envelope, the isolation configuration and the probe output.
-4. Add the harness version to `verified_harness_versions` only after its own smoke succeeds, and
-   commit that change.
-5. Record the resulting commit in the pre-registration as the measured commit.
-6. Start a fresh `iteration-<harness>-<n>` and record 30 outputs per harness: 15 prompts in both
-   configurations.
+3. Inspect that smoke for compatibility only: the envelope, the provenance sidecar, the isolation
+   configuration, the probe, the harness version, the model identifier and the session identifier.
+   Not output quality, and not at any later point either.
+4. Add the verified harness version to `verified_harness_versions`, and the harness, version and
+   model to the pre-registration, leaving the criteria block untouched.
+5. Commit that state and tag it `pilot-<harness>-<n>-instrument`. That tag is the measured revision.
+6. Start a fresh `iteration-<harness>-<n>` from that tag and record 30 outputs per harness: 15
+   prompts in both configurations.
 7. A fresh isolated session for every output.
 8. Keep every attempt, the failed ones included.
 9. Label each output `good`, `weak` or `fail`, with a classification and a reason.
