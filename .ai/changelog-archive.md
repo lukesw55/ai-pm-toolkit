@@ -96,6 +96,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-16 B42: the check mode runs the suite and reports it step by step
 - 2026-09-16 B42: golden_set.py, the product side of the loop
 - 2026-09-16 B42: eval-design.md points at the script that writes its files
+- 2026-09-16 B42: the proposal loop in EVAL_PROTOCOL.md
 
 ## 2026-09-08: session log
 
@@ -487,4 +488,8 @@ The reference in skills/pm-archetype-ai has said since B33 that every production
 ## 2026-09-16: B42: eval-design.md points at the script that writes its files
 
 The Files section of the reference has published two paths since B33 with nothing to write them. It now names golden_set.py and its four subcommands, and restates in the reference itself the rule the script enforces: the set needs one failure the team has really seen, and the script never reads a model's output, because a row whose expected behaviour came from what the model produced makes the set agree with the model. The Source and licence paragraph is untouched. Both generated mirrors regenerated with sync_skills.py in the same commit, because a skill edit without them fails check_mirror_drift and takes the whole battery with it.
+
+## 2026-09-16: B42: the proposal loop in EVAL_PROTOCOL.md
+
+A new section between Grade and report and the runbook: what propose reads, the five categories and what each one asks of a human, the rule that a proposal exists only because someone wrote a verdict and a reason, the three files nothing in the loop may write, why no regex is generated, why the candidate is a slot replacement rather than a second object, and the asymmetry that decides whether the loop hardens the grader or corrupts it. It also says what check reports and what a green run does and does not mean, why excerpts are bounded given that the workspace is gitignored and docs are tracked, and where the product-side golden set lives instead. It closes by saying no iteration has been recorded yet, so the loop has been exercised against synthetic runs only, in the same register the protocol already uses for the pilot.
 

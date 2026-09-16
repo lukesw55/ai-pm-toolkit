@@ -105,10 +105,12 @@ def classify(current: list[dict], stale: list[dict], grading: dict) -> str:
 
 def implicated(category: str, grading: dict, checks: list, pair: dict | None) -> dict | None:
     """Which assertions the disagreement points at, or None when the category is not about
-    the assertions at all. For a false reject the failing ones, exactly. For a false accept
-    every assertion passed, so the only mechanical signal is which of them also pass on this
-    eval's own bad and keyword-only fixtures: an assertion a wrong answer already satisfies
-    is the one least likely to be checking behaviour."""
+    the assertions at all. For a false reject, the ones that rejected it. A false accept is a
+    binarised pass, which is the rate clearing the threshold and not a clean sheet, so any
+    check that did fail is named too: it fires on exactly the output a human rejected. The
+    other mechanical signal is which of the passing checks also pass on this eval's own bad
+    and keyword-only fixtures: a check a wrong answer already satisfies is the one least
+    likely to be checking behaviour."""
     if category not in ("false-accept", "false-reject"):
         return None
     labels = [e["text"] for e in grading["expectations"] if not e["passed"]]
@@ -125,7 +127,6 @@ def implicated(category: str, grading: dict, checks: list, pair: dict | None) ->
                     also_keyword.append(label)
             except Exception:  # an assertion that raises is already reported by grade_run
                 continue
-        labels = []
     return {
         "rule": "failing-assertions" if category == "false-reject" else "passing-assertions",
         "labels": labels,
@@ -188,10 +189,16 @@ def assertion_change(category: str, implicated_labels: dict | None, current: lis
         return None
     reasons = [record["verdict_reason"] for record in current]
     if category == "false-accept":
-        targets = implicated_labels["also_pass_on_bad_fixture"] or implicated_labels["also_pass_on_keyword_only_fixture"]
+        failing = implicated_labels["labels"]
+        targets = failing or implicated_labels["also_pass_on_bad_fixture"] or implicated_labels["also_pass_on_keyword_only_fixture"]
         direction = "tighten"
-        rule = ("An assertion has to reject the behaviour the labeler describes below. "
-                "Every assertion passed on this output, so the gap is not a failing check but a missing one.")
+        if failing:
+            rule = ("An assertion has to reject the behaviour the labeler describes below. Checks already failed "
+                    "on this output and the grader still counted a pass, because the rate cleared the threshold "
+                    "rather than the sheet being clean: the ones named below are where to look first.")
+        else:
+            rule = ("An assertion has to reject the behaviour the labeler describes below. "
+                    "Every assertion passed on this output, so the gap is not a failing check but a missing one.")
     else:
         targets = implicated_labels["labels"]
         direction = "loosen or re-shape"
@@ -273,6 +280,10 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
         return {**base, "outcome": category}
 
     checks = ge.ASSERTIONS.get(skill, {}).get(eval_name, [])
+    if not checks:
+        # grade_run already warned. A card here would name assertions to change and have none
+        # to name; the parity check in validate_repo.py is where this belongs.
+        return {**base, "outcome": "no-assertions"}
     pairs = load_fixture_pairs(root)
     index, pair = find_pair(pairs, skill, eval_name)
     marks = implicated(category, grading, checks, pair)
@@ -402,8 +413,18 @@ def render_markdown(proposal: dict) -> str:
     else:
         out.append("## Implicated assertions")
         out.append("")
-        out.append("Every assertion passed, so no failing check points at the gap. The labeler's reason is the "
-                   "only evidence of which behaviour goes unchecked:")
+        if marks["labels"]:
+            out.append(f"{grader['passed']} of {grader['total']} assertions passed. The grader counted a pass because "
+                       f"the rate cleared {grader['threshold']}, not because the sheet was clean: these failed on this "
+                       "output, so they are the checks closest to the behaviour the labeler rejected.")
+            out.append("")
+            for label in marks["labels"]:
+                out.append(f"- {label}")
+            out.append("")
+            out.append("The labeler's reason:")
+        else:
+            out.append("Every assertion passed, so no failing check points at the gap. The labeler's reason is the "
+                       "only evidence of which behaviour goes unchecked:")
         out.append("")
         for record in human["labels"]:
             out.append(f"> {record['verdict_reason']} — {record['labeler']}")
@@ -561,7 +582,7 @@ def propose(args, root: Path = ROOT) -> dict:
             continue
         built = build_proposal(root, args.iteration, key, labels_by_key, limit=args.excerpt_chars, full=args.full_output)
         row = {"key": built["key"], "outcome": built["outcome"]}
-        if built["outcome"] in ("no-run-here", "hash-mismatch", "invalid-run", "orphan-eval"):
+        if built["outcome"] in ("no-run-here", "hash-mismatch", "invalid-run", "orphan-eval", "no-assertions"):
             print(f"WARN {built['outcome']}: {skill} eval {eval_id} {config} output {key[3][:12]}", file=sys.stderr)
         if "proposal" in built:
             stem = proposal_stem(skill, eval_id, built["key"]["eval_name"], config, key[3])

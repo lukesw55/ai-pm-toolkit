@@ -99,6 +99,33 @@ class ProposeTests(unittest.TestCase):
         # every assertion passed, so the mechanical signal is which also pass on the wrong answers
         self.assertEqual(proposal['implicated_assertions']['labels'],[])
 
+    def test_a_false_accept_with_a_failing_check_names_it(self):
+        """A binarised pass is the rate clearing the threshold, not a clean sheet: at 0.80 four
+        of five checks passed and the fifth fired on exactly the output the human rejected."""
+        self.write_fixture_pair()
+        five={self.skill:{self.eval:[('mentions alpha',ge.has('alpha')),('mentions beta',ge.has('beta')),
+                                     ('mentions synthetic',ge.has('synthetic')),('mentions fixture',ge.has('fixture')),
+                                     ('mentions epsilon',ge.has('epsilon'))]}}
+        self.label(verdict='weak',classification=['skipped-method'],reason='Scores every dimension but never applies the lock')
+        with patch.dict(ge.ASSERTIONS,five):
+            pe.propose(self.args(),self.root)
+        proposal,markdown=self.one_proposal()
+        self.assertEqual(proposal['category'],'false-accept')
+        self.assertEqual(proposal['grader']['pass_rate'],0.8)
+        self.assertEqual(proposal['implicated_assertions']['labels'],['mentions epsilon'])
+        self.assertEqual(proposal['assertion_change']['targets'],['mentions epsilon'])
+        self.assertIn('4 of 5 assertions passed',markdown)
+        self.assertIn('- mentions epsilon',markdown)
+        self.assertNotIn('Every assertion passed',markdown)
+
+    def test_an_eval_without_assertions_is_reported_not_proposed(self):
+        """A card would name the assertions to change and have none to name."""
+        self.label(verdict='good',reason='usable as delivered')
+        with patch.dict(ge.ASSERTIONS,{self.skill:{}}):
+            index=pe.propose(self.args(),self.root)
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['no-assertions'])
+        self.assertEqual(self.written(),['index.json','index.md'])
+
     def test_false_reject(self):
         self.write_fixture_pair()
         self.label(config='without_skill',verdict='good',reason='Right call, written another way')
