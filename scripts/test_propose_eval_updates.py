@@ -1,0 +1,300 @@
+"""Proposals from labelled disagreements: what is proposed, what deliberately is not, and that nothing is ever applied."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import unittest
+from unittest.mock import patch
+import grade_evals as ge
+import label_eval_run as lr
+import propose_eval_updates as pe
+import record_eval_run as rr
+
+
+class ProposeTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
+        self.root=Path(self.tmp.name)
+        self.skill='pm-prioritization-regua-comum'
+        shutil.copytree(rr.ROOT/'skills'/self.skill,self.root/'skills'/self.skill,ignore=shutil.ignore_patterns('workspace','__pycache__'))
+        subprocess.run(['git','init','-q',str(self.root)],check=True)
+        subprocess.run(['git','-C',str(self.root),'-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','--allow-empty','-qm','fixture'],check=True)
+        manifest=json.loads((self.root/'skills'/self.skill/'evals/evals.json').read_text())
+        self.spec=manifest['evals'][0];self.eval=self.spec['name']
+        self.iteration='iteration-test'
+        self.good='alpha beta: synthetic fixture, not model evidence'
+        self.bad='gamma: synthetic fixture, not model evidence'
+        self.record_pair(self.iteration,{'with_skill':self.good,'without_skill':self.bad})
+        self.assertions={self.skill:{self.eval:[('mentions alpha',ge.has('alpha')),('mentions beta',ge.has('beta'))]}}
+
+    # -- sandbox helpers, in the shape of test_label_eval_run.py --------------------
+    def record_pair(self,iteration,texts):
+        for config,text in texts.items():
+            out=self.root/f'{iteration}-{config}.md';out.write_text(text)
+            rr.record(argparse.Namespace(skill=self.skill,eval=self.eval,config=config,iteration=iteration,harness='codex',model='fixture',source='synthetic-test-only',output=out,tokens=None,duration_ms=None),self.root)
+
+    def label(self,**over):
+        base=dict(skill=self.skill,eval=self.eval,config='with_skill',iteration=self.iteration,verdict='good',classification=[],reason='usable as delivered',labeler='lucas',labels_file=None,supersede=False)
+        base.update(over);lr.label(argparse.Namespace(**base),self.root)
+
+    def write_fixture_pair(self):
+        path=self.root/pe.FIXTURES;path.parent.mkdir(parents=True,exist_ok=True)
+        pair={'skill':self.skill,'eval':self.eval,'good':self.good,'bad':'delta: a plausible wrong answer',
+              'keyword_only':'alpha. beta.','near_miss':{'text':'alpha only','fails':'mentions beta'}}
+        path.write_text(json.dumps([pair],indent=2)+'\n',encoding='utf-8')
+        return pair
+
+    def meta(self,config='with_skill'):
+        directory=pe.run_dir(self.root,self.iteration,self.skill,self.spec['id'],self.eval,config)
+        return json.loads((directory/'meta.json').read_text(encoding='utf-8'))
+
+    def raw_label(self,**over):
+        """A label written straight into the file, for shapes the CLI refuses to produce."""
+        base=dict(schema=lr.SCHEMA,iteration=self.iteration,skill=self.skill,eval_id=self.spec['id'],eval_name=self.eval,
+                  config='with_skill',output_sha256=self.meta()['output_sha256'],rubric_version=lr.rubric_version(self.spec),
+                  verdict='good',classification=[],verdict_reason='x',labeler='lucas',
+                  labeled_at='2026-09-16T10:00:00+00:00',supersedes=False)
+        base.update(over)
+        path=lr.labels_path(self.root,self.iteration);path.parent.mkdir(parents=True,exist_ok=True)
+        with path.open('a',encoding='utf-8') as handle:
+            handle.write(json.dumps(base,sort_keys=True,ensure_ascii=False)+'\n')
+
+    def args(self,**over):
+        base=dict(iteration=self.iteration,labels=None,skill=None,eval=None,out=None,
+                  excerpt_chars=pe.EXCERPT_CHARS,full_output=False,force=False,dry_run=False)
+        base.update(over);return argparse.Namespace(**base)
+
+    def propose(self,**over):
+        with patch.dict(ge.ASSERTIONS,self.assertions):
+            return pe.propose(self.args(**over),self.root)
+
+    def out_dir(self):
+        return pe.proposals_dir(self.root,self.iteration)
+
+    def written(self):
+        return sorted(p.name for p in self.out_dir().iterdir()) if self.out_dir().is_dir() else []
+
+    def one_proposal(self):
+        files=[p for p in self.out_dir().iterdir() if p.suffix=='.json' and p.stem!='index']
+        self.assertEqual(len(files),1,self.written())
+        return json.loads(files[0].read_text(encoding='utf-8')),files[0].with_suffix('.md').read_text(encoding='utf-8')
+
+    # -- the five categories --------------------------------------------------------
+    def test_false_accept(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='Scores every dimension but never applies the lock')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['false-accept'])
+        proposal,markdown=self.one_proposal()
+        self.assertEqual(proposal['category'],'false-accept')
+        self.assertEqual(proposal['grader']['pass_rate'],1.0)
+        self.assertIs(proposal['grader']['agrees'],False)
+        self.assertEqual(proposal['human']['verdict'],'weak')
+        self.assertEqual(proposal['fixture_suggestion']['slot'],'near_miss')
+        self.assertIn('Scores every dimension but never applies the lock',markdown)
+        self.assertIn(self.meta()['output_sha256'],markdown)
+        # every assertion passed, so the mechanical signal is which also pass on the wrong answers
+        self.assertEqual(proposal['implicated_assertions']['labels'],[])
+
+    def test_false_reject(self):
+        self.write_fixture_pair()
+        self.label(config='without_skill',verdict='good',reason='Right call, written another way')
+        proposal,_=self.one_proposal() if self.propose() else (None,None)
+        self.assertEqual(proposal['category'],'false-reject')
+        self.assertEqual(proposal['implicated_assertions']['labels'],['mentions alpha','mentions beta'])
+        self.assertEqual(proposal['fixture_suggestion']['slot'],'good')
+        self.assertIs(proposal['fixture_suggestion']['rewrite_required'],True)
+
+    def test_agreement_proposes_nothing(self):
+        self.label(verdict='good',reason='usable as delivered')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['agreement'])
+        self.assertEqual(self.written(),['index.json','index.md'])
+
+    def test_split_is_reported_not_proposed(self):
+        self.label(verdict='good',reason='fine',labeler='lucas')
+        self.label(verdict='fail',classification=['wrong-decision'],reason='wrong call',labeler='ana')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['split'])
+        self.assertEqual(self.written(),['index.json','index.md'])
+
+    def test_stale_rubric_only(self):
+        self.raw_label(rubric_version='b'*12,verdict='fail',classification=['incomplete'],reason='against an older expectation')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['stale-rubric'])
+        proposal,markdown=self.one_proposal()
+        self.assertIsNone(proposal['fixture_suggestion'])
+        self.assertIsNone(proposal['assertion_change'])
+        self.assertIsNone(proposal['human']['verdict'])
+        self.assertEqual(len(proposal['human']['stale_labels']),1)
+        self.assertIn('label_eval_run.py',markdown)
+        self.assertNotIn('--supersede',markdown)
+
+    def test_stale_label_beside_a_current_one_yields_one_card(self):
+        self.write_fixture_pair()
+        self.raw_label(labeler='ana',rubric_version='b'*12,verdict='fail',classification=['incomplete'],reason='older rubric')
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock',labeler='lucas')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['false-accept'])
+        proposal,_=self.one_proposal()
+        self.assertEqual([r['labeler'] for r in proposal['human']['stale_labels']],['ana'])
+        self.assertEqual([r['labeler'] for r in proposal['human']['labels']],['lucas'])
+
+    def test_eval_defect_beats_false_accept_and_counts_the_rubric_blast(self):
+        self.label(verdict='fail',classification=['eval-defect'],reason='The expected output asks for a field the prompt never gives')
+        self.label(config='without_skill',verdict='good',reason='fine',labeler='ana')
+        index=self.propose()
+        outcomes=sorted(row['outcome'] for row in index['outcomes'])
+        self.assertEqual(outcomes,['eval-defect','false-reject'])
+        defect=[json.loads(p.read_text()) for p in self.out_dir().iterdir() if p.suffix=='.json' and p.stem!='index']
+        defect=[d for d in defect if d['category']=='eval-defect'][0]
+        self.assertIsNone(defect['fixture_suggestion'])
+        self.assertEqual(defect['rubric_impact']['labels_invalidated_if_rubric_changes'],2)
+
+    # -- the guarantees -------------------------------------------------------------
+    def test_json_shape_and_no_regex_is_invented(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        proposal,markdown=self.one_proposal()
+        self.assertEqual(set(proposal),{'schema','kind','category','status','generated_by','never_edits','run','human',
+                                        'grader','implicated_assertions','fixture_suggestion','assertion_change',
+                                        'rubric_impact','human_decisions','excerpt','content_sha256','generated_at'})
+        self.assertEqual(proposal['schema'],pe.SCHEMA)
+        self.assertEqual(proposal['status'],'proposed')
+        self.assertIsNone(proposal['assertion_change']['regex'])
+        self.assertNotIn('re.compile',markdown)
+        inside,offenders=False,[]
+        for line in markdown.splitlines():
+            if line.startswith('```python'):
+                inside=True;continue
+            if inside and line.startswith('```'):
+                inside=False;continue
+            if inside and line.strip() and not line.lstrip().startswith('#'):
+                offenders.append(line)
+        self.assertEqual(offenders,[],'the proposed assertion block must be entirely commented out')
+
+    def test_nothing_is_applied(self):
+        pair=self.write_fixture_pair()
+        before={p:p.read_bytes() for p in (self.root/pe.FIXTURES,self.root/'skills'/self.skill/'evals/evals.json')}
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        for path,payload in before.items():
+            self.assertEqual(path.read_bytes(),payload,f'{path.name} must not change')
+        self.assertEqual(json.loads((self.root/pe.FIXTURES).read_text()),[pair])
+        directory=pe.run_dir(self.root,self.iteration,self.skill,self.spec['id'],self.eval,'with_skill')
+        self.assertFalse((directory/'grading.json').exists(),'propose must not write the grading record')
+        self.assertFalse((self.root/'benchmark_all.json').exists())
+
+    def test_idempotence_and_the_hand_edit_guard(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        markdown_path=[p for p in self.out_dir().iterdir() if p.suffix=='.md' and p.stem!='index'][0]
+        first=markdown_path.read_bytes()
+        self.propose()
+        self.assertEqual(markdown_path.read_bytes(),first,'a second pass over an unchanged run must not churn the file')
+        markdown_path.write_bytes(first+b'\nA reviewer note.\n')
+        self.propose()
+        self.assertTrue(markdown_path.read_text().endswith('A reviewer note.\n'),'an edited proposal must not be overwritten')
+        self.propose(force=True)
+        self.assertEqual(markdown_path.read_bytes(),first)
+
+    def test_a_changed_verdict_is_reported(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        self.label(verdict='fail',classification=['wrong-decision'],reason='wrong call',labeler='ana')
+        self.label(verdict='fail',classification=['wrong-decision'],reason='wrong call too',labeler='bea')
+        self.propose()
+        proposal,_=self.one_proposal()
+        self.assertEqual(proposal['human']['verdict'],'fail')
+        self.assertEqual(proposal['fixture_suggestion']['slot'],'bad')
+
+    def test_dry_run_writes_nothing(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose(dry_run=True)
+        self.assertFalse(self.out_dir().exists())
+
+    def test_filters(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        index=self.propose(skill='another-skill')
+        self.assertEqual(index['outcomes'],[])
+        index=self.propose(eval='another-eval')
+        self.assertEqual(index['outcomes'],[])
+
+    def test_slot_replacement_not_a_second_object(self):
+        pair=self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        self.propose()
+        proposal,markdown=self.one_proposal()
+        suggestion=proposal['fixture_suggestion']
+        self.assertIs(suggestion['pair_exists'],True)
+        self.assertEqual(suggestion['pair_index'],0)
+        expected=hashlib.sha256(json.dumps(pair['near_miss'],sort_keys=True,ensure_ascii=False).encode('utf-8')).hexdigest()
+        self.assertEqual(suggestion['current_value_sha256'],expected)
+        self.assertEqual(list(suggestion['snippet']),list(pe.FIXTURE_KEYS))
+        self.assertIn('not a second object',markdown)
+        # the markdown carries only the slot being replaced, not the whole object again
+        self.assertEqual(markdown.count('"keyword_only"'),0)
+        self.assertIn('"near_miss"',markdown)
+
+    def test_a_candidate_that_equals_another_slot_is_called_out(self):
+        pair=self.write_fixture_pair()
+        self.assertEqual(pair['good'],self.good)   # the labelled run is the text the good slot holds
+        self.label(verdict='fail',classification=['wrong-decision'],reason='wrong call')
+        self.propose()
+        proposal,markdown=self.one_proposal()
+        self.assertEqual(proposal['fixture_suggestion']['slot'],'bad')
+        self.assertEqual(proposal['fixture_suggestion']['collides_with_slots'],['good'])
+        self.assertIn('cannot be both the answer to accept and the answer to reject',markdown)
+
+    def test_excerpt_is_bounded_unless_asked(self):
+        long_text='alpha beta '+('padding '*400)
+        self.record_pair('iteration-long',{'with_skill':long_text,'without_skill':'gamma'})
+        self.label(iteration='iteration-long',verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        with patch.dict(ge.ASSERTIONS,self.assertions):
+            pe.propose(self.args(iteration='iteration-long',excerpt_chars=100),self.root)
+        out=pe.proposals_dir(self.root,'iteration-long')
+        proposal=json.loads([p for p in out.iterdir() if p.suffix=='.json' and p.stem!='index'][0].read_text())
+        self.assertIs(proposal['excerpt']['truncated'],True)
+        self.assertEqual(proposal['excerpt']['chars'],100)
+        self.assertEqual(proposal['excerpt']['output_chars'],len(long_text))
+        with patch.dict(ge.ASSERTIONS,self.assertions):
+            pe.propose(self.args(iteration='iteration-long',full_output=True,force=True),self.root)
+        proposal=json.loads([p for p in out.iterdir() if p.suffix=='.json' and p.stem!='index'][0].read_text())
+        self.assertIs(proposal['excerpt']['truncated'],False)
+
+    # -- runs the proposer cannot use -----------------------------------------------
+    def test_label_without_a_run_is_reported_never_an_error(self):
+        self.raw_label(config='with_skill',output_sha256='c'*64)
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['hash-mismatch'])
+        self.assertEqual(self.written(),['index.json','index.md'])
+
+    def test_missing_and_invalid_runs(self):
+        self.label()
+        shutil.rmtree(self.root/'skills'/self.skill/'workspace'/self.iteration)
+        self.assertEqual([row['outcome'] for row in self.propose()['outcomes']],['no-run-here'])
+        self.record_pair(self.iteration,{'with_skill':self.good,'without_skill':self.bad})
+        directory=pe.run_dir(self.root,self.iteration,self.skill,self.spec['id'],self.eval,'with_skill')
+        (directory/'outputs/output.md').write_text('tampered')
+        self.assertEqual([row['outcome'] for row in self.propose()['outcomes']],['invalid-run'])
+
+    def test_bad_iteration_and_malformed_labels(self):
+        with self.assertRaises(ValueError):
+            pe.propose(self.args(iteration='nope'),self.root)
+        path=lr.labels_path(self.root,self.iteration);path.parent.mkdir(parents=True,exist_ok=True)
+        path.write_text('{"schema": 2}\n',encoding='utf-8')
+        with self.assertRaises(ValueError) as caught:
+            self.propose()
+        self.assertIn('labels.jsonl:1:',str(caught.exception))
+
+
+if __name__=='__main__':
+    unittest.main(verbosity=2)
