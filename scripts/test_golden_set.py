@@ -20,6 +20,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 SHEET_NAME = "golden-set.csv"
+HEADER = ("id", "source", "input locator", "expected behaviour", "label", "reason", "handle", "grader", "last graded")
 RESULTS: list[tuple[str, bool, str]] = []
 
 
@@ -153,6 +154,19 @@ def main() -> int:
               and path.stat().st_mtime_ns == stamp, r.stdout.strip())
         r = sb.run("list", slug)
         check("list names the feature", r.returncode == 0 and feature in r.stdout)
+
+        elsewhere = Path(td) / "elsewhere"
+        elsewhere.mkdir(exist_ok=True)
+        (elsewhere / "golden-set.csv").write_text(
+            ",".join(HEADER) + "\n001,real trace,ticket 9,does a thing,fail,a reason,hallucination,lead,2026-01-01\n",
+            encoding="utf-8")
+        evil = sb.projects / slug / "evals" / "evil"
+        evil.symlink_to(elsewhere)
+        r = sb.run("list", slug)
+        check("list refuses a feature symlinked out of the project and reads nothing there",
+              r.returncode == 0 and "evil" not in r.stdout and "WARN evil" in r.stderr and feature in r.stdout,
+              (r.stdout + r.stderr).strip()[:200])
+        evil.unlink()
 
         # -- check ------------------------------------------------------------------
         r = sb.run("check", slug, "--feature", feature)
