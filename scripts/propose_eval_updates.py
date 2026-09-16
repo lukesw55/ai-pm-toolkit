@@ -75,16 +75,21 @@ def find_pair(pairs: list[dict], skill: str, eval_name: str) -> tuple[int | None
     return None, None
 
 
-def excerpt(text: str, limit: int, full: bool) -> dict:
-    """Bounded by default. The workspace is gitignored and docs/ is tracked, so a full
-    output would publish model text into git permanently and grow a corpus of it beside
-    the fixtures file, one directory from where an assertion author would look. The hash
-    and the run path make the excerpt a pointer with evidence attached."""
+def excerpt(text: str, limit: int, full: bool, embed: bool) -> dict:
+    """Withheld by default. The workspace is gitignored and docs/ is tracked, and
+    record_eval_run.py records whatever output its caller hands it, so copying that text
+    into a proposal would put arbitrary model output into git permanently, by default, with
+    nothing proving it came from the isolated pilot. The card carries the hash, the run path
+    and the grading instead, which is what a reviewer decides on; --embed-output writes the
+    text in when someone wants it there."""
+    if not embed:
+        return {"text": "", "chars": 0, "truncated": False, "embedded": False, "output_chars": len(text)}
     body = text if full else text[:limit]
     return {
         "text": body,
         "chars": len(body),
         "truncated": not full and len(text) > limit,
+        "embedded": True,
         "output_chars": len(text),
     }
 
@@ -148,19 +153,28 @@ def classify(current: list[dict], stale: list[dict], grading: dict) -> str:
 
 
 def implicated(category: str, grading: dict, checks: list, pair: dict | None) -> dict | None:
-    """Which assertions the disagreement points at, or None when the category is not about
-    the assertions at all. For a false reject, the ones that rejected it. A false accept is a
-    binarised pass, which is the rate clearing the threshold and not a clean sheet, so any
-    check that did fail is named too: it fires on exactly the output a human rejected. The
-    other mechanical signal is which of the passing checks also pass on this eval's own bad
-    and keyword-only fixtures: a check a wrong answer already satisfies is the one least
-    likely to be checking behaviour."""
+    """The assertions this proposal asks a human to change, and nothing else in `labels`.
+
+    For a false reject they are the ones that rejected the output: loosening those is what
+    lets it through. For a false accept they are candidates among the checks that *passed*,
+    because the binarised result is a pass and only a check that currently passes can start
+    rejecting this output and move the rate under the threshold. A check that already fails
+    contributes nothing to the rate, so tightening it cannot change the outcome; those are
+    reported as `already_failing`, which is a diagnostic and never a target.
+
+    A candidate is a passing check that also passes this eval's own bad fixture, or failing
+    that its keyword-only fixture: a check a wrong answer already satisfies is the one least
+    likely to be checking behaviour. With neither, there is no defensible mechanical target
+    and `labels` is empty, which the card says rather than naming one anyway."""
     if category not in ("false-accept", "false-reject"):
         return None
-    labels = [e["text"] for e in grading["expectations"] if not e["passed"]]
+    failing = [e["text"] for e in grading["expectations"] if not e["passed"]]
+    if category == "false-reject":
+        return {"rule": "failing-assertions", "labels": failing, "already_failing": [],
+                "also_pass_on_bad_fixture": [], "also_pass_on_keyword_only_fixture": []}
     also_bad: list[str] = []
     also_keyword: list[str] = []
-    if category == "false-accept" and pair:
+    if pair:
         for (label, check), expectation in zip(checks, grading["expectations"]):
             if not expectation["passed"]:
                 continue
@@ -172,14 +186,34 @@ def implicated(category: str, grading: dict, checks: list, pair: dict | None) ->
             except Exception:  # an assertion that raises is already reported by grade_run
                 continue
     return {
-        "rule": "failing-assertions" if category == "false-reject" else "passing-assertions",
-        "labels": labels,
+        "rule": "passing-assertions",
+        "labels": also_bad or also_keyword,
+        "already_failing": failing,
         "also_pass_on_bad_fixture": also_bad,
         "also_pass_on_keyword_only_fixture": also_keyword,
     }
 
 
-def fixture_suggestion(category: str, verdict: str | None, index: int | None, pair: dict | None, text: str) -> dict | None:
+def checks_to_flip(grading: dict) -> int | None:
+    """How many of the checks that pass today would have to start failing for the binarised
+    result to flip. It is the difference between a card that says change one assertion and
+    one that says a single change cannot get there: at 4 of 5 one is enough (0.60), at 9 of
+    10 it is not (0.80 still clears). None when the run is not a binarised pass."""
+    passed, total = grading["passed"], grading["total"]
+    if not total or passed / total < ge.PASS_THRESHOLD:
+        return None
+    for flipped in range(1, passed + 1):
+        if (passed - flipped) / total < ge.PASS_THRESHOLD:
+            return flipped
+    return passed
+
+
+def candidate_placeholder(locator: str) -> str:
+    return f"<the recorded output at {locator}; re-run propose with --embed-output to write it here>"
+
+
+def fixture_suggestion(category: str, verdict: str | None, index: int | None, pair: dict | None, text: str,
+                       *, embed: bool, locator: str) -> dict | None:
     """A slot replacement inside the existing object, never a new array element: the file
     holds exactly one object per eval and all of them exist, and a second object for the
     same eval would pass the suite unnoticed because the coverage checks are subset tests.
@@ -197,11 +231,16 @@ def fixture_suggestion(category: str, verdict: str | None, index: int | None, pa
     else:
         slot = "good"
     snippet = {key: pair[key] for key in FIXTURE_KEYS if key in pair}
+    # The candidate is the recorded output itself, so it is the second way model text would
+    # reach a tracked file. Without --embed-output the slot carries a placeholder naming where
+    # the text is; everything a reviewer decides on (slot, band, what it replaces, whether it
+    # collides) is computed from the real text and stays.
+    body = text if embed else candidate_placeholder(locator)
     if slot == "near_miss":
-        value: object = {"text": text, "fails": "<the assertion label you are about to write>"}
+        value: object = {"text": body, "fails": "<the assertion label you are about to write>"}
         band = [0.50, 0.99]
     else:
-        value = text
+        value = body
         band = [0.80, 1.0] if slot == "good" else [0.0, 0.30]
     current_value = json.dumps(pair.get(slot), sort_keys=True, ensure_ascii=False)
     snippet[slot] = value
@@ -221,29 +260,33 @@ def fixture_suggestion(category: str, verdict: str | None, index: int | None, pa
         "snippet": snippet,
         "collides_with_slots": collides,
         "derived_from": "model output",
-        "verbatim": True,
+        "verbatim": embed,
+        "candidate_embedded": embed,
         "rewrite_required": slot == "good",
     }
 
 
-def assertion_change(category: str, implicated_labels: dict | None, current: list[dict]) -> dict | None:
+def assertion_change(category: str, implicated_labels: dict | None, current: list[dict], grading: dict) -> dict | None:
     """A direction and a rule in plain English, composed only from the assertion labels
     involved and the reason the labeler wrote. No regex is generated: a pattern written
     from one output matches that output, and the person who writes it has to own it."""
     if category not in ("false-accept", "false-reject") or implicated_labels is None:
         return None
     reasons = [record["verdict_reason"] for record in current]
+    flip = checks_to_flip(grading)
     if category == "false-accept":
-        failing = implicated_labels["labels"]
-        targets = failing or implicated_labels["also_pass_on_bad_fixture"] or implicated_labels["also_pass_on_keyword_only_fixture"]
+        targets = implicated_labels["labels"]
         direction = "tighten"
-        if failing:
-            rule = ("An assertion has to reject the behaviour the labeler describes below. Checks already failed "
-                    "on this output and the grader still counted a pass, because the rate cleared the threshold "
-                    "rather than the sheet being clean: the ones named below are where to look first.")
+        if targets:
+            rule = ("A check that currently passes has to start rejecting the behaviour the labeler describes "
+                    f"below. {flip} of the checks that pass today would have to fail for the binarised result to "
+                    "flip. The ones named below pass here and also pass this eval's own wrong answers, so they "
+                    "are the least likely to be checking behaviour and the first place to look.")
         else:
-            rule = ("An assertion has to reject the behaviour the labeler describes below. "
-                    "Every assertion passed on this output, so the gap is not a failing check but a missing one.")
+            rule = ("A check that currently passes has to start rejecting the behaviour the labeler describes "
+                    "below, or a new check has to. No passing check on this output also passes this eval's own "
+                    "wrong answers, so there is no mechanical candidate: the labeler's reason is the evidence, "
+                    "and the reviewer picks the check to change or writes the one that is missing.")
     else:
         targets = implicated_labels["labels"]
         direction = "loosen or re-shape"
@@ -252,6 +295,7 @@ def assertion_change(category: str, implicated_labels: dict | None, current: lis
     return {
         "direction": direction,
         "targets": targets,
+        "checks_to_flip": flip,
         "rule_in_plain_english": rule,
         "reasons_quoted": reasons,
         "regex": None,
@@ -289,7 +333,8 @@ def decisions_for(category: str, run: dict, iteration: str) -> list[dict]:
     ]
 
 
-def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, *, limit: int, full: bool) -> dict:
+def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, *, limit: int, full: bool,
+                   embed: bool) -> dict:
     """One proposal, or an outcome that explains why there is none. Never raises for a run
     that is simply absent: a label whose run is not on this machine is reported, the way
     grade_all already reports one, and never an error."""
@@ -312,6 +357,7 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
         return {**base, "outcome": "hash-mismatch"}
 
     output_path = directory / "outputs" / "output.md"
+    provenance_present = (directory / "provenance.json").is_file()
     text = output_path.read_text(encoding="utf-8", errors="replace")
     grading = ge.grade_run(output_path, skill, eval_name)
     if grading is None:
@@ -334,6 +380,9 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
     marks = implicated(category, grading, checks, pair)
     verdict = grading["human_verdict"]
     stored = read_stored_grading(directory, f"{skill} eval {eval_id} {config}")
+    if embed and not provenance_present:
+        print(f"WARN {skill} eval {eval_id} {config}: embedding output from a run with no provenance.json; "
+              "nothing proves it came from the isolated pilot", file=sys.stderr)
 
     proposal = {
         "schema": SCHEMA,
@@ -349,6 +398,7 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
             "recorded_at": meta["recorded_at"],
             "output_path": output_path.relative_to(root).as_posix(),
             "output_words": grading["word_count"],
+            "provenance_present": provenance_present,
         },
         "human": {
             "verdict": verdict,
@@ -367,11 +417,12 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
             "stored_grading_matches": None if stored is None else stored.get("pass_rate") == grading["pass_rate"],
         },
         "implicated_assertions": marks,
-        "fixture_suggestion": fixture_suggestion(category, verdict, index, pair, text),
-        "assertion_change": assertion_change(category, marks, current),
+        "fixture_suggestion": fixture_suggestion(category, verdict, index, pair, text,
+                                                 embed=embed, locator=output_path.relative_to(root).as_posix()),
+        "assertion_change": assertion_change(category, marks, current, grading),
         "rubric_impact": rubric_impact(labels_by_key, skill, eval_id) if category == "eval-defect" else None,
         "human_decisions": decisions_for(category, {"skill": skill, "eval_name": eval_name, "config": config}, iteration),
-        "excerpt": excerpt(text, limit, full),
+        "excerpt": excerpt(text, limit, full, embed),
     }
     return {**base, "outcome": category, "proposal": proposal}
 
@@ -434,14 +485,22 @@ def render_markdown(proposal: dict) -> str:
     out.append("")
     ex = proposal["excerpt"]
     out.append(f"sha256 {run['output_sha256']}, {ex['output_chars']} characters, recorded at "
-               f"{run['output_path']} (the workspace is not tracked, so this path exists only where the run was recorded).")
+               f"{run['output_path']} (the workspace is not tracked, so this path exists only where the run was recorded). "
+               + ("Provenance sidecar present." if run["provenance_present"]
+                  else "No provenance sidecar: nothing here proves this run came from the isolated pilot."))
     out.append("")
-    out.append(f"First {ex['chars']} characters:" if ex["truncated"] else "Full output:")
-    out.append("")
-    fence = fence_for(ex["text"])
-    out.append(f"{fence}text")
-    out.append(ex["text"])
-    out.append(fence)
+    if ex["embedded"]:
+        out.append(f"First {ex['chars']} characters:" if ex["truncated"] else "Full output:")
+        out.append("")
+        fence = fence_for(ex["text"])
+        out.append(f"{fence}text")
+        out.append(ex["text"])
+        out.append(fence)
+    else:
+        out.append("The text itself is not copied into this file. This page is tracked, the run is not, and the "
+                   "recorder takes whatever output its caller hands it, so publishing that text by default would "
+                   "put arbitrary model output into git. Read it at the path above, or re-run with "
+                   "`--embed-output` to write it here.")
     out.append("")
     marks = proposal["implicated_assertions"]
     if marks is None:
@@ -460,33 +519,40 @@ def render_markdown(proposal: dict) -> str:
     else:
         out.append("## Implicated assertions")
         out.append("")
-        if marks["labels"]:
+        flip = (proposal["assertion_change"] or {}).get("checks_to_flip")
+        if marks["already_failing"]:
             out.append(f"{grader['passed']} of {grader['total']} assertions passed. The grader counted a pass because "
-                       f"the rate cleared {grader['threshold']}, not because the sheet was clean: these failed on this "
-                       "output, so they are the checks closest to the behaviour the labeler rejected.")
+                       f"the rate cleared {grader['threshold']}, not because the sheet was clean.")
+            out.append("")
+            out.append("These already fail on this output:")
+            out.append("")
+            for label in marks["already_failing"]:
+                out.append(f"- {label}")
+            out.append("")
+            out.append("They are not the ones to change. A check that already returns false contributes nothing to the "
+                       f"rate, so tightening it leaves the result exactly where it is: {flip} of the checks that pass "
+                       "today would have to start failing for the binarised result to flip. They are named because a "
+                       "block where a real failure still clears the threshold is worth a second look on its own.")
+        else:
+            out.append(f"Every assertion passed, and the binarised result is a pass. {flip} of them would have to "
+                       f"start rejecting this output for the rate to fall under {grader['threshold']}.")
+        out.append("")
+        if marks["labels"]:
+            fixture = "bad" if marks["also_pass_on_bad_fixture"] else "keyword-only"
+            out.append(f"These pass on this output and also pass this eval's own {fixture} fixture, so they are the "
+                       "least likely to be checking behaviour and the first candidates to tighten:")
             out.append("")
             for label in marks["labels"]:
                 out.append(f"- {label}")
-            out.append("")
-            out.append("The labeler's reason:")
         else:
-            out.append("Every assertion passed, so no failing check points at the gap. The labeler's reason is the "
-                       "only evidence of which behaviour goes unchecked:")
+            out.append("No check that passes here also passes this eval's own wrong answers, so there is no mechanical "
+                       "candidate to name. The gap is a check that is missing rather than one that is too loose, and "
+                       "the reviewer picks what to write.")
+        out.append("")
+        out.append("The labeler's reason is the evidence of which behaviour goes unchecked:")
         out.append("")
         for record in human["labels"]:
             out.append(f"> {record['verdict_reason']} — {record['labeler']}")
-        if marks["also_pass_on_bad_fixture"]:
-            out.append("")
-            out.append("Assertions that also pass on this eval's own bad fixture, so they are the least likely to be checking behaviour:")
-            out.append("")
-            for label in marks["also_pass_on_bad_fixture"]:
-                out.append(f"- {label}")
-        if marks["also_pass_on_keyword_only_fixture"]:
-            out.append("")
-            out.append("Assertions that also pass on its keyword-only fixture:")
-            out.append("")
-            for label in marks["also_pass_on_keyword_only_fixture"]:
-                out.append(f"- {label}")
     out.append("")
     if proposal["rubric_impact"]:
         out.append("## Rubric impact")
@@ -518,6 +584,12 @@ def render_markdown(proposal: dict) -> str:
                        + "` slot of the same pair.** One text cannot be both the answer to accept and the answer to reject, so "
                        "pasting it as it stands would make the pair contradict itself. Either the labelled run is a text the "
                        "fixtures already hold, or the label is the thing to revisit.")
+        out.append("")
+        if not suggestion["candidate_embedded"]:
+            out.append("")
+            out.append("The candidate is that recorded output, so it is not written here either, for the reason the "
+                       "output section gives. The slot, the band, the value it would replace and the collision check "
+                       "are all computed from the real text and stand as they are; `--embed-output` fills the text in.")
         out.append("")
         out.append(f"Replace the `{suggestion['slot']}` value of that object with this, and leave its other keys alone. "
                    "The whole candidate object is in the JSON sibling of this file.")
@@ -707,7 +779,8 @@ def propose(args, root: Path = ROOT) -> dict:
             continue
         if args.eval and labels_by_key[key][0]["eval_name"] != args.eval:
             continue
-        built = build_proposal(root, args.iteration, key, labels_by_key, limit=args.excerpt_chars, full=args.full_output)
+        built = build_proposal(root, args.iteration, key, labels_by_key, limit=args.excerpt_chars,
+                               full=args.full_output, embed=args.embed_output or args.full_output)
         row = {"key": built["key"], "outcome": built["outcome"]}
         if built["outcome"] in ("no-run-here", "hash-mismatch", "invalid-run", "orphan-eval", "no-assertions"):
             print(f"WARN {built['outcome']}: {skill} eval {eval_id} {config} output {key[3][:12]}", file=sys.stderr)
@@ -892,7 +965,10 @@ def main() -> int:
     p.add_argument("--eval", help="only this eval name")
     p.add_argument("--out", help="override docs/benchmarks/<iteration>/proposals/")
     p.add_argument("--excerpt-chars", type=int, default=EXCERPT_CHARS)
-    p.add_argument("--full-output", action="store_true", help="publish the whole output into the tracked proposal")
+    p.add_argument("--embed-output", action="store_true",
+                   help="write the recorded output into the tracked proposal; off by default")
+    p.add_argument("--full-output", action="store_true",
+                   help="embed the whole output rather than the first --excerpt-chars characters")
     p.add_argument("--force", action="store_true", help="overwrite a proposal a human edited")
     p.add_argument("--dry-run", action="store_true", help="print what would be written, write nothing")
     p.set_defaults(func=propose)

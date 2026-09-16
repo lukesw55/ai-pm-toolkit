@@ -256,12 +256,22 @@ def cmd_list(args, root: Path = ROOT) -> int:
     if not directory.is_dir():
         print(f"golden_set: no {directory.relative_to(root).as_posix()}/ yet; run golden_set.py init", file=sys.stderr)
         return 1
-    features = sorted(child.name for child in directory.iterdir() if child.is_dir())
-    for feature in features:
-        sheet = directory / feature / SHEET
+    # Confining the evals/ directory is not enough: is_dir() follows a symlink, so a feature
+    # child pointing out of the project would be listed and its sheet read from wherever it
+    # points. Every child goes back through project_path before anything is opened.
+    listed = 0
+    for child in sorted(directory.iterdir()):
+        if not child.is_dir():
+            continue
+        try:
+            sheet = feature_file(root, args.slug, child.name, SHEET)
+        except ValueError as exc:
+            print(f"WARN {child.name}: {exc}; not listed", file=sys.stderr)
+            continue
         rows = len(read_sheet(sheet)[1]) if sheet.is_file() else 0
-        print(f"{feature}: {rows} row(s)")
-    if not features:
+        print(f"{child.name}: {rows} row(s)")
+        listed += 1
+    if not listed:
         print("no features yet")
     return 0
 
