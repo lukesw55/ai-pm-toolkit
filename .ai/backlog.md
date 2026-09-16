@@ -46,6 +46,9 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B41 | Blocos standard cuja sopa de rótulos ainda passa (30 de 43; 34 sem fixture) | Evals | verificado | 2 | 1 | 2 | 4 | feito |
 | B42 | Sinal de desacordo sem caminho até a mudança; golden set de produto sem ferramenta | Evals | verificado | 3 | 3 | 3 | 27 | feito |
 | B43 | README escrito para quem já decidiu ler, com contagens que ninguém verifica; sem CONTRIBUTING, SECURITY nem template de PR | Docs | verificado | 2 | 2 | 3 | 12 | feito |
+| B44 | A tabela de hooks do README e `hooks/contract.json` podem divergir sem nada apontar | Docs | verificado | 2 | 2 | 2 | 8 | candidato |
+| B45 | `memory.py doctor` cego para a árvore `evals/` de projeto | Memória | verificado | 1 | 1 | 2 | 2 | candidato |
+| B46 | Endurecimento e prontidão de release, tudo dependente da evidência do piloto | Infra | pesquisa | 2 | 2 | 3 | 12 | candidato (bloqueado no B25) |
 
 ## Detalhe por item
 
@@ -225,7 +228,7 @@ Medição original (2026-09-10) com o mesmo ataque que o dono aplicou ao bloco d
 
 `scripts/golden_set.py` escreve os dois arquivos que `skills/pm-archetype-ai/references/eval-design.md` publicava desde o B33 sem nada para criá-los. Todo campo vem de um flag que uma pessoa digitou; o script nunca lê saída de modelo, porque uma linha cujo comportamento esperado veio do que o modelo produziu faz o conjunto concordar com o modelo, que é a mesma falha uma camada acima. Confinamento é trabalho do `context_paths`, não implementação nova. `check` cobre as regras mecânicas da referência, inclusive a que decide se aquilo é teste ou álbum: pelo menos uma linha é uma falha que o time viu de verdade, e falha sintética não satisfaz a regra. Dois templates rastreados sob `.ai/memory/_templates/evals/`, fora de `PROJECT_FILES` porque aquele mapa cria arquivos planos e a maioria dos projetos nunca roda um eval; o CSV é só o cabeçalho, porque uma linha de exemplo seria uma falha fabricada em todo conjunto novo.
 
-Decisão registrada de deixar `memory.py doctor` cego para a árvore nova: as regras ficam num lugar só, e ensiná-las ao doctor exigiria copiar mais um script para o sandbox do `test_memory.py`. Fica como candidato com escopo estreito, só estrutural e só avisos. Verificação: nenhuma iteração foi gravada ainda, então o laço foi exercitado só contra runs sintéticos, e o protocolo diz isso no mesmo registro que já usa para o piloto.
+Decisão registrada de deixar `memory.py doctor` cego para a árvore nova: as regras ficam num lugar só, e ensiná-las ao doctor exigiria copiar mais um script para o sandbox do `test_memory.py`. Fica como candidato com escopo estreito, só estrutural e só avisos, registrado como **B45**. Verificação: nenhuma iteração foi gravada ainda, então o laço foi exercitado só contra runs sintéticos, e o protocolo diz isso no mesmo registro que já usa para o piloto.
 
 **Revisão adversarial antes do push (2026-09-16).** Antes de enviar a branch rodei uma revisão adversarial sobre o diff contra `main`, em cinco dimensões, com um estágio de verificação por reprodução. Seis achados sobreviveram à verificação, todos em `propose_eval_updates.py`, e outros vinte e seis ficaram sem verificar porque a conta bateu no limite mensal de gasto da org; triei os vinte e seis lendo o código, e vinte e três eram reais, quase todos triviais, dois eram duplicatas dos confirmados e um (a contagem de nove ataques derivados no protocolo) conferiu certo. Os seis: um card de falso aceite afirmava "every assertion passed" sempre que a taxa ficava entre 0,80 e 0,99, contradizendo a tabela do grader três seções acima e perdendo o alvo; uma passagem filtrada por `--skill` ou `--eval` reescrevia o índice só com as linhas visitadas e deixava órfãos os cards das outras; um `grading.json` truncado abortava a passagem inteira e um que contivesse um array dava traceback; uma linha de rótulo sem `supersedes`, que o `label_eval_run` aceita como opcional, matava a passagem com uma palavra entre aspas; o excerto ia numa cerca de três crases sem guarda contra as cercas da própria saída do modelo, então o heading do modelo virava heading do card e as duas seções que carregam a recomendação caíam dentro de um bloco de código; e um card continuava em disco dizendo falso aceite depois de o run virar empate ou concordância. Os candidatos triados cobriram o resto: `index.json` com carimbo de tempo a cada passagem, cobertura de remédio contando rótulos já obsoletos, cano quebrando a tabela de rótulos, planilha salva como "CSV UTF-8" ilegível pelo BOM, symlink de folha escapando do projeto no `init`, modo do arquivo estreitado a cada `add`, números de linha que deslizavam depois de uma linha em branco, `--id` e `--stale-after` sem validação, célula que uma planilha avalia como fórmula, e cinco frases de documentação que descreviam o código errado. Correção de escopo que o verificador fez e vale registrar: a asserção que falhava sempre apareceu na tabela do grader, então nada era ocultado; o defeito era a invariante falsa e o alvo perdido. Verificação depois das correções: 35 casos no proponente, 48 no golden set, 61 no validador (dois deles rodando as duas checagens de documento sobre uma árvore temporária, porque os casos antigos afirmavam só o regex).
 
@@ -241,7 +244,42 @@ A parte que dura é a checagem. As contagens do README (skills, gates bloqueante
 
 `CONTRIBUTING.md`, `SECURITY.md` e um template de PR entram porque o repo não tinha nenhum dos três e o README passa a linká-los. O CONTRIBUTING carrega só o que a árvore não conta: a bateria antes de cada commit, `skills/` canônico contra espelhos gerados, e a paridade entre caso de eval e bloco de asserção; e avisa que acrescentar uma skill ou um script deixa a CI vermelha até o README dizer. O SECURITY aponta para o relato privado do GitHub, que o dono precisa habilitar nas configurações, e diz por escrito que os gates não são fronteira de segurança, porque todos têm override por conteúdo. Nenhum contato de segurança foi inventado.
 
-Recusados com razão registrada: mural de contribuidores, templates de issue, código de conduta, `CHANGELOG.md`, README em português e devcontainer. Verificação: 67 casos no validador, seis deles do contrato novo; bateria completa antes de cada commit.
+Recusados com razão registrada: mural de contribuidores, templates de issue, código de conduta, `CHANGELOG.md`, README em português e devcontainer.
+
+Quatro rodadas de revisão do dono antes do merge:
+
+| Rodada | Achado | Commit |
+|---|---|---|
+| 1 | memória e estágio descritos como uma injeção só, quando são `SessionStart` e `UserPromptSubmit`; "at tool-call time" com um gate rodando no `Stop`; "unverified claims" onde o gate casa cinco marcadores literais; "nothing is advisory" trocado pelas três camadas | `494ee64` |
+| 2 | a frase que abre o Enforcement ainda dizia tool-call time; cobertura implicada sobre toda escrita, com `Bash` declarado sem handler; o gate de Discovery como bloqueio de CLI quando é Definition of Done; mais duas que a varredura achou | `be490a0` |
+| 3 | `readme_facts` levantava em toda forma malformada de manifesto e matava o validador antes do `check_eval_coverage`, que é a checagem dona do finding; o contrato de hooks declara rotas por harness e não equivalência; o passo `/hooks` cobre `.codex/hooks.json` | `79b210a`, `a349434` |
+| 4 | contagens tiradas de um glob de manifestos em vez do conjunto canônico de skills, com manifesto órfão contado, skill sem manifesto invisível, categoria fora da taxonomia contada e UTF-8 inválido levantando; a bateria do CONTRIBUTING não rodava num clone limpo; o claim do `golden_set.py check` ia além do que o comando faz, em dois arquivos | `1cc9d03`, `3d9711b`, `43a84cd` |
+
+Verificação, com os três números ditos pelo que cada um é: **67** casos em `scripts/test_validate_repo.py` quando o B43 foi escrito, **81** na integração depois das quatro rodadas, e **85** evals no repo, que é o total que `check_readme_contract` confere contra o README e que vem do B41, não deste item. Bateria completa antes de cada commit; integrado como `1487044ad8513dd8516d9fcf3432cbb249dd4ffa` a partir do head revisado `43a84cd`.
+
+### B44 — A tabela de hooks do README contra o contrato de rotas (GUT 8, candidato)
+
+**Candidato, não compromisso.** O README traz uma tabela de hooks com uma coluna "Fires on", e `hooks/contract.json` declara as rotas exigidas de cada harness. Nada compara as duas: mudar uma rota no contrato e esquecer a tabela não deixa nada vermelho. Uma checagem em `scripts/validate_repo.py` no formato de `check_readme_contract` fecharia isso, lendo a coluna e conferindo contra o contrato por harness.
+
+Registrado porque o corpo da PR #25 e duas respostas de revisão afirmaram que este item já era candidato do backlog, e não era; a afirmação existia só nas respostas. Vale dizer o limite junto: esta checagem **não** teria pego nenhum dos achados de prosa das quatro rodadas da #25, que eram frases em volta de tabelas já corretas. Ela cobre divergência estrutural, não afirmação errada.
+
+### B45 — `memory.py doctor` cego para a árvore `evals/` de projeto (GUT 2, candidato)
+
+**Candidato, não compromisso.** Renomeado do rótulo ambíguo "candidato do B42". Escopo estreito de propósito: só estrutural e só avisos (cabeçalho e contagem de campos por planilha, um teto de tamanho). As regras de conteúdo continuam em `golden_set.py check`, para viverem num lugar só; duplicá-las garantiria divergência. A razão de não estar feito segue registrada no B42: `check_memory_bootstrap` roda numa árvore sem `evals/`, então uma checagem nova nasceria sem cobertura de CI, e ensiná-la ao doctor exigiria copiar mais um script para o sandbox do `test_memory.py`.
+
+### B46 — Endurecimento e prontidão de release (GUT 12, candidato, bloqueado no B25)
+
+**Candidato guarda-chuva, explicitamente bloqueado na evidência do piloto.** Nada aqui começa antes de o B25 dizer se o toolkit melhora a saída, e a ordem entre os itens é para ser decidida por aquela evidência, não agora:
+
+- correções que o desacordo entre humano e grader revelar;
+- extração de corpo por ferramenta e regressões de marca-para-publicar no `humanize-gate`;
+- cobertura mais forte do isolamento de projeto no Codex;
+- Python 3.12 e 3.13, smoke em macOS, ShellCheck;
+- modularizar o grader, e só depois de o piloto congelar o instrumento de medida;
+- avisos de terceiros consolidados antes de redistribuição mais ampla;
+- release `v0.1.0` só depois de os achados do piloto estarem endereçados.
+
+Categoria "Infra" é nova na tabela: nenhuma das existentes cobre versão de Python, ShellCheck e release ao mesmo tempo, e forçar o item para "Docs" diria a coisa errada.
 
 ## Frameworks avaliados e não aportados
 
