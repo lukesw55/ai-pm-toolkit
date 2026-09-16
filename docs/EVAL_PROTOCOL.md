@@ -146,6 +146,47 @@ ones they were, and what the critical failures were. A percentage over four to s
 way of writing a count, not an estimate with a confidence interval, and the report must not present
 it as one.
 
+### Reading the pilot as a whole
+
+Rule 3 pre-registers a decision for each pilot skill. It does not say what the pilot as a whole
+means, and deciding that after the results are in has the same defect as writing the per-skill
+criteria then: the outcome describes the results. So the verdict for the run as a whole is
+pre-registered in the same file and the same commit as the per-skill conditions, before any
+measured output exists.
+
+Nothing below is a statistical test. Each line is a way of describing counts over 6, 5 and 4 pairs.
+
+**Useful signal**, when all of these hold:
+
+- at least two of the three skills show a consistent paired improvement;
+- no skill regresses on critical failures;
+- negative controls do not get materially worse;
+- the improvement is not explained by length alone;
+- the grader's direction and the human judgement broadly agree.
+
+**Inconclusive**, when any of these holds:
+
+- gains and regressions are mixed across skills;
+- human and grader disagreement is wide enough that the pairs cannot be read;
+- harness or model failures contaminate pairs that matter;
+- the reading depends on a handful of ambiguous cases.
+
+**Negative signal**, when any of these holds:
+
+- no material paired improvement anywhere;
+- critical failures increase;
+- the apparent gain is mostly verbosity or rubric gaming;
+- cost or latency rises without a proportional gain in quality.
+
+"Material" is a judgement recorded with its evidence, not a number: the report names which pairs
+moved and in which direction, per skill, against that skill's denominator. A reader who disagrees
+with the verdict can therefore check the pairs rather than argue with a threshold.
+
+Inconclusive is a legitimate outcome and the likely one at this size. It is not a failure to be
+argued away, and it does not license a second reading of the same outputs under different criteria.
+Changing the criteria means a new pre-registration and a new iteration, by rule 1.
+
+
 ## Assertion and fixture contract
 
 Every graded eval (doctrine-adversarial, skill-functional-adversarial and negative-control) is
