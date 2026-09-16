@@ -259,6 +259,65 @@ transcript identifiers so the run is auditable. Review failed assertions against
 the output; a regex score is a proxy, not proof of factual correctness. Do not
 publish a favorable aggregate that omits missing pairs or blends different models.
 
+## Propose, decide, check
+
+The disagreement rate says the grader and the humans differ; it does not say which assertion
+is wrong. `scripts/propose_eval_updates.py` turns each disagreement into a proposal a person
+decides on, and then re-runs the suite against what that person pasted.
+
+```bash
+python3 scripts/propose_eval_updates.py propose --iteration iteration-claude-1
+python3 scripts/propose_eval_updates.py check --skill <skill> --eval <eval-name>
+```
+
+`propose` reads the labels for the iteration, re-grades the recorded output rather than
+trusting a `grading.json` that an edited assertion block may have left stale, and writes a
+markdown proposal with a JSON sibling under `docs/benchmarks/<iteration>/proposals/`, plus an
+index naming every label key and its outcome. Five categories: a run whose labels are all
+against another rubric asks for a relabel, not a correction; a split is reported and never
+resolved to the worse verdict; an `eval-defect` handle outranks the others and counts how many
+labels go stale if the prompt or the expected output changes; and a false accept or a false
+reject carries a fixture candidate. Agreement in either direction proposes nothing, and neither
+does a run nobody labelled: a proposal exists because a human wrote a verdict and a reason, and
+harvesting an unlabelled run would be the grader learning from the output it is meant to judge.
+
+It proposes and never applies. No code path writes to an eval manifest, to the assertion blocks
+in `scripts/grade_evals.py` or to `scripts/fixtures/adversarial_outputs.json`, and the test
+suite asserts all three are byte-identical after a pass. No regex is generated either: the
+proposal names a direction and a rule in plain English composed only from the assertion labels
+involved and the labeler's reason, and the Python block is commented out end to end, because a
+pattern written from one output matches that output and the person who writes it has to own it.
+
+The fixture candidate is a replacement for one slot of the pair that already exists, never a
+second object: the file holds exactly one object per eval and all of them exist, and the
+coverage checks are subset tests that would not notice a duplicate. Direction is recorded
+because it decides whether the loop hardens the grader or corrupts it. A negative fixture taken
+from a run that really failed defends against a failure that happened. A positive one copied
+from a run the grader already accepts makes it agree with that model by construction, so a
+`good` candidate is marked for a rewrite by hand, and the test that the rewrite worked is that
+the reworded text still scores in band: if only the original passes, the assertion memorised a
+phrasing rather than a behaviour.
+
+`check` runs after a person has pasted a candidate. It judges the shape of the pasted object
+first, so a missing key or a duplicate is a sentence rather than a traceback, then runs the
+suite once and reports the eight fixtures derived from that pair against their bands, the
+declared against the actual near-miss failure, the discrimination gap, the nine derived attacks,
+and any fixture the change moved elsewhere in the suite. A green run means the fixtures the
+suite has do not contradict the assertion. It does not mean the assertion is right.
+
+Excerpts in a proposal are bounded by default. Runs live under `skills/*/workspace/`, which is
+gitignored, while `docs/` is tracked: `--full-output` publishes the whole text into git
+permanently, and a growing corpus of model output beside the fixtures file is one directory from
+where the next assertion author would look. The proposal carries the output hash and the run
+path instead, so the excerpt is a pointer with evidence attached.
+
+This is the toolkit's own evals. The product-side equivalent, a golden set for a feature a team
+is shipping, lives in the project's memory and is written with `scripts/golden_set.py`, per
+`skills/pm-archetype-ai/references/eval-design.md`.
+
+As of this writing no iteration has been recorded, so the loop has been exercised against
+synthetic runs only; the first real input arrives with the pilot.
+
 ## Runbook per harness
 
 Common to both: a clean checkout at the measured commit (`git status --porcelain` empty under
