@@ -68,8 +68,10 @@ aggregate_rule: `docs/EVAL_PROTOCOL.md#reading-the-pilot-as-a-whole`, which name
 procedure instead of copying it. The value is written as a path in backticks of its own, carrying
 the `docs/` prefix, because that is the form `check_backtick_paths` in `scripts/validate_repo.py`
 resolves: it follows a backticked token that holds a directory separator and no whitespace, and it
-drops the fragment before resolving. A pre-registration file is scanned by that check like any other
-document, so the reference is verified on every run of the validator rather than trusted. That block is
+drops the fragment before resolving. What that buys is the file path and only the file path: a
+pre-registration file is scanned by that check like any other document, so a protocol that moved or
+was renamed turns the validator red, while the fragment is never compared against a heading. The
+anchor is part of the reference the tag freezes, not something CI enforces. That block is
 immutable from that commit onward. Criteria written once the results are in describe the results.
 
 After the smoke, add the factual metadata the smoke established, which is the harness, the verified
@@ -217,6 +219,20 @@ verdict.
 - **A skill regresses materially**: its human margin is negative.
 - **A skill regresses on critical failures**: any pair that is not contaminated carries a
   pre-registered critical failure under `with_skill` that its `without_skill` counterpart does not.
+- **The critical-failure guardrail is clear**: every pair in the iteration establishes whether a
+  pre-registered critical failure appeared under `with_skill`, and none did. A pair establishes that
+  when both configurations were recorded and labelled and the labelers of the `with_skill` run agree
+  on which pre-registered critical failures it carries; they may still split on the verdict category,
+  which is a different question. A contaminated pair never establishes it: a missing configuration
+  leaves nothing to compare against, and a mismatched envelope means the recorded output is not the
+  one the instrument describes. This is not the margin rule in another form. Step 1 excludes
+  contaminated pairs on purpose, so contaminated evidence cannot convict, and the same evidence must
+  not acquit either; the margin rule asks only whether the unresolved set could change a sign, while
+  the pair it leaves unread may be exactly the one where the veto would have fired. The practical
+  effect is that one contaminated pair in any skill keeps step 4 from firing, while a pair left
+  unresolved only because the labelers split on the category, or because its two signals conflict,
+  does not: in both of those the critical-failure state is on the record, and a conflict in which a
+  critical failure appeared has already fired step 1.
 - **A negative-control pair is materially worse**: its human verdict category drops, or it gains a
   pre-registered critical failure.
 - **The negative controls are clear**: every negative-control pair in the iteration is resolved, and
@@ -257,7 +273,8 @@ verdict.
    all lands here on the first of the two: flat pairs are evidence of no effect, and step 2 has
    already taken out the runs whose pairs could not be read.
 4. **Useful signal**, only if all of: at least two of the three skills improve materially; the
-   negative controls are clear; grader and human agree on every skill.
+   critical-failure guardrail is clear; the negative controls are clear; grader and human agree on
+   every skill.
 5. **Inconclusive** otherwise. This is the residual case and it is reached deliberately, so an
    evidence state that satisfies nothing above still has exactly one verdict.
 
