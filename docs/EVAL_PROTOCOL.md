@@ -156,9 +156,16 @@ the same file and the same commit as the per-skill conditions, before any measur
 **One verdict per harness.** The comparison is paired inside one harness, two harnesses run
 different models, and the protocol forbids attributing a difference to the harness when the models
 differ. Pooling the two would do exactly that, so each harness iteration gets its own verdict from
-the procedure below, and the pilot summary carries both side by side. A toolkit-level decision
-requires the same verdict from both harnesses; otherwise the toolkit-level reading is inconclusive.
-Two harness verdicts that differ are not evidence about the harnesses.
+the procedure below, and the pilot summary carries both side by side. Reconciling the two is itself
+ordered, so that step 0 keeps its force at the summary layer:
+
+1. If either harness iteration is void, **there is no toolkit-level reading at all**, and the void
+   iteration is re-run under a new pre-registration before the pilot is read. Two void iterations are
+   not matching verdicts either, because void is not a verdict.
+2. Only once both harnesses carry a valid verdict are the two compared.
+3. The same valid verdict on both is the toolkit-level reading.
+4. Different valid verdicts make the toolkit-level reading inconclusive, and nothing in that
+   difference is evidence about the harnesses.
 
 Nothing below is a statistical test. Each term is defined by something observable in the recorded
 run, and each verdict is reached by an ordered procedure, so one evidence state maps to exactly one
@@ -172,22 +179,34 @@ verdict.
 - **The critical-failure signal** of a pair: *down* when `with_skill` carries any pre-registered
   critical failure its counterpart does not, *up* when it carries none of those and the counterpart
   carries at least one it does not, *flat* when the two sets are the same.
-- **The direction of a pair**, exactly one per pair. A pair is **unresolved** when it is
+- **The human direction of a pair**, exactly one per pair. A pair is **unresolved** when it is
   contaminated, when the labelers split so it has no consolidated human verdict, or when its two
   signals point in opposite directions. Otherwise it is **up** when both signals are up or one is up
   and the other flat, **down** when both are down or one is down and the other flat, and **flat**
   when both are flat.
-- **A pair is contaminated**: its run failed and was retried, or its recorded envelope does not match
-  the pre-registered harness version, model or isolation configuration.
-- **A skill's margin**: its up pairs minus its down pairs. Flat and unresolved pairs add nothing to
-  it.
-- **A skill's direction holds** when its unresolved pairs could not change whether it improves
+- **The grader direction of a pair**: **up** when the `without_skill` run scores below the pass
+  threshold and the `with_skill` run scores at or above it, **down** when the reverse, **flat** when
+  both fall on the same side of it. The threshold is the one the grader already binarises with,
+  `PASS_THRESHOLD` in `scripts/grade_evals.py`, so no second magnitude rule is introduced and none
+  may be chosen later. The grader carries no critical-failure signal, because a critical failure is
+  something a labeler records, so it has no conflict of its own and no unresolved state: a pair the
+  human side leaves unresolved is excluded from both sides, and the two directions are therefore
+  computed over exactly the same pairs.
+- **A pair is contaminated**: its run failed and was retried, its recorded envelope does not match
+  the pre-registered harness version, model or isolation configuration, or one of its two
+  configurations is missing, since a run that failed and was never recorded leaves no pair to read.
+- **A margin**, on either side: that side's up pairs minus its down pairs. Flat and unresolved pairs
+  add nothing to it.
+- **A skill's direction on either side**: **up** when that side's margin is positive, **down** when
+  it is negative, **flat** when it is zero.
+- **A direction holds** when the skill's unresolved pairs could not change whether it improves
   materially, regresses materially or neither, even if every one of them fell the same way. With no
-  unresolved pairs a direction always holds. With unresolved pairs it holds only when the margin,
-  ignoring its sign, is greater than the number of them.
-- **A skill improves materially**: its margin is positive and none of its pairs is down by gaining a
-  critical failure.
-- **A skill regresses materially**: its margin is negative.
+  unresolved pairs a direction always holds. With unresolved pairs it holds only when that side's
+  margin, ignoring its sign, is greater than the number of them. Both directions are held to this,
+  so the unresolved set cannot turn the agreement below without turning the direction above it.
+- **A skill improves materially**: its human margin is positive and none of its pairs is down by
+  gaining a critical failure.
+- **A skill regresses materially**: its human margin is negative.
 - **A skill regresses on critical failures**: any pair that is not contaminated carries a
   pre-registered critical failure under `with_skill` that its `without_skill` counterpart does not.
 - **A negative control is materially worse**: its human verdict category drops, or it gains a
@@ -195,8 +214,16 @@ verdict.
 - **A skill's improvement is explained by length**: for every up pair behind its positive margin, the
   labeler's recorded reason cites added length or the wording of the assertion rather than the
   behaviour that assertion names.
-- **Grader and human agree on a skill**: the direction the grader shows and the direction the human
-  verdicts show are the same, or the difference between them does not change that direction.
+- **Grader and human agree on a skill**: their two directions are not opposite. Of the nine
+  combinations exactly two are disagreement, human up with grader down and human down with grader
+  up; every other pairing, including any in which either side is flat, is agreement. A flat grader
+  beside a human direction is compatible on purpose: the grader crosses a fixed threshold while the
+  human changes category, so the coarser instrument standing still does not contradict a movement
+  the finer one saw, whereas opposite directions do. What the code computes today is not this:
+  `agreement()` compares a level per run, that run's pass rate against a human verdict of `good`,
+  and feeds `grader_disagreement_rate` and `investigate_grader`. The paired direction is a
+  construction of this protocol, assembled by hand from the recorded runs; nothing in the runner
+  produces it.
 - **A skill is unreadable**: `investigate_grader` fires for it and its human verdicts do not settle
   the direction.
 
@@ -207,8 +234,9 @@ verdict.
 1. **Negative signal**, if a skill regresses on critical failures. This is read before anything else
    because a pre-registered critical failure appearing under `with_skill` in an uncontaminated pair
    is something the run shows, not something inferred from what the rest of it failed to show.
-2. **Inconclusive**, if either: a skill is unreadable; a skill's direction does not hold. Both say
-   the pairs cannot carry a reading, and neither licenses reading them as a negative result.
+2. **Inconclusive**, if either: a skill is unreadable; either of a skill's two directions does not
+   hold. Both say the pairs cannot carry a reading, and neither licenses reading them as a negative
+   result.
 3. **Negative signal**, if either: no skill improves materially; or at least one skill improves
    materially and every material improvement is explained by length. A run in which nothing moves at
    all lands here on the first of the two: flat pairs are evidence of no effect, and step 2 has
