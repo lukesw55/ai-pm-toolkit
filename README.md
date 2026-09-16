@@ -1,6 +1,6 @@
 # ai-pm-toolkit
 
-**PM skills for Claude Code and Codex. The skills ask nicely; the hooks enforce at tool-call time, and the model does not get to opt out.**
+**PM skills for Claude Code and Codex. The skills ask nicely; four gates run in the harness, on the tool call and at the end of the turn, and the model does not get to opt out of those.**
 
 [![validate](https://github.com/lukesw55/ai-pm-toolkit/actions/workflows/validate.yml/badge.svg)](https://github.com/lukesw55/ai-pm-toolkit/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -9,7 +9,7 @@
 [![Built for Codex](https://img.shields.io/badge/built%20for-Codex-412991)](https://developers.openai.com/codex/cli)
 [![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 
-An operating system for product managers who drive a coding agent. It turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered memory that survives context switching, and 4 blocking hooks that reject slop, unverified claims and unmarked outbound prose while the agent is writing them. The repository ships eval cases and a grader for recorded with-skill and no-skill runs; no measured benchmark result is published yet.
+An operating system for product managers who drive a coding agent. It turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered memory that survives context switching, and 4 blocking hooks that reject slop patterns, unresolved inference markers and unmarked outbound prose, three of them before the write or the publish happens and one at the end of every reply. The repository ships eval cases and a grader for recorded with-skill and no-skill runs; no measured benchmark result is published yet.
 
 It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
 
@@ -62,17 +62,23 @@ This toolkit encodes the corrections as reusable skills and as hooks the harness
 
 ```mermaid
 flowchart LR
-    U["Your request"] --> H["Hooks inject the memory<br/>pointer and the current stage"]
+    U["Your request"] --> H["Injected: memory pointer<br/>at session start, stage<br/>on every prompt"]
     H --> S["The stage's skill loads<br/>its narrowest reference"]
     S --> W["Write, edit, or publish"]
-    W --> G{"Gates run at<br/>tool-call time"}
+    W --> G{"Gates: PreToolUse<br/>on writes and publishes,<br/>Stop on the reply"}
     G -->|blocked, with a reason| S
     G --> A["Artefact on disk"]
     A --> M["memory.py log:<br/>state, decisions, changelog"]
     M -.->|the next session starts here| H
 ```
 
-Nothing in that loop is advisory. The stage and the memory pointer are injected by a `UserPromptSubmit` hook in both harnesses, the gates run as `PreToolUse` and `Stop` hooks, and the artefact and the changelog entry are files you can diff.
+Three different things happen in that loop, and it is worth keeping them apart.
+
+**Enforced by the harness.** The four blocking gates: `anti-slop-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for every write and edit, `humanize-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for publish tools, and `scope-bloat-gate.sh` on `Stop` for the reply itself. A block is a refusal the model cannot argue past, only override per content.
+
+**Injected context.** `hooks/memory-context.sh` puts the memory pointer in at `SessionStart`; `scripts/stage_context.py` puts the current stage in on every `UserPromptSubmit`. Both are wired the same way in `.claude/settings.json` and `.codex/hooks.json`. They shape what the model sees rather than what it is allowed to do.
+
+**Agent behaviour.** Which skill runs, what the artefact says, and whether memory gets updated are the model following its instructions. `memory-reminder.sh` nudges at `Stop` when files changed and no changelog entry followed, and it is a reminder by design, not a block. The artefact and the changelog entry are files you can diff, which is how you check this layer rather than trust it.
 
 ## The pipeline
 
