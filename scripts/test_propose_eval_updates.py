@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -51,13 +52,15 @@ class ProposeTests(unittest.TestCase):
         directory=pe.run_dir(self.root,self.iteration,self.skill,self.spec['id'],self.eval,config)
         return json.loads((directory/'meta.json').read_text(encoding='utf-8'))
 
-    def raw_label(self,**over):
+    def raw_label(self,drop=(),**over):
         """A label written straight into the file, for shapes the CLI refuses to produce."""
         base=dict(schema=lr.SCHEMA,iteration=self.iteration,skill=self.skill,eval_id=self.spec['id'],eval_name=self.eval,
                   config='with_skill',output_sha256=self.meta()['output_sha256'],rubric_version=lr.rubric_version(self.spec),
                   verdict='good',classification=[],verdict_reason='x',labeler='lucas',
                   labeled_at='2026-09-16T10:00:00+00:00',supersedes=False)
         base.update(over)
+        for key in drop:
+            base.pop(key,None)
         path=lr.labels_path(self.root,self.iteration);path.parent.mkdir(parents=True,exist_ok=True)
         with path.open('a',encoding='utf-8') as handle:
             handle.write(json.dumps(base,sort_keys=True,ensure_ascii=False)+'\n')
@@ -361,6 +364,68 @@ class ProposeTests(unittest.TestCase):
             pe.propose(self.args(iteration='iteration-long',full_output=True,force=True),self.root)
         proposal=json.loads([p for p in out.iterdir() if p.suffix=='.json' and p.stem!='index'][0].read_text())
         self.assertIs(proposal['excerpt']['truncated'],False)
+
+    # -- inputs the pass does not control ---------------------------------------------
+    @staticmethod
+    def headings_outside_fences(markdown):
+        """Every heading a renderer would show, and whether the fences balance. A model output
+        with a fence of its own used to close the card's and turn its headings into the card's."""
+        headings,opener=[],''
+        for line in markdown.splitlines():
+            match=re.match(r'^(`{3,})(.*)$',line)
+            if match and not opener:
+                opener=match.group(1);continue
+            if match and opener and len(match.group(1))>=len(opener) and not match.group(2).strip():
+                opener='';continue
+            if not opener and line.startswith('## '):
+                headings.append(line)
+        return headings,opener==''
+
+    def test_a_corrupt_grading_record_does_not_abort_the_pass(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        directory=pe.run_dir(self.root,self.iteration,self.skill,self.spec['id'],self.eval,'with_skill')
+        for broken in ('{"pass_rate": 1.0','[1, 2]','not json at all'):
+            (directory/'grading.json').write_text(broken,encoding='utf-8')
+            index=self.propose(force=True)
+            self.assertEqual([row['outcome'] for row in index['outcomes']],['false-accept'],broken)
+            proposal,_=self.one_proposal()
+            self.assertIsNone(proposal['grader']['stored_grading_pass_rate'],broken)
+
+    def test_a_label_line_without_supersedes_is_read(self):
+        """label_eval_run accepts the key as optional and inserts no default, so a hand-merged
+        file can hold a line without it; reading it with [] killed the pass over every label."""
+        self.write_fixture_pair()
+        self.raw_label(drop=('supersedes',),verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        line=lr.labels_path(self.root,self.iteration).read_text(encoding='utf-8').splitlines()[0]
+        self.assertNotIn('supersedes',line)
+        self.assertEqual(lr.parse_label(line,self.iteration)['verdict'],'weak')
+        index=self.propose()
+        self.assertEqual([row['outcome'] for row in index['outcomes']],['false-accept'])
+        proposal,_=self.one_proposal()
+        self.assertIs(proposal['human']['labels'][0]['supersedes'],False)
+
+    def test_a_fence_in_the_output_cannot_break_the_card(self):
+        fenced='alpha beta: synthetic fixture\n\n```python\nprint("hi")\n```\n\n## Verdict from the model\n\nShip it.\n'
+        self.record_pair('iteration-fenced',{'with_skill':fenced,'without_skill':self.bad})
+        self.label(iteration='iteration-fenced',verdict='weak',classification=['skipped-method'],reason='misses the lock')
+        with patch.dict(ge.ASSERTIONS,self.assertions):
+            pe.propose(self.args(iteration='iteration-fenced'),self.root)
+        out=pe.proposals_dir(self.root,'iteration-fenced')
+        markdown=[p for p in out.iterdir() if p.suffix=='.md' and p.stem!='index'][0].read_text(encoding='utf-8')
+        headings,balanced=self.headings_outside_fences(markdown)
+        self.assertTrue(balanced,'the card\'s fences must balance')
+        self.assertNotIn('## Verdict from the model',headings)
+        self.assertIn('## What you decide, in this order',headings)
+
+    def test_a_pipe_in_a_reason_stays_in_its_cell(self):
+        self.write_fixture_pair()
+        self.label(verdict='weak',classification=['skipped-method'],reason='ranks by ARR | ignores the lock')
+        self.propose()
+        _,markdown=self.one_proposal()
+        row=[line for line in markdown.splitlines() if line.startswith('| lucas |')][0]
+        self.assertIn(r'ranks by ARR \| ignores the lock',row)
+        self.assertEqual(len(re.findall(r'(?<!\\)\|',row)),6)
 
     # -- runs the proposer cannot use -----------------------------------------------
     def test_label_without_a_run_is_reported_never_an_error(self):

@@ -98,6 +98,7 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-16 B42: eval-design.md points at the script that writes its files
 - 2026-09-16 B42: the proposal loop in EVAL_PROTOCOL.md
 - 2026-09-16 B42: the validator skips generated proposals, not the tree they live in
+- 2026-09-16 B42: backlog, decision and tasks
 
 ## 2026-09-08: session log
 
@@ -497,4 +498,8 @@ A new section between Grade and report and the runbook: what propose reads, the 
 ## 2026-09-16: B42: the validator skips generated proposals, not the tree they live in
 
 A proposal quotes a recorded model output verbatim, and that text can carry a backticked path that never existed, or one under skills/*/workspace/, which is gitignored and absent on every other clone. Both documentation checks would then fail for everyone on a dated record of one run. GENERATED_RECORDS scopes the skip to docs/benchmarks/<iteration>/proposals/ only; a report.md or a labels file in the same tree stays checked, because those are live contracts. The generator already keeps workspace paths out of backticks, so this is the second layer rather than the first: the first is that the proposal writes the path bare and inside a fenced block. Five cases in test_validate_repo.py pin the boundary, two inside the skip and three outside it.
+
+## 2026-09-16: B42: backlog, decision and tasks
+
+The backlog entry states the diagnosis rather than the feature: the signal existed since B32 and the rule since B33, and what was missing was the path between the signal and the change. It records what the two scripts do, the five categories and their precedence, the three files nothing in the loop writes, why the candidate is a slot replacement, the asymmetry between negative and positive fixtures, and the decision to leave memory.py doctor blind to the new tree with its narrow follow-up scope. Three entries join the rejected-frameworks list, because what was deliberately not built is the load-bearing part here: automatic insertion of a proposed fixture, a staging state inside the fixtures file, and an LLM judging the toolkit's own evals. The DECISIONS row is the one a future session has to read before automating any of this.
 

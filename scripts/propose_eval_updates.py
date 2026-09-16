@@ -25,6 +25,7 @@ from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -86,6 +87,49 @@ def excerpt(text: str, limit: int, full: bool) -> dict:
         "truncated": not full and len(text) > limit,
         "output_chars": len(text),
     }
+
+
+def fence_for(text: str) -> str:
+    """A fence long enough to hold what it wraps. Model outputs for these skills carry code
+    blocks, decks and tables of their own, and a three-backtick fence around one of them is
+    closed by the model's own closing fence: everything after it renders as live markdown, the
+    model's headings become the card's headings, and the sections a human acts on end up inside
+    a code block. CommonMark closes a fence only with a run at least as long as the opener."""
+    longest = max((len(run) for run in re.findall(r"`+", text)), default=0)
+    return "`" * max(3, longest + 1)
+
+
+def cell(value: object) -> str:
+    """One markdown table cell. A pipe in a labeler's reason would otherwise open a column."""
+    return str(value).replace("|", "\\|")
+
+
+def label_record(record: dict) -> dict:
+    """The label fields a proposal quotes. label_eval_run.parse_label treats supersedes as
+    optional and inserts no default, so a hand-written or hand-merged line without it is a
+    valid label that grade_all already reads; reading it with [] here killed the whole pass."""
+    quoted = {key: record[key] for key in
+              ("labeler", "verdict", "classification", "verdict_reason", "labeled_at", "rubric_version")}
+    quoted["supersedes"] = bool(record.get("supersedes", False))
+    return quoted
+
+
+def read_stored_grading(directory: Path, where: str) -> dict | None:
+    """The record a previous scripts/grade_evals.py left in the run directory, used for one
+    thing: saying so when it disagrees with this pass. A run killed mid-write leaves it
+    truncated, and this script promises never to raise for one unusable run."""
+    path = directory / "grading.json"
+    if not path.is_file():
+        return None
+    try:
+        stored = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"WARN {where}: grading.json does not parse ({exc}); re-run scripts/grade_evals.py", file=sys.stderr)
+        return None
+    if not isinstance(stored, dict):
+        print(f"WARN {where}: grading.json is not an object; re-run scripts/grade_evals.py", file=sys.stderr)
+        return None
+    return stored
 
 
 def classify(current: list[dict], stale: list[dict], grading: dict) -> str:
@@ -288,7 +332,7 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
     index, pair = find_pair(pairs, skill, eval_name)
     marks = implicated(category, grading, checks, pair)
     verdict = grading["human_verdict"]
-    stored = json.loads((directory / "grading.json").read_text(encoding="utf-8")) if (directory / "grading.json").is_file() else None
+    stored = read_stored_grading(directory, f"{skill} eval {eval_id} {config}")
 
     proposal = {
         "schema": SCHEMA,
@@ -309,7 +353,7 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
             "verdict": verdict,
             "split": grading["human_split"],
             "handles": sorted({h for record in current for h in record["classification"]}),
-            "labels": [{k: record[k] for k in ("labeler", "verdict", "classification", "verdict_reason", "labeled_at", "rubric_version", "supersedes")} for record in current],
+            "labels": [label_record(record) for record in current],
             "stale_labels": [{"labeler": r["labeler"], "rubric_version": r["rubric_version"], "verdict": r["verdict"]} for r in stale],
         },
         "grader": {
@@ -352,7 +396,7 @@ def render_markdown(proposal: dict) -> str:
         ("rubric version", run["rubric_version"]), ("harness", run["harness"]), ("model", run["model"]),
         ("repo commit", run["repo_commit"]), ("recorded at", run["recorded_at"]), ("words", run["output_words"]),
     ):
-        out.append(f"| {label} | {value} |")
+        out.append(f"| {cell(label)} | {cell(value)} |")
     out.append("")
     out.append("## Human verdict")
     out.append("")
@@ -362,8 +406,9 @@ def render_markdown(proposal: dict) -> str:
     out.append("| Labeler | Verdict | Handles | Reason | Labelled at |")
     out.append("|---|---|---|---|---|")
     for record in human["labels"]:
-        out.append(f"| {record['labeler']} | {record['verdict']} | {', '.join(record['classification']) or '—'} "
-                   f"| {record['verdict_reason']} | {record['labeled_at']} |")
+        out.append(f"| {cell(record['labeler'])} | {cell(record['verdict'])} "
+                   f"| {cell(', '.join(record['classification']) or '—')} "
+                   f"| {cell(record['verdict_reason'])} | {cell(record['labeled_at'])} |")
     if human["stale_labels"]:
         out.append("")
         out.append("Stale labels, made against another rubric and not counted: "
@@ -382,7 +427,7 @@ def render_markdown(proposal: dict) -> str:
     out.append("| # | Assertion | Result |")
     out.append("|---|---|---|")
     for number, expectation in enumerate(grader["expectations"], start=1):
-        out.append(f"| {number} | {expectation['text']} | {'PASS' if expectation['passed'] else 'FAIL'} |")
+        out.append(f"| {number} | {cell(expectation['text'])} | {'PASS' if expectation['passed'] else 'FAIL'} |")
     out.append("")
     out.append("## Output")
     out.append("")
@@ -392,9 +437,10 @@ def render_markdown(proposal: dict) -> str:
     out.append("")
     out.append(f"First {ex['chars']} characters:" if ex["truncated"] else "Full output:")
     out.append("")
-    out.append("```text")
+    fence = fence_for(ex["text"])
+    out.append(f"{fence}text")
     out.append(ex["text"])
-    out.append("```")
+    out.append(fence)
     out.append("")
     marks = proposal["implicated_assertions"]
     if marks is None:
@@ -474,9 +520,11 @@ def render_markdown(proposal: dict) -> str:
         out.append(f"Replace the `{suggestion['slot']}` value of that object with this, and leave its other keys alone. "
                    "The whole candidate object is in the JSON sibling of this file.")
         out.append("")
-        out.append("```json")
-        out.append(json.dumps({suggestion["slot"]: suggestion["snippet"][suggestion["slot"]]}, indent=2, ensure_ascii=False))
-        out.append("```")
+        candidate = json.dumps({suggestion["slot"]: suggestion["snippet"][suggestion["slot"]]}, indent=2, ensure_ascii=False)
+        fence = fence_for(candidate)
+        out.append(f"{fence}json")
+        out.append(candidate)
+        out.append(fence)
         out.append("")
     change = proposal["assertion_change"]
     if change:
