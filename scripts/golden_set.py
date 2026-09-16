@@ -59,6 +59,10 @@ SOURCES = ("real trace", "synthetic")
 HANDLES = ("golden", "approved", "reference", "exemplar", "broken logic", "hallucination",
            "bad UX", "review needed", "edge case")
 FEATURE_RE = re.compile(r"[a-z0-9][a-z0-9-]*")
+# A cell a spreadsheet evaluates instead of showing. "-" is left out on purpose: a leading
+# minus is a negative number or a dash in a reason far more often than a formula, and a
+# warning that fires on "-3% conversion" would be noise on the field it matters least for.
+FORMULA_START = ("=", "+", "@")
 
 
 def feature_dir(root: Path, slug: str, feature: str) -> Path:
@@ -69,46 +73,70 @@ def feature_dir(root: Path, slug: str, feature: str) -> Path:
     return project_path(root / ".ai" / "memory" / "projects", slug, EVALS_DIR, feature)
 
 
+def feature_file(root: Path, slug: str, feature: str, name: str) -> Path:
+    """The leaf goes through project_path too. Confining the directory is not enough: a symlink
+    at <feature>/golden-set.csv pointing out of the project is followed by every read and by
+    init's write, which would report an in-project path while writing somewhere else."""
+    if not FEATURE_RE.fullmatch(feature or ""):
+        raise ValueError("feature must be lowercase letters, digits and hyphens")
+    return project_path(root / ".ai" / "memory" / "projects", slug, EVALS_DIR, feature, name)
+
+
 def sheet_path(root: Path, slug: str, feature: str) -> Path:
-    return feature_dir(root, slug, feature) / SHEET
+    return feature_file(root, slug, feature, SHEET)
 
 
 def scenario_path(root: Path, slug: str, feature: str) -> Path:
-    return feature_dir(root, slug, feature) / SCENARIO
+    return feature_file(root, slug, feature, SCENARIO)
 
 
-def read_sheet(path: Path) -> tuple[list[str], list[list[str]]]:
-    """Validates the shape before anything is appended, so a sheet a person edited by hand
-    is never half-written. Raises with path:line so the message names where to look."""
+def read_sheet_numbered(path: Path) -> tuple[list[str], list[tuple[int, list[str]]]]:
+    """(header, [(line, row)]). Validates the shape before anything is appended, so a sheet a
+    person edited by hand is never half-written, and raises with path:line so the message names
+    where to look. The line is the row's last physical line, taken from the reader rather than
+    counted, because a blank line or a quoted field that spans lines shifts every number after
+    it. Read as utf-8-sig: "CSV UTF-8" is what a spreadsheet offers a PM, and its byte-order
+    mark would otherwise make the first column read as something other than id."""
     if not path.is_file():
         raise OSError(f"no golden set at {path}; run golden_set.py init first")
-    rows = list(csv.reader(io.StringIO(path.read_text(encoding="utf-8"))))
-    if not rows:
+    reader = csv.reader(io.StringIO(path.read_text(encoding="utf-8-sig")))
+    numbered = [(reader.line_num, row) for row in reader]
+    if not numbered:
         raise ValueError(f"{path}:1: the file is empty; it needs the header row")
-    header = rows[0]
+    header = numbered[0][1]
     if tuple(header) != HEADER:
         raise ValueError(f"{path}:1: header is {header}, expected {list(HEADER)}")
-    body = [row for row in rows[1:] if row]
-    for number, row in enumerate(body, start=2):
+    body = [(number, row) for number, row in numbered[1:] if row]
+    for number, row in body:
         if len(row) != len(HEADER):
             raise ValueError(f"{path}:{number}: {len(row)} fields, expected {len(HEADER)}")
     seen: dict[str, int] = {}
-    for number, row in enumerate(body, start=2):
+    for number, row in body:
         if row[0] in seen:
             raise ValueError(f"{path}:{number}: id {row[0]!r} already used on line {seen[row[0]]}")
         seen[row[0]] = number
     return header, body
 
 
+def read_sheet(path: Path) -> tuple[list[str], list[list[str]]]:
+    header, numbered = read_sheet_numbered(path)
+    return header, [row for _number, row in numbered]
+
+
 def write_sheet(path: Path, header: tuple[str, ...], rows: list[list[str]]) -> None:
     """Atomic: a temp file in the same directory, then os.replace. A crash mid-write must
-    not leave a half-written sheet where a full one was."""
+    not leave a half-written sheet where a full one was. NamedTemporaryFile creates its file
+    0600 and os.replace keeps the temp file's mode, so the sheet's own mode is carried over
+    rather than silently narrowed on every add."""
+    mode = path.stat().st_mode & 0o777 if path.exists() else None
     handle = tempfile.NamedTemporaryFile("w", encoding="utf-8", newline="", dir=path.parent, delete=False)
     try:
         writer = csv.writer(handle, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
         writer.writerow(header)
         writer.writerows(rows)
         handle.close()
+        if mode is not None:
+            os.chmod(handle.name, mode)
         os.replace(handle.name, path)
     except BaseException:
         handle.close()
@@ -119,7 +147,7 @@ def write_sheet(path: Path, header: tuple[str, ...], rows: list[list[str]]) -> N
 def next_id(rows: list[list[str]]) -> str:
     numbers = []
     for row in rows:
-        if not row[0].isdigit():
+        if not row[0].isdecimal():
             raise ValueError(f"id {row[0]!r} is not a number; pass --id to say which one this row takes")
         numbers.append(int(row[0]))
     return f"{max(numbers) + 1 if numbers else 1:03d}"
@@ -154,7 +182,7 @@ def cmd_init(args, root: Path = ROOT) -> int:
         return 1
     directory.mkdir(parents=True, exist_ok=True)
     for name in (SCENARIO, SHEET):
-        target = directory / name
+        target = feature_file(root, args.slug, args.feature, name)
         if target.exists():
             print(f"kept {target.relative_to(root).as_posix()}")
             continue
@@ -186,7 +214,16 @@ def cmd_add(args, root: Path = ROOT) -> int:
         date.fromisoformat(graded)
     except ValueError as exc:
         raise ValueError(f"--last-graded must be YYYY-MM-DD: {exc}") from exc
-    row_id = args.id or next_id(rows)
+    if args.id is None:
+        row_id = next_id(rows)
+    else:
+        if "\n" in args.id or "\r" in args.id:
+            raise ValueError("--id must be one line; a row that spans lines stops being greppable")
+        row_id = args.id.strip()
+        if not row_id:
+            raise ValueError("--id must not be empty")
+        if not row_id.isdecimal():
+            print(f"WARN id {row_id!r} is not a number, so every later add needs --id too", file=sys.stderr)
     if any(row[0] == row_id for row in rows):
         raise ValueError(f"id {row_id!r} is already in the sheet")
     rows.append([row_id, source, args.locator.strip(), args.expected.strip(), args.label,
@@ -236,15 +273,30 @@ def cmd_check(args, root: Path = ROOT) -> int:
     path = sheet_path(root, args.slug, args.feature)
     errors: list[str] = []
     warns: list[str] = []
+    stale_after = None
+    if args.stale_after:
+        try:
+            stale_after = date.fromisoformat(args.stale_after)
+        except ValueError as exc:
+            raise ValueError(f"--stale-after must be YYYY-MM-DD: {exc}") from exc
     try:
-        _header, rows = read_sheet(path)
+        _header, numbered = read_sheet_numbered(path)
     except (ValueError, OSError) as exc:
         print(f"ERROR {exc}", file=sys.stderr)
         return 1
-    for number, row in enumerate(rows, start=2):
-        row_id, source, locator, _expected, label, reason, handle, _grader, graded = row
+    rows = [row for _number, row in numbered]
+    for number, row in numbered:
+        row_id, source, locator, expected, label, reason, handle, grader, graded = row
         if not row_id.strip():
             errors.append(f"{path}:{number}: the id is empty")
+        if not locator.strip():
+            errors.append(f"{path}:{number}: row {row_id} has no input locator; a row whose input cannot be found cannot be re-graded")
+        if not expected.strip():
+            errors.append(f"{path}:{number}: row {row_id} has no expected behaviour; the label has nothing to be a label of")
+        for name, value in (("input locator", locator), ("expected behaviour", expected), ("reason", reason),
+                            ("handle", handle), ("grader", grader)):
+            if value[:1] in FORMULA_START:
+                warns.append(f"{path}:{number}: {name} starts with {value[0]!r}, which a spreadsheet evaluates as a formula")
         if not reason.strip():
             errors.append(f"{path}:{number}: row {row_id} has no reason; every row carries one line on why")
         if label not in LABELS:
@@ -257,13 +309,15 @@ def cmd_check(args, root: Path = ROOT) -> int:
             when = date.fromisoformat(graded)
             if when > date.today():
                 errors.append(f"{path}:{number}: last graded {graded} is in the future")
-            elif args.stale_after and graded < args.stale_after:
+            elif stale_after and when < stale_after:
                 warns.append(f"{path}:{number}: row {row_id} was last graded {graded}, before {args.stale_after}")
         except ValueError:
             errors.append(f"{path}:{number}: last graded {graded!r} is not a date")
     locators: dict[str, str] = {}
     for row in rows:
         key = row[2].strip().lower()
+        if not key:
+            continue  # already an error above; two empty locators are not duplicates of each other
         if key in locators:
             warns.append(f"{path}: rows {locators[key]} and {row[0]} share the input locator {row[2]!r}")
         locators[key] = row[0]

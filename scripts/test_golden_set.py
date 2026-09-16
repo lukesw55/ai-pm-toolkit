@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import io
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -18,6 +19,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
+SHEET_NAME = "golden-set.csv"
 RESULTS: list[tuple[str, bool, str]] = []
 
 
@@ -188,6 +190,69 @@ def main() -> int:
         missing_reason.write_text(text, encoding="utf-8")
         r = sb.run("check", slug, "--feature", "dated")
         check("a row without a reason is an error", r.returncode == 1 and "has no reason" in r.stderr)
+
+        # -- the sheet a spreadsheet wrote, and the paths it writes -----------------
+        path = sb.sheet(slug, feature)
+        original = path.read_text(encoding="utf-8")
+        path.write_text("\ufeff" + original, encoding="utf-8")
+        r = sb.run("show", slug, "--feature", feature)
+        check("a sheet saved as CSV UTF-8 (with a BOM) still reads",
+              r.returncode == 0 and "by label:" in r.stdout, r.stderr.strip())
+        r = sb.add(slug, feature, **{"--locator": "ticket 61000"})
+        check("and can still be appended to", r.returncode == 0, r.stderr.strip())
+        check("the BOM does not survive the rewrite", not sb.sheet(slug, feature).read_text(encoding="utf-8").startswith("\ufeff"))
+        path.write_text(original, encoding="utf-8")
+
+        os.chmod(path, 0o644)
+        sb.add(slug, feature, **{"--locator": "ticket 61001"})
+        check("add keeps the sheet's permissions", oct(path.stat().st_mode & 0o777) == "0o644",
+              oct(path.stat().st_mode & 0o777))
+        path.write_text(original, encoding="utf-8")
+
+        rows = original.splitlines()
+        path.write_text(rows[0] + "\n\n" + "\n".join(rows[1:]) + "\n099,real trace,ticket 1\n", encoding="utf-8")
+        r = sb.run("check", slug, "--feature", feature)
+        last = len(rows) + 2
+        check("a blank line does not shift the line numbers in the message",
+              f"{SHEET_NAME}:{last}:" in (r.stdout + r.stderr), (r.stdout + r.stderr).strip()[:200])
+        path.write_text(original, encoding="utf-8")
+
+        outside = Path(td) / "outside" / "golden-set.csv"
+        outside.parent.mkdir(parents=True, exist_ok=True)
+        path.unlink()
+        path.symlink_to(outside)
+        r = sb.run("init", slug, "--feature", feature)
+        check("init refuses a sheet symlinked out of the project and writes nothing there",
+              r.returncode == 1 and not outside.exists(), r.stdout.strip() + r.stderr.strip())
+        path.unlink()
+        path.write_text(original, encoding="utf-8")
+
+        # -- the flags that skipped validation --------------------------------------
+        sb.run("init", slug, "--feature", "flags")
+        r = sb.add(slug, "flags", **{"--locator": "ticket 70000", "--id": ""})
+        check("an empty --id is refused", r.returncode == 1 and "must not be empty" in r.stderr, r.stderr.strip())
+        r = sb.add(slug, "flags", **{"--locator": "ticket 70001", "--id": "0\n1"})
+        check("an --id that spans lines is refused", r.returncode == 1 and "one line" in r.stderr, r.stderr.strip())
+        r = sb.add(slug, "flags", **{"--locator": "ticket 70002", "--id": "a12"})
+        check("a non-numeric --id warns that later adds need one too",
+              r.returncode == 0 and "WARN" in r.stderr and "--id" in r.stderr, r.stderr.strip())
+        r = sb.run("check", slug, "--feature", "flags", "--stale-after", "2026-1-1")
+        check("a --stale-after that is not a date is refused, not compared as text",
+              r.returncode == 1 and "--stale-after must be" in r.stderr, r.stderr.strip())
+
+        sb.run("init", slug, "--feature", "gaps")
+        sb.add(slug, "gaps", **{"--locator": "ticket 80000"})
+        sb.add(slug, "gaps", **{"--locator": "ticket 80001", "--reason": "=1+1 looks like a formula"})
+        gaps = sb.sheet(slug, "gaps")
+        text = gaps.read_text(encoding="utf-8").replace("ticket 80000", "", 1).replace(
+            "summary cites the refund line, promises nothing", "", 1)
+        gaps.write_text(text, encoding="utf-8")
+        r = sb.run("check", slug, "--feature", "gaps")
+        check("an empty locator and an empty expected behaviour are errors, not duplicates",
+              r.returncode == 1 and "no input locator" in r.stderr and "no expected behaviour" in r.stderr
+              and "share the input locator" not in r.stdout, (r.stdout + r.stderr).strip()[:200])
+        check("a cell a spreadsheet would evaluate is a warning",
+              "evaluates as a formula" in r.stdout, r.stdout.strip()[:200])
 
         # -- the published paths ----------------------------------------------------
         reference = (ROOT / "skills" / "pm-archetype-ai" / "references" / "eval-design.md").read_text(encoding="utf-8")
