@@ -37,6 +37,115 @@ runner's code paths, not compatibility with the real CLIs; compatibility for a g
 established by the smoke run below and recorded in `verified_harness_versions` in
 `docs/benchmarks/pilot-deps.json`.
 
+## The measured iteration
+
+Three rules govern an iteration from its first recorded output to its published report. Two are new
+here. The third restates an instruction that Record outputs already carried and makes it stricter.
+Breaking any of them invalidates the iteration rather than weakening it.
+
+**1. The measurement instrument is frozen for the whole iteration.** The instrument is not only the
+grader. It is the repository commit, the eval manifests and their prompts, the expected outputs, the
+skill bundle and the dependency hashes in `docs/benchmarks/pilot-deps.json`, the assertion blocks,
+the fixtures, the thresholds, the model, the harness version, the runner arguments and the isolation
+configuration. Change any one of them and the runs recorded before the change stop being comparable
+with the runs after it, so the change starts a new iteration under a new identifier. This matters
+more now that the proposal loop exists: applying a proposal in the middle of an iteration swaps the
+grader underneath outputs that are already recorded.
+
+**2. A model output is never edited by hand.** Record outputs already says to save the assistant
+output as UTF-8 without editing it. What "without editing" covers is stated here: not formatting,
+not whitespace, not a change that makes an assertion match. An output that cannot be parsed is a
+failed attempt and is kept as one, never repaired into a recorded output.
+
+**3. The decision criteria are pre-registered in a tracked file, in two phases.** The file is
+`docs/benchmarks/<measured-iteration>/pre-registration.md`, and it is written across two commits so
+that nothing in it ever has to name its own commit.
+
+Before the smoke, commit the decision criteria: for each pilot skill the conditions that would make
+it a keep, a fix, a simplify or a remove, plus any critical failure that blocks keep on its own, and
+the name of the annotated tag the measured iteration will run from. That block is immutable from
+that commit onward. Criteria written once the results are in describe the results.
+
+After the smoke, add the factual metadata the smoke established, which is the harness, the verified
+harness version and the model, without touching the criteria block. Commit that state and tag it
+`pilot-<harness>-<n>-instrument`. The measured iteration runs from that tag, which is the one exact
+revision the whole iteration is measured at.
+
+The pre-registration names that tag and never a commit identifier of its own, because a file cannot
+carry the identifier of the commit that contains that version of the file. The 40-character
+identifier the tag resolves to is carried by the run metadata instead: `record_eval_run.py` writes
+`repo_commit` from `git rev-parse HEAD` into every recorded run, and the report quotes it from
+there.
+
+Naming both is not the same as binding them, so the binding is checked at both ends. Before the
+measured iteration records anything, resolve the tag and require the checkout to match it:
+`git rev-parse <tag>^{commit}` and `git rev-parse HEAD` must give the same value. At report time,
+require every recorded run's `meta.json.repo_commit` to equal that same value. Without both checks
+the failure is silent and plausible: the tag is created correctly, HEAD moves or never matched, the
+iteration runs, and the run metadata is internally consistent while describing a different
+instrument from the pre-registered one. A single mismatch invalidates the iteration rather than
+costing it one run, because a matching output cannot be told apart from a non-matching one without
+already knowing which revision produced it. The report records the resolved identifier next to the
+tag name, and the pre-registration still contains no identifier of its own, so the circularity stays
+solved. Neither check exists in the runner today; enforcing them there is tracked under B46,
+post-B25 hardening, and is not a promise this section makes.
+
+### The order of operations
+
+This sequences what the sections below specify. It does not replace them.
+
+The smoke run and the measured run are deliberately different iterations. Step 4 changes
+`docs/benchmarks/pilot-deps.json`, and rule 1 forbids that inside an iteration that has already
+recorded outputs, which a smoke `--eval` has: it records both configurations. Nothing in the runner
+catches the mix for you, because `existing_identity` compares the harness and the model on resume
+and not the repository revision or the manifest. Keeping the identifiers apart is the operator's
+job, and so is running the measured iteration from the tag rather than from whatever HEAD happens
+to be.
+
+1. Commit the decision criteria and the intended tag name. They are immutable from here.
+2. Run one real smoke `--eval` per harness, under `iteration-<harness>-smoke-<n>`.
+3. Inspect that smoke for compatibility only: the envelope, the provenance sidecar, the isolation
+   configuration, the probe, the harness version, the model identifier and the session identifier.
+   Not output quality, and not at any later point either.
+4. Add the verified harness version to `verified_harness_versions`, and the harness, version and
+   model to the pre-registration, leaving the criteria block untouched.
+5. Commit that state and tag it `pilot-<harness>-<n>-instrument`. That tag is the measured revision.
+6. Resolve the tag and confirm the checkout matches it before anything is recorded:
+   `git rev-parse <tag>^{commit}` and `git rev-parse HEAD` must agree.
+7. Start a fresh `iteration-<harness>-<n>` from that tag and record 30 outputs per harness: 15
+   prompts in both configurations.
+8. A fresh isolated session for every output.
+9. Keep every attempt, the failed ones included.
+10. Label each output `good`, `weak` or `fail`, with a classification and a reason.
+11. Blind the first human read to the configuration where the tooling allows it. Where it does not,
+    say so in the report rather than leaving the read to look blind.
+12. Report paired counts, critical failures, negative controls, grader disagreement, token cost and
+    duration.
+13. Before the report is written, confirm every recorded run's `meta.json.repo_commit` equals the
+    commit the tag resolves to. One mismatch invalidates the iteration.
+14. Write one report per harness, with the smoke outputs excluded from it and the resolved
+    40-character identifier recorded beside the tag name.
+15. Attribute no difference to the harness when the models differ.
+16. Write the keep, fix, simplify or remove decision for each pilot skill, against the conditions
+    the pre-registration set.
+
+### What the per-skill counts can carry
+
+The three pilot skills contribute different numbers of prompts, so there is no single per-skill
+denominator and no single step size:
+
+| Skill | Prompts per harness | Pairs | What one pair is worth |
+|---|---|---|---|
+| `pm-phase-discover` | 6 | 6 | 16.7 points |
+| `pm-transversal-comms` | 5 | 5 | 20 points |
+| `pm-prioritization-regua-comum` | 4 | 4 | 25 points |
+
+The report names the pair count and the denominator for each skill instead of describing all three
+as one sample size. Report paired cases and counts: how many pairs moved, in which direction, which
+ones they were, and what the critical failures were. A percentage over four to six cases is another
+way of writing a count, not an estimate with a confidence interval, and the report must not present
+it as one.
+
 ## Assertion and fixture contract
 
 Every graded eval (doctrine-adversarial, skill-functional-adversarial and negative-control) is
