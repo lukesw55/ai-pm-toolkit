@@ -1,53 +1,86 @@
 # ai-pm-toolkit
 
-**An operating system for product managers, built for Claude Code and Codex alike. Skills ask nicely; hooks enforce.**
+**PM skills for Claude Code and Codex. The skills ask nicely; four gates run in the harness, on the tool calls they are wired to and at the end of every turn.**
 
+[![validate](https://github.com/lukesw55/ai-pm-toolkit/actions/workflows/validate.yml/badge.svg)](https://github.com/lukesw55/ai-pm-toolkit/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](scripts/check_requirements.sh)
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code-D97757)](https://docs.anthropic.com/en/docs/claude-code)
 [![Built for Codex](https://img.shields.io/badge/built%20for-Codex-412991)](https://developers.openai.com/codex/cli)
-[![Skills](https://img.shields.io/badge/skills-21-8250DF)](skills/)
-[![Blocking hooks](https://img.shields.io/badge/blocking%20hooks-4-critical)](hooks/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/lukesw55/ai-pm-toolkit/pulls)
+[![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 
-This toolkit turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered cross-project memory, and four runtime hooks that **block** selected structural patterns, unresolved inference markers, and unmarked outbound prose on configured routes. The repository provides eval cases and a grader for recorded with-skill and no-skill runs. No live benchmark results are published yet.
+An operating system for product managers who drive a coding agent. It turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered memory that survives context switching, and 4 blocking hooks that reject slop patterns, unresolved inference markers and unmarked outbound prose on the routes they are wired to, three of them before the write or the publish happens and one at the end of every reply. The repository ships eval cases and a grader for recorded with-skill and no-skill runs; no measured benchmark result is published yet.
 
-It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks, and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
+It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
 
+- [Quick start](#quick-start)
 - [Why it exists](#why-it-exists)
-- [At a glance](#at-a-glance)
+- [What a turn looks like](#what-a-turn-looks-like)
 - [The pipeline](#the-pipeline)
 - [The skills](#the-skills)
 - [Enforcement, not vibes](#enforcement-not-vibes)
 - [The toolkit grades itself](#the-toolkit-grades-itself)
 - [Memory that survives context switching](#memory-that-survives-context-switching)
 - [The agents](#the-agents)
-- [Install](#install)
-- [Scripts](#scripts)
-- [Validation](#validation)
-- [Repository layout](#repository-layout)
-- [Requirements](#requirements)
-- [Troubleshooting](#troubleshooting)
+- [Four things people use it for](#four-things-people-use-it-for)
+- [Under the hood](#under-the-hood)
+- [Contributing](#contributing)
 - [License](#license)
+- [Project context and toolkit history](#project-context-and-toolkit-history)
+
+## Quick start
+
+You need bash, Python 3.10 or newer, `jq`, `git`, and either `sha256sum` or `shasum -a 256`. Then clone the repo and open it as a project in Claude Code or Codex.
+
+```bash
+git clone https://github.com/lukesw55/ai-pm-toolkit.git
+cd ai-pm-toolkit
+bash scripts/check_requirements.sh   # preflight
+python3 scripts/validate_repo.py     # structural self-check, both harnesses
+python3 scripts/init_context.py "my-product"   # bootstrap your first project
+```
+
+In Codex, run `/hooks` once to trust the enforcement scripts by content hash, and again after any edit to `hooks/*.sh` or to `.codex/hooks.json` itself. Claude Code reads `.claude/settings.json` and needs no trust step.
+
+Then talk to the orchestrator, or call any skill by name. This prompt is the one to paste first:
+
+```text
+We are starting my-product. Read the context files.
+Run Discover and Define. Ask only the highest-leverage missing questions.
+Create an experiment plan for the smallest viable proof. Update memory when done.
+```
+
+The agent loads the stage you are in, the skill that owns it, and the narrowest reference that skill needs. What comes back is an artefact on disk and an updated memory trail, not a chat answer that disappears.
 
 ## Why it exists
 
 LLM coding agents default to plausible-but-bloated output: speculative abstractions, defensive checks at internal boundaries, confident claims about things they never verified, and prose that reads like a press release. For a PM driving an agent, that failure mode is expensive, because you are accountable for what ships and for what you tell stakeholders.
 
-This toolkit encodes the corrections as reusable skills and as hooks the harness runs automatically. The model does not get to opt out.
+This toolkit encodes the corrections as reusable skills and as hooks the harness runs automatically. Asking a model to be careful is a preference; a hook that blocks the write is a contract.
 
-## At a glance
+## What a turn looks like
 
-| Capability | What it does | Where |
-|---|---|---|
-| 8-stage pipeline | Discovery Prioritization through Delivery, one gate per stage, current stage auto-injected into every turn | [`skills/WORKFLOW.md`](skills/WORKFLOW.md) |
-| 21 hard-skill PM skills | 4 Double Diamond phases, 4 archetype lenses, 8 transversals, 4 quality gates, a repo doctor | [`skills/`](skills/) |
-| 4 blocking runtime hooks | Reject slop prose, unverified claims, scope bloat, and unhumanized publishes at tool-call time | [`hooks/`](hooks/) |
-| Claude Code + Codex, both first-class | Same skills, same gates, same doctrine in both harnesses — `.claude/` and `.codex/` are thin adapters over one canonical tree | [`skills/`](skills/), [`hooks/`](hooks/), [`.codex/`](.codex/) |
-| Skill benchmarking | Grades skill output against a no-skill baseline, emits an HTML report | [`scripts/grade_evals.py`](scripts/grade_evals.py) |
-| Layered memory | Hot / warm / cold context that survives project switching; PII is never rotated | [`scripts/memory.py`](scripts/memory.py) |
-| Orchestrator + 10 agents | "Umberto" detects the working mode and sequences stages; 6 core agents plus 4 PM archetypes | [`SKILL.md`](SKILL.md), [`.github/agents/`](.github/agents/) |
-| Self-validation | Frontmatter, link, hook-wiring, and memory-contract checks in one command | [`scripts/validate_repo.py`](scripts/validate_repo.py) |
+```mermaid
+flowchart LR
+    U["Your request"] --> H["Injected: memory pointer<br/>at session start, stage<br/>on every prompt"]
+    H --> S["The stage's skill loads<br/>its narrowest reference"]
+    S --> W["Write, edit, or publish"]
+    W --> G{"Gates: PreToolUse<br/>on writes and publishes,<br/>Stop on the reply"}
+    G -->|blocked, with a reason| S
+    G --> A["Artefact on disk"]
+    A --> M["memory.py log:<br/>state, decisions, changelog"]
+    M -.->|the next session starts here| H
+```
+
+Three different things happen in that loop, and it is worth keeping them apart.
+
+**Enforced by the harness, on the routes it is wired to.** The four blocking gates: `anti-slop-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for the write tools (`Write`, `Edit`, `NotebookEdit`, and Codex `apply_patch` through its adapter), `humanize-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for the listed publish tools, and `scope-bloat-gate.sh` on `Stop` for the reply itself. On those routes a block is a refusal the model cannot argue past, only override per content.
+
+The routes are the boundary, and they are not all of them: `hooks/contract.json` declares `Bash` with an empty handler list, so a file written through a shell command is not seen by these gates. That is a quality boundary on the paths an agent normally takes, not a sandbox, which is what [`SECURITY.md`](SECURITY.md) says in its own words.
+
+**Injected context.** `hooks/memory-context.sh` puts the memory pointer in at `SessionStart`; `scripts/stage_context.py` puts the current stage in on every `UserPromptSubmit`. Both are wired the same way in `.claude/settings.json` and `.codex/hooks.json`. They shape what the model sees rather than what it is allowed to do.
+
+**Agent behaviour.** Which skill runs, what the artefact says, and whether memory gets updated are the model following its instructions. `memory-reminder.sh` nudges at `Stop` when files changed and no changelog entry followed, and it is a reminder by design, not a block. The artefact and the changelog entry are files you can diff, which is how you check this layer rather than trust it.
 
 ## The pipeline
 
@@ -68,7 +101,7 @@ flowchart LR
 
 The solid line is the default path. During Discovery, evidence updates the Impact Brief instead of leaving its commercial case frozen. Engineering joins that work when feasibility is material, before the One Pager hardens a direction. The other dotted edges return unsupported bets to the opportunity tree, failed prototype directions to the One Pager, and measured delivery impact to the next opportunity.
 
-Each stage has a skill that produces its artefact and a gate that must pass before advancing:
+Each stage has a skill that produces its artefact and a gate it should clear before advancing. The gates are a Definition of Done in [`WORKFLOW.md`](skills/WORKFLOW.md), read by whoever reviews the artefact; `advance_stage.py` moves the pointer and does not check them.
 
 | # | Stage | Skill | Artefact | Gate |
 |---|---|---|---|---|
@@ -81,7 +114,7 @@ Each stage has a skill that produces its artefact and a gate that must pass befo
 | 7 | Tech Kickoff | `pm-phase-develop` | kickoff deck + epic | team aligned, dependencies and NFRs clear |
 | 8 | Delivery | `pm-phase-deliver` | launch kit + close-out | GA shipped, impact measured |
 
-The current stage lives in `.ai/memory/active-context.md` and is injected into every turn (Claude Code and Codex alike) by a `UserPromptSubmit` hook, so the model always knows where in the pipeline it is working. Stages advance with `python3 scripts/advance_stage.py <slug>`; the progression is a default, not a cage, and the bypass rules are documented in [`WORKFLOW.md`](skills/WORKFLOW.md).
+The current stage lives in `.ai/memory/active-context.md` and is injected into every turn, so the model always knows where in the pipeline it is working. Stages advance with `python3 scripts/advance_stage.py <slug>`; the progression is a default, not a cage, and the bypass rules are in [`WORKFLOW.md`](skills/WORKFLOW.md).
 
 The orchestrator is a skill codenamed **Umberto** ([`SKILL.md`](SKILL.md)). It detects the working mode first — Kickoff, Feature, Bug, or Rescue — then sequences the phases and loads the right skill at each stage.
 
@@ -99,43 +132,30 @@ The archetype lenses are compositional skills: one `SKILL.md` that composes the 
 
 Every skill ships a `SKILL.md` as its control plane. Most add a `references/` folder with ready-to-paste templates plus a `progressive-loading.md` map, so the model loads the narrowest reference the task needs instead of a whole catalogue.
 
-Every skill also carries an `evals/evals.json` with at least three cases, one of them adversarial. `scripts/validate_repo.py` enforces that floor and the one-to-one parity with the grader, so a skill can be graded rather than trusted.
-
 Skills support three output profiles (see [`docs/patterns/COMMUNICATION_MODES.md`](docs/patterns/COMMUNICATION_MODES.md)): Standard for stakeholder-grade analysis, Lean for routine work (the default), Caveman for token-constrained sessions.
 
 ## Enforcement, not vibes
 
-Four hooks in [`hooks/`](hooks/), wired through [`.claude/settings.json`](.claude/settings.json) for Claude Code and [`.codex/hooks.json`](.codex/hooks.json) for Codex, reject bad output at tool-call time in both harnesses:
+The gates in [`hooks/`](hooks/) reject bad output through the configured `PreToolUse` and `Stop` routes in both harnesses, wired through [`.claude/settings.json`](.claude/settings.json) and [`.codex/hooks.json`](.codex/hooks.json):
 
 | Hook | Fires on | Blocks |
 |---|---|---|
-| `anti-slop-gate.sh` | every file write/edit | forbidden file artefacts (unrequested PLAN/SUMMARY/NOTES files), banner comments, decorative emoji headings |
-| `inference-discipline-gate.sh` | writes and outbound publishes | five literal unresolved inference markers; semantic fact-checking remains the skill’s responsibility |
+| `anti-slop-gate.sh` | the configured write tools | forbidden file artefacts (unrequested PLAN/SUMMARY/NOTES files), banner comments, decorative emoji headings |
+| `inference-discipline-gate.sh` | writes and outbound publishes | five literal unresolved inference markers; semantic fact-checking remains the skill's responsibility |
 | `humanize-gate.sh` | Confluence / Slack / Jira publish tools | AI-tinted prose shipping outbound before a `humanizer` pass, tracked by a per-content sha256 sentinel |
 | `scope-bloat-gate.sh` | end of every reply (Stop) | em-dash density, label-colon bullet runs, headers on short questions, scope bloat |
 
-```mermaid
-flowchart LR
-    W["Write / Edit"] --> AS{"anti-slop-gate"}
-    AS -->|violation| B["Blocked, with reason +<br/>per-content sha256 override"]
-    AS --> ID{"inference-discipline-gate"}
-    P["Publish to<br/>Confluence / Slack"] --> HG{"humanize-gate"}
-    HG -->|no humanizer pass| B
-    HG --> ID
-    ID -->|unresolved marker| B
-    ID --> OK["Lands"]
-    R["Reply ends"] --> SB{"scope-bloat-gate"}
-    SB -->|slop patterns| B
-    SB --> OK2["Turn completes"]
-```
-
-Each gate has an explicit, per-content override for legitimate exceptions, so the enforcement is strict without being a dead end. Three softer hooks complete the wiring: `memory-context.sh` injects the memory hot layer at session start and stamps the session start, `check-project-isolation.sh` (Claude Code only) warns when a tool touches another project's memory, and `memory-reminder.sh` reminds, at Stop, when files or commits changed after the last changelog entry `memory.py log` wrote. None of the three blocks.
+Each gate has an explicit, per-content override for legitimate exceptions, so the enforcement is strict without being a dead end. Three softer hooks complete the wiring: `memory-context.sh` injects the memory hot layer at session start, `check-project-isolation.sh` (Claude Code only) warns when a tool touches another project's memory, and `memory-reminder.sh` reminds, at Stop, when files or commits changed after the last changelog entry. None of the three blocks.
 
 ## The toolkit grades itself
 
-Every skill ships an `evals/evals.json` with realistic task prompts across four categories (standard, doctrine-adversarial, skill-functional-adversarial, negative-control); the validator requires at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, and one-to-one parity with the grader's assertion blocks. [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline** — assertion by assertion — and renders a static HTML benchmark report with pass rates, timing, and token cost per configuration, plus the disagreement rate between the assertions and the human verdicts when labels exist.
+Every skill ships an `evals/evals.json` with realistic task prompts in four categories, and [`scripts/grade_evals.py`](scripts/grade_evals.py) grades recorded runs **with the skill against a no-skill baseline**, assertion by assertion, into a static HTML report with pass rates, timing, token cost, and the disagreement rate between the assertions and the human verdicts where labels exist.
 
-As of 2026-09-10 the manifests hold 85 cases across the 21 skills: 43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial and 16 negative controls. The validator enforces the floor, not the total.
+The manifests hold 85 eval cases: 43 standard, 11 doctrine-adversarial, 15 skill-functional-adversarial and 16 negative controls. `scripts/validate_repo.py` enforces the floor — at least three cases and one adversarial case per skill, a negative control on the five doctrine skills, one-to-one parity with the grader's assertion blocks — not the total.
+
+Every eval also carries a strict fixture pair, and the pair is what keeps the grader honest: a good answer must score at least 0.80, a plausible wrong answer at most 0.30, a keyword-only reply at most 0.34 however its fragments are punctuated, and the block's own assertion labels read back as an answer must fail too. A regex that a list of the right words can satisfy is not checking behaviour.
+
+When the grader and a human disagree, [`scripts/propose_eval_updates.py`](scripts/propose_eval_updates.py) turns the disagreement into a proposal a person decides on. It never edits a manifest, an assertion block or the fixtures file: a grader that rewrote its own assertions from the outputs it grades would stop measuring the model and start measuring itself.
 
 Recording instructions, the pilot runner and the labelling step are in [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md). The two-harness pilot runs through `scripts/run_eval_pilot.py` on a machine where both CLIs are authenticated, human verdicts are tracked under `docs/benchmarks/`, and no measured result is published until the first iteration lands there. Synthetic fixtures test the grader, not skill effectiveness.
 
@@ -156,39 +176,93 @@ PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py
 
 ## The agents
 
-[`.github/agents/`](.github/agents/) holds ten agents. Six are core: **pm-kickoff** (kickstart and reframing), **pm-orchestrator** (the main builder), **pm-tech-advisor** (architecture and tradeoffs), **pm-evidence** (failure analysis and metric quality), **pm-design** (design planning and review), **pm-memory** (memory steward). Four mirror the archetype skills — `pm-platform`, `pm-growth`, `pm-enterprise`, `pm-ai` — for non-default product contexts. Default orchestration chains live in [`AGENTS.md`](AGENTS.md).
+[`.github/agents/`](.github/agents/) holds 10 agents. Six are core: **pm-kickoff** (kickstart and reframing), **pm-orchestrator** (the main builder), **pm-tech-advisor** (architecture and tradeoffs), **pm-evidence** (failure analysis and metric quality), **pm-design** (design planning and review), **pm-memory** (memory steward). Four mirror the archetype skills — `pm-platform`, `pm-growth`, `pm-enterprise`, `pm-ai` — for non-default product contexts. Default orchestration chains live in [`AGENTS.md`](AGENTS.md).
 
-## Install
+## Four things people use it for
 
-Clone the repo and open it as a project. Claude Code reads `.claude/settings.json`
-and `.claude/skills/`; Codex reads `.codex/hooks.json` and `.agents/skills/`.
-The two skill directories are generated mirrors of `skills/`. The `hooks/` tree is
-canonical and used directly by both adapters. In Codex, run `/hooks` to trust the
-hook hashes before enforcement starts, and repeat after hook or adapter changes.
-The project-isolation warning is currently Claude Code only.
+**A vague feature request lands and you have no evidence.** Invoke `pm-phase-discover`. It frames the problem before any solution, designs the research, and produces `discovery/<topic>/synthesis.md` plus an opportunity tree where every unverified assumption carries either a test or an accepted-risk decision with a named owner. Before Discovery counts as complete, its Definition of Done in [`WORKFLOW.md`](skills/WORKFLOW.md) requires every unverified assumption to carry either a test or an explicit accepted-risk decision with a named owner.
 
-```bash
-git clone https://github.com/lukesw55/ai-pm-toolkit.git
-cd ai-pm-toolkit
-bash scripts/check_requirements.sh   # preflight: bash, Python >=3.10, jq, git, sha256
-python3 scripts/validate_repo.py     # structural self-check (both harnesses)
+**A PRD is due and the tracking plan is an afterthought.** Invoke `pm-phase-develop`. The PRD comes back with goals and non-goals, given-when-then criteria, the event schema with properties, a primary metric with baseline and target, guardrails, and a rollback criterion with a threshold. Instrumentation is part of the artefact rather than a follow-up ticket.
 
-# bootstrap your first project context
-python3 scripts/init_context.py "my-product"
-python3 scripts/memory.py doctor
+**An exec wants a go/no-go memo by Friday.** Invoke `pm-transversal-stakeholder` for the memo and the decision rights, then let `humanize-deliverables` run before it leaves the workspace. The publish gate blocks the send until the prose has had a `humanizer` pass, so what lands in Slack or Confluence does not read like a press release.
+
+**An AI feature needs a quality bar before it ships.** Invoke `pm-archetype-ai` for the eval design, then `python3 scripts/golden_set.py init <slug> --feature <feature>` to create the scenario sheet and the golden set in the project's memory. `golden_set.py check` applies the rule that makes it a test rather than a scrapbook: once the set has rows, one of them has to be a failure the team has really seen, and the check exits non-zero when none is. The empty set is the gap: it is a warning, so a release gate runs `check --strict`, where a warning fails too.
+
+## Under the hood
+
+<details>
+<summary>How the hooks are wired in each harness</summary>
+
+`hooks/` is canonical and used directly by both adapters; the two skill directories are generated mirrors of `skills/`.
+
+| | Claude Code | Codex |
+|---|---|---|
+| Hook wiring | `.claude/settings.json` | `.codex/hooks.json` |
+| Skill discovery | `.claude/skills/` (generated) | `.agents/skills/` (generated) |
+| Trust step | none | `/hooks`, by content hash, re-run after any edit to `hooks/*.sh` or to `.codex/hooks.json` |
+| Doctrine file | `CLAUDE.md` | `AGENTS.md` |
+| Project-isolation warning | yes | not yet |
+
+`hooks/contract.json` declares the required routes for each harness separately, including the ones that differ — it records that Codex does not wire the project-isolation warning, and that Codex `apply_patch` reaches the shared write gates through `.codex/adapters/pretooluse.py`. `scripts/test_hook_contract.py` verifies that each adapter matches its own route set, that a malformed Codex envelope exits 2, and that the configured write routes really block a marker.
+
+</details>
+
+<details>
+<summary>What the eval pipeline writes down</summary>
+
+One eval case in a skill's `evals/evals.json`:
+
+```json
+{
+  "id": 3,
+  "name": "resist-solution-first-request",
+  "category": "doctrine-adversarial",
+  "prompt": "The VP already picked the solution. Write the research plan for it.",
+  "expected_output": "Names the request as solution-first, asks what problem the dashboard solves, and scopes discovery around that problem instead."
+}
 ```
 
-On Codex, run `/hooks` once to trust the shared enforcement scripts (re-run it after any edit to `hooks/*.sh` — Codex tracks trust by content hash).
+One human label in `docs/benchmarks/<iteration>/labels.jsonl`, keyed to the exact output it judges:
 
-Then, in either harness, invoke any skill by name (for example `pm-phase-discover`) or talk to the orchestrator:
+```json
+{"schema": 2, "iteration": "iteration-1", "skill": "pm-phase-discover", "eval_id": 3,
+ "config": "with_skill", "output_sha256": "…", "rubric_version": "…", "verdict": "weak",
+ "classification": ["skipped-method"], "verdict_reason": "Asked the question but scoped the plan anyway",
+ "labeler": "pm-lead", "labeled_at": "2026-09-16T10:00:00+00:00", "supersedes": false}
+```
+
+And the `overall` block of `benchmark_all.json` as it stands today, which is the no-published-results rule rendered as data:
+
+```json
+{"overall": {"runs": 0, "labeled_runs": 0, "human_disagreement_rate": null,
+             "grader_disagreement_rate": null, "investigate_grader": false}}
+```
+
+</details>
+
+<details>
+<summary>Memory on disk</summary>
 
 ```text
-We are starting my-product. Read the context files.
-Run Discover and Define. Ask only the highest-leverage missing questions.
-Create an experiment plan for the smallest viable proof. Update memory when done.
+.ai/memory/
+├── active-context.md         # the pointer: one ACTIVE project, capped at 2 KB
+├── index.md                  # one line per project
+├── org/                      # shared layer: company, personas, competitors, goals
+├── projects/<slug>/
+│   ├── session-kickoff.md    # why this project exists, read on resume
+│   ├── state.md              # where it stands
+│   ├── decisions.md          # what was decided and why
+│   ├── changelog.md          # recent entries; older ones rotate to the archive
+│   ├── insights.md           # ranked themes, locators only
+│   ├── evals/<feature>/      # scenario sheet + golden set for an AI feature
+│   └── raw-evidence/         # PII: never rotated, distilled or ingested
+└── _templates/               # the only part of the tree this repo ships
 ```
 
-## Scripts
+</details>
+
+<details>
+<summary>Every script in the repo</summary>
 
 | Script | Purpose |
 |---|---|
@@ -206,7 +280,7 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `label_eval_run.py` | append a human verdict and classification to a recorded run, keyed by run identity and output hash; corrections supersede, history stays |
 | `propose_eval_updates.py` | turn labelled grader disagreements into review proposals under `docs/benchmarks/<iteration>/proposals/`; it proposes and never edits a manifest, an assertion block or the fixtures file |
 | `golden_set.py` | create, append to and check a product golden set inside a project's memory; every field comes from a flag a person typed, never from a model's output |
-| `validate_repo.py` | structural validator: frontmatter, links, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap, Copilot agent schema and repo policy |
+| `validate_repo.py` | structural validator: frontmatter, links, README contract, workflow contract, hook wiring (both harnesses), hook neutrality, mirror drift, eval coverage and grader parity, memory bootstrap, Copilot agent schema and repo policy |
 | `test_hooks.py` | synthetic payloads through the shared gates, the Codex `apply_patch` adapter, and the soft session-close reminder |
 | `test_grade_evals.py` | fixtures for the grader's assertion blocks: good output has to score high, bad output low; every eval carries a strict pair whose keyword-only reply stays low in five punctuation joins, whose near miss fails exactly one named assertion and whose block fails its own labels read back as a reply; the good text re-wrapped at 72 columns stays in band, with or without unwrapped paragraphs beside it |
 | `test_record_eval_run.py` | the eval recorder refuses missing provenance, changed output and overwrites; renders the HTML report from a recorded pair |
@@ -222,36 +296,10 @@ Create an experiment plan for the smallest viable proof. Update memory when done
 | `sync_skills.py` | regenerate `.claude/skills/` and `.agents/skills/` from the canonical `skills/` tree; `--check` for a read-only drift check |
 | `check_requirements.sh` | environment preflight (bash, Python >=3.10, jq, git, sha256) |
 
-## Validation
+</details>
 
-Run the repo doctor before shipping changes to the toolkit itself:
-
-```bash
-bash scripts/check_requirements.sh
-python3 -m py_compile scripts/*.py
-for hook in hooks/*.sh; do bash -n "$hook" || exit; done
-python3 scripts/sync_skills.py --check
-python3 scripts/validate_repo.py
-python3 -S scripts/validate_repo.py
-python3 scripts/test_hooks.py
-python3 scripts/test_hook_contract.py
-python3 scripts/test_grade_evals.py
-python3 scripts/test_memory.py
-python3 scripts/test_context_scripts.py
-python3 scripts/test_record_eval_run.py
-python3 scripts/test_run_eval_pilot.py
-python3 scripts/test_label_eval_run.py
-python3 scripts/test_propose_eval_updates.py
-python3 scripts/test_golden_set.py
-python3 scripts/test_validate_repo.py
-python3 scripts/test_frontmatter.py
-python3 scripts/grade_evals.py
-python3 scripts/memory.py doctor
-```
-
-`validate_repo.py` checks skill frontmatter, local markdown links and backtick-quoted file paths, workflow-stage parsing, hook settings for both harnesses, hook syntax and harness-neutrality, mirror drift, eval coverage and its parity with the grader, the memory bootstrap contract, and `.github/agents/` — the published schema plus a narrower repo policy the messages name as policy (tool aliases in canonical lowercase, no `model`, delegation targets that resolve, one shared required-reading section). The `test_*.py` suites cover the runtime behaviour the validator cannot see: what the gates block and how each adapter routes them, what the grader scores, what `memory.py` and the context scripts do to a real tree, how a recorded eval run is validated, what the pilot runner and the label step record, and how the validator behaves on malformed input. It is zero-dependency except for optional PyYAML. Without PyYAML it parses the canonical frontmatter subset this repo uses — scalars, inline lists, booleans and block scalars — and tolerates nested mappings outside the validated fields without interpreting them; it is not a YAML parser, so a validated field in any other form becomes a finding rather than passing unread. CI runs the validator both ways. The full checklist lives in [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md).
-
-## Repository layout
+<details>
+<summary>Repository layout</summary>
 
 Shared product logic — skills, enforcement, doctrine — lives once, at the top level. Claude Code and Codex are peers, each a thin adapter over that one canonical tree; neither is the "real" copy the other degrades from.
 
@@ -284,15 +332,10 @@ Shared product logic — skills, enforcement, doctrine — lives once, at the to
 └── .github/agents/          # 6 core agents + 4 PM archetypes (read skills/ directly)
 ```
 
-## Requirements
+</details>
 
-- Claude Code with project-level `.claude/settings.json` enabled, or Codex with `.codex/hooks.json` trusted (`/hooks`) — either harness alone is enough; both work together.
-- Python 3.10+ for memory, workflow, eval, sync, and repo validation scripts.
-- Bash for hooks.
-- `jq` for hook JSON parsing.
-- Either `sha256sum` (Linux) or `shasum -a 256` (macOS) for per-content sentinels.
-
-## Troubleshooting
+<details>
+<summary>Troubleshooting</summary>
 
 - **`memory.py doctor` says there is no ACTIVE block:** run `python3 scripts/init_context.py "Project Name"` or activate a project with `python3 scripts/memory.py activate <slug>`.
 - **`init_context.py` refuses to run:** another project is still active; park it first with `python3 scripts/memory.py park <slug>`.
@@ -302,11 +345,20 @@ Shared product logic — skills, enforcement, doctrine — lives once, at the to
 - **A file edit is blocked by inference discipline:** resolve the unresolved inference markers (INFER, ASSUMING, UNVERIFIED, FROM MEMORY, RECALL), or explicitly approve and mark the exact exception.
 - **Workflow stage output is too thin:** check `.ai/memory/active-context.md` has `Current stage` set to one of the canonical slugs in `skills/WORKFLOW.md`.
 - **A mirror looks stale or edits to a skill aren't showing up in Codex (or vice versa):** run `python3 scripts/sync_skills.py` — edits go in `skills/` only; `.claude/skills/` and `.agents/skills/` are generated and never hand-edited.
-- **Hooks aren't firing in Codex after a change to `hooks/*.sh`:** Codex requires trusting hooks by content hash; re-run `/hooks` in the Codex CLI after any edit to a shared script.
+- **Hooks aren't firing in Codex after a change to `hooks/*.sh` or `.codex/hooks.json`:** Codex tracks trust by content hash; re-run `/hooks` in the Codex CLI after any edit to a shared script or to the adapter file itself.
+- **CI fails on a count in this README:** a skill, a script, an agent or an eval was added and the README still states the old number. `validate_repo.py` derives every count from the tree; update the sentence it names. [`CONTRIBUTING.md`](CONTRIBUTING.md) explains why that is deliberate.
+
+</details>
+
+## Contributing
+
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) first: it covers the three rules that are not guessable from the tree — the full check battery before any commit, that `skills/` is canonical and the two mirrors are generated, and that every eval case needs a matching assertion block in the grader. The checklist those rules come from is [`docs/REPO_HEALTH.md`](docs/REPO_HEALTH.md), and CI runs the validator on Python 3.10 and 3.11, with and without PyYAML.
+
+Security reports go through GitHub's private vulnerability reporting, described in [`SECURITY.md`](SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE). Issues and PRs welcome.
+MIT. See [LICENSE](LICENSE).
 
 ### Third-party
 
@@ -330,5 +382,3 @@ Project activity belongs in the project's changelog. Binding toolkit decisions l
 in `docs/DECISIONS.md`; historical PR integrations are recorded in `docs/PR_HISTORY.md`.
 PRs should record validation on the reviewed head. A self-review is not independent
 approval; if GitHub rejects self-approval, disclose that and retain the checks as evidence.
-
-The CI tests Python 3.10 and 3.11; the stable `validate` job requires both matrix jobs to pass. Push runs target `main`; pull requests run once per event, with superseded runs cancelled. The preflight rejects Python below 3.10. Progressive-loading maps must name every support file in their skill. Context tests cover traversal, symlinks, switching, non-destructive migration and read-only status/report commands.

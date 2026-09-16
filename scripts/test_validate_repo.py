@@ -21,6 +21,11 @@ load_frontmatter: one canonical fixture checks the parsed *value*, not just
 the absence of a finding, so a block-scalar marker such as ">-" cannot pass as
 a description the way it used to.
 
+check_readme_contract: six cases build a tiny tree with two skills, one gate, one agent
+and two scripts, then feed the check a README that matches it and five that drift — a
+wrong count, a count stated twice, a missing table row, a row for a script that is gone,
+and a contents list out of step with the headings.
+
 check_backtick_paths and check_markdown_links: a generated eval proposal quotes a
 recorded output, so it may carry a path that never existed. Two cases assert the
 skip is scoped to the proposals directory and does not spread to the rest of
@@ -280,7 +285,157 @@ def main() -> int:
             for e in errors:
                 print(f"      {e}")
 
-    total = len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases) + len(consulted_cases)
+    # check_readme_contract: every count comes from the tree, so a README that drifts is a
+    # finding rather than a thing someone notices six months later.
+    readme_cases = [
+        ("a README that matches the tree", lambda t: t, [], 0),
+        ("a count that drifted", lambda t: t.replace("2 hard-skill", "9 hard-skill"),
+         ["says skills 9; the tree has 2"], 1),
+        ("a count stated twice", lambda t: t + "\n\nStill 2 hard-skill PM skills.\n",
+         ["stated exactly once as a digit", "matched 2 time(s)"], 1),
+        ("a script with no row", lambda t: t.replace("| `two.py` | second |\n", ""),
+         ["no row for scripts/two.py"], 1),
+        ("a row for a script that is gone", lambda t: t.replace("| `two.py` |", "| `three.py` |"),
+         ["no row for scripts/two.py", "names scripts/three.py, which does not exist"], 2),
+        ("a contents list out of step with the headings",
+         lambda t: t.replace("- [Second](#second)\n", ""),
+         ["contents list and the top-level headings disagree"], 1),
+    ]
+    for name, mutate, expected, expected_count in readme_cases:
+        with tempfile.TemporaryDirectory() as td:
+            tree = Path(td)
+            for skill in ("alpha", "beta"):
+                (tree / "skills" / skill / "evals").mkdir(parents=True)
+                (tree / "skills" / skill / "SKILL.md").write_text("x", encoding="utf-8")
+                (tree / "skills" / skill / "evals" / "evals.json").write_text(json.dumps(
+                    {"skill_name": skill, "evals": [{"name": "a", "category": "standard"},
+                                                    {"name": "b", "category": "negative-control"}]}), encoding="utf-8")
+            (tree / "hooks").mkdir()
+            (tree / "hooks" / "only-gate.sh").write_text("x", encoding="utf-8")
+            (tree / ".github" / "agents").mkdir(parents=True)
+            (tree / ".github" / "agents" / "one.agent.md").write_text("x", encoding="utf-8")
+            (tree / "scripts").mkdir()
+            for script in ("one.py", "two.py"):
+                (tree / "scripts" / script).write_text("x", encoding="utf-8")
+            readme = "\n".join([
+                "# t", "", "2 hard-skill PM skills, 1 blocking hooks, 1 agents, 4 eval cases:",
+                "2 standard, 0 doctrine-adversarial, 0 skill-functional-adversarial and 2 negative controls.",
+                "", "- [First](#first)", "- [Second](#second)", "",
+                "## First", "", "| Script | Purpose |", "|---|---|",
+                "| `one.py` | first |", "| `two.py` | second |", "", "## Second", "", "done.", ""])
+            (tree / "README.md").write_text(mutate(readme), encoding="utf-8")
+            saved = (vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README)
+            vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = tree, tree / "skills", tree / "hooks", tree / "README.md"
+            try:
+                readme_errors: list[str] = []
+                vr.check_readme_contract(readme_errors)
+            finally:
+                vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = saved
+        joined = " ".join(readme_errors)
+        ok = len(readme_errors) == expected_count and all(want in joined for want in expected)
+        print(f"{'PASS' if ok else 'FAIL'}  readme contract: {name}")
+        if not ok:
+            failures += 1
+            for e in readme_errors:
+                print(f"      {e}")
+
+    # check_readme_contract derives its counts from the same manifests check_eval_coverage
+    # hardens, and main() runs it first, so every shape that suite feeds must be tolerated
+    # here too. A finding is fine; an exception aborts the validator before the check that
+    # reports the schema defect ever runs.
+    def readme_tree(td: str, payload: object, skills_said: int = 1, evals_said: int = 9,
+                    orphan: object = None, extra_skill: bool = False,
+                    raw: "bytes | None" = None) -> Path:
+        tree = Path(td)
+        (tree / "skills" / "fake-skill" / "evals").mkdir(parents=True)
+        (tree / "skills" / "fake-skill" / "SKILL.md").write_text("x", encoding="utf-8")
+        manifest = tree / "skills" / "fake-skill" / "evals" / "evals.json"
+        if raw is not None:
+            manifest.write_bytes(raw)  # not UTF-8: read_text raises a ValueError, not an OSError
+        else:
+            body = payload if isinstance(payload, str) else json.dumps(payload)
+            manifest.write_text(body, encoding="utf-8")
+        if orphan is not None:  # a manifest under a directory that is not a canonical skill
+            (tree / "skills" / "orphan" / "evals").mkdir(parents=True)
+            (tree / "skills" / "orphan" / "evals" / "evals.json").write_text(
+                json.dumps(orphan), encoding="utf-8")
+        if extra_skill:  # a canonical skill that ships no manifest at all
+            (tree / "skills" / "second-skill").mkdir(parents=True)
+            (tree / "skills" / "second-skill" / "SKILL.md").write_text("x", encoding="utf-8")
+        (tree / "hooks").mkdir()
+        (tree / "hooks" / "one-gate.sh").write_text("x", encoding="utf-8")
+        (tree / ".github" / "agents").mkdir(parents=True)
+        (tree / ".github" / "agents" / "one.agent.md").write_text("x", encoding="utf-8")
+        (tree / "scripts").mkdir()
+        (tree / "README.md").write_text("\n".join([
+            "# t", "",
+            f"{skills_said} hard-skill PM skills, 1 blocking hooks, 1 agents, {evals_said} eval cases:",
+            "9 standard, 0 doctrine-adversarial, 0 skill-functional-adversarial and 0 negative controls.",
+            "", "- [First](#first)", "", "## First", "", "done.", ""]), encoding="utf-8")
+        return tree
+
+    def run_readme_contract(payload: object, skills_said: int = 1, **kwargs) -> tuple[list[str], str]:
+        with tempfile.TemporaryDirectory(prefix="test-readme-contract-") as td:
+            tree = readme_tree(td, payload, skills_said, **kwargs)
+            saved = (vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README)
+            vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = tree, tree / "skills", tree / "hooks", tree / "README.md"
+            try:
+                found: list[str] = []
+                vr.check_readme_contract(found)
+                return found, ""
+            except Exception as exc:  # the regression this case exists for
+                return [], f"{type(exc).__name__}: {exc}"
+            finally:
+                vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = saved
+
+    schema_cases = list(CASES) + [("not even JSON", "{{{ broken", "")]
+    for name, payload, _expected in schema_cases:
+        _found, raised = run_readme_contract(payload)
+        ok = not raised
+        print(f"{'PASS' if ok else 'FAIL'}  readme contract survives a malformed manifest: {name}")
+        if not ok:
+            failures += 1
+            print(f"      {raised}")
+
+    # and the skip is scoped: the counts that do not come from a manifest are still compared
+    scoped, raised = run_readme_contract(CASES[-1][1], skills_said=9)
+    ok = not raised and len(scoped) == 1 and "says skills 9" in scoped[0]
+    print(f"{'PASS' if ok else 'FAIL'}  readme contract still checks the counts a manifest cannot break")
+    if not ok:
+        failures += 1
+        print(f"      {raised or scoped}")
+
+    # The counts come from the canonical skill set (skills/*/SKILL.md), the same discovery
+    # check_eval_coverage uses. So a manifest under a directory that is not a skill cannot
+    # inflate them, a skill that ships no manifest cannot leave them looking complete, a
+    # category outside the taxonomy is not counted, and a file that is not UTF-8 is skipped
+    # rather than raised: UnicodeDecodeError is a ValueError, which no OSError clause catches.
+    def manifest(name: str, n: int, first: str = "standard") -> dict:
+        return {"skill_name": name,
+                "evals": [{"id": i, "name": f"{name}-{i}",
+                           "category": "standard" if i else first} for i in range(n)]}
+
+    canonical_cases = [
+        ("a manifest with no SKILL.md beside it is not counted",
+         run_readme_contract(manifest("fake-skill", 9), orphan=manifest("orphan", 3))),
+        ("a canonical skill with no manifest leaves the counts incomplete",
+         run_readme_contract(manifest("fake-skill", 9), skills_said=2, evals_said=99,
+                             extra_skill=True)),
+        ("a category outside the taxonomy is not counted against the README",
+         run_readme_contract(manifest("fake-skill", 9, first="not-a-category"))),
+        ("a manifest that is not UTF-8 is skipped, never raised",
+         run_readme_contract(None, raw=b'{"evals": [{"category": "standard\xff"}]}')),
+    ]
+    for name, (found, raised) in canonical_cases:
+        ok = not raised and not found
+        print(f"{'PASS' if ok else 'FAIL'}  readme contract: {name}")
+        if not ok:
+            failures += 1
+            print(f"      {raised or found}")
+
+    total = (len(CASES) + (len(AGENT_CASES) + 1) * len(modes) + len(generated_cases)
+             + len(consulted_cases) + len(readme_cases) + len(schema_cases)
+             + len(canonical_cases) + 1)
     if failures:
         print(f"\ntest_validate_repo: {failures}/{total} case(s) failed")
         return 1

@@ -1,6 +1,6 @@
 # Integrated pull requests
 
-Backfill verified against GitHub PR metadata on 2026-09-10; rows for #19 to #23 added on 2026-09-14 and 2026-09-16 from the same metadata. Titles below are concise descriptions, not verbatim PR titles. Original discussions remain linked. Squash integrations are included; a merge-only git log would omit them.
+Backfill verified against GitHub PR metadata on 2026-09-10; rows for #19 to #24 added on 2026-09-14 and 2026-09-16 from the same metadata. Titles below are concise descriptions, not verbatim PR titles. Original discussions remain linked. Squash integrations are included; a merge-only git log would omit them.
 
 | PR | Integrated (UTC) | Change | Main commit |
 |---|---|---|---|
@@ -27,4 +27,5 @@ Backfill verified against GitHub PR metadata on 2026-09-10; rows for #19 to #23 
 | [#21](https://github.com/lukesw55/ai-pm-toolkit/pull/21) | 2026-09-14T18:50:41Z | B32-B39: references batch (org layer, eval design, prototyping ladder, review panel, batch synthesis, pilot runner, human labels) with five review rounds | `49296352197ed3fd5c89be31e277f86abb50e763` |
 | [#22](https://github.com/lukesw55/ai-pm-toolkit/pull/22) | 2026-09-14T22:24:50Z | B40: keyword-only and rubric-restating replies fail every graded eval (relations, not terms, in the 42 graded blocks; strict pairs and the label-soup attack) with two review rounds | `b51ddd32bc48e1122fa3c03117a413ab7a623b94` |
 | [#23](https://github.com/lukesw55/ai-pm-toolkit/pull/23) | 2026-09-16T00:08:43Z | B41: standard blocks check relations too, so every one of the 85 evals carries a strict pair; the grader reads each assertion through a soft-wrap normaliser and the repo-doctor eval accepts an honest zero, over three review rounds | `44b7e5164852156b12b6e63d6148d77bea2b4abc` |
+| [#24](https://github.com/lukesw55/ai-pm-toolkit/pull/24) | 2026-09-16T14:47:25Z | B42: labelled grader disagreements become review proposals a person decides on, and product golden sets get the script for the paths eval-design.md already published; six defects found by an adversarial review and three by the owner's, all fixed before merge | `efcba289899a2adc63a778fa8617372fbb6ae746` |
 
