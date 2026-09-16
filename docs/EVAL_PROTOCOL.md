@@ -166,46 +166,67 @@ verdict.
 
 #### What the terms mean, fixed before the run
 
-- **Movement** in a pair: the human verdict category changes between the two configurations, or a
-  pre-registered critical failure appears or disappears. A grader score that moves without changing
-  the human category is not movement.
-- **A skill improves materially**: more of its pairs move up than down, and none of its pairs moves
-  down by gaining a critical failure.
-- **A skill regresses materially**: more of its pairs move down than up.
-- **A skill regresses on critical failures**: any pair carries a pre-registered critical failure
-  under `with_skill` that its `without_skill` counterpart does not.
+- **The category signal** of a pair: *up* when the human verdict category is better under
+  `with_skill` than under `without_skill`, *down* when it is worse, *flat* when it is the same. A
+  grader score that moves without changing the human category is not a signal.
+- **The critical-failure signal** of a pair: *down* when `with_skill` carries any pre-registered
+  critical failure its counterpart does not, *up* when it carries none of those and the counterpart
+  carries at least one it does not, *flat* when the two sets are the same.
+- **The direction of a pair**, exactly one per pair. A pair is **unresolved** when it is
+  contaminated, when the labelers split so it has no consolidated human verdict, or when its two
+  signals point in opposite directions. Otherwise it is **up** when both signals are up or one is up
+  and the other flat, **down** when both are down or one is down and the other flat, and **flat**
+  when both are flat.
+- **A pair is contaminated**: its run failed and was retried, or its recorded envelope does not match
+  the pre-registered harness version, model or isolation configuration.
+- **A skill's margin**: its up pairs minus its down pairs. Flat and unresolved pairs add nothing to
+  it.
+- **A skill's direction holds** when its unresolved pairs could not change whether it improves
+  materially, regresses materially or neither, even if every one of them fell the same way. With no
+  unresolved pairs a direction always holds. With unresolved pairs it holds only when the margin,
+  ignoring its sign, is greater than the number of them.
+- **A skill improves materially**: its margin is positive and none of its pairs is down by gaining a
+  critical failure.
+- **A skill regresses materially**: its margin is negative.
+- **A skill regresses on critical failures**: any pair that is not contaminated carries a
+  pre-registered critical failure under `with_skill` that its `without_skill` counterpart does not.
 - **A negative control is materially worse**: its human verdict category drops, or it gains a
   pre-registered critical failure.
-- **An improvement is explained by length**: the labeler's recorded reason for the upward move cites
-  added length or the wording of the assertion rather than the behaviour that assertion names.
+- **A skill's improvement is explained by length**: for every up pair behind its positive margin, the
+  labeler's recorded reason cites added length or the wording of the assertion rather than the
+  behaviour that assertion names.
 - **Grader and human agree on a skill**: the direction the grader shows and the direction the human
   verdicts show are the same, or the difference between them does not change that direction.
 - **A skill is unreadable**: `investigate_grader` fires for it and its human verdicts do not settle
   the direction.
-- **A pair is contaminated**: its run failed and was retried, or its recorded envelope does not match
-  the pre-registered harness version, model or isolation configuration.
 
 #### The procedure, evaluated in order, first match wins
 
 0. **No verdict.** The iteration is void if rule 1 was broken or the tag binding failed. Void is not
    a result; the iteration is re-run under a new pre-registration.
-1. **Negative signal**, if any of: a skill regresses on critical failures; no skill improves
-   materially and at least one regresses materially; every material improvement is explained by
-   length; no skill improves materially and cost or latency rises.
-2. **Inconclusive**, if any of: a skill is unreadable; a contaminated pair would change a skill's
-   direction; a skill's direction rests on a single pair whose human verdict is a split.
-3. **Useful signal**, only if all of: at least two of the three skills improve materially; no
+1. **Negative signal**, if a skill regresses on critical failures. This is read before anything else
+   because a pre-registered critical failure appearing under `with_skill` in an uncontaminated pair
+   is something the run shows, not something inferred from what the rest of it failed to show.
+2. **Inconclusive**, if either: a skill is unreadable; a skill's direction does not hold. Both say
+   the pairs cannot carry a reading, and neither licenses reading them as a negative result.
+3. **Negative signal**, if either: no skill improves materially; or at least one skill improves
+   materially and every material improvement is explained by length. A run in which nothing moves at
+   all lands here on the first of the two: flat pairs are evidence of no effect, and step 2 has
+   already taken out the runs whose pairs could not be read.
+4. **Useful signal**, only if all of: at least two of the three skills improve materially; no
    negative control is materially worse; grader and human agree on every skill.
-4. **Inconclusive** otherwise. This is the residual case and it is reached deliberately, so an
+5. **Inconclusive** otherwise. This is the residual case and it is reached deliberately, so an
    evidence state that satisfies nothing above still has exactly one verdict.
 
-Cost and latency are always reported, and they only ever trigger a verdict through step 1, where the
-quality condition is already that no skill improved materially. A rise in cost alongside a real
-quality gain is reported and does not by itself make the run negative.
+Cost and latency are always reported and never carry a verdict. The one case where they used to, a
+run in which nothing improved, is already the standalone trigger in step 3, so the cost clause
+decided nothing there, and anywhere else it would have let a second variable overrule the quality
+reading. A rise in cost beside a real quality gain is a fact for the report and an input to whoever
+decides to adopt the skill, not a verdict about the evidence.
 
 The report names which pairs moved and in which direction, per skill, against that skill's
-denominator of 6, 5 or 4, so a reader who disagrees with the verdict can check the pairs rather than
-argue with a threshold.
+denominator of 6, 5 or 4, and names the unresolved pairs with the reason each one is unresolved, so
+a reader who disagrees with the verdict can check the pairs rather than argue with a threshold.
 
 Inconclusive is a legitimate outcome and the likely one at this size. It is not a failure to be
 argued away, and it does not license a second reading of the same outputs under different criteria.
