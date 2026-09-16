@@ -40,7 +40,7 @@ python3 scripts/validate_repo.py     # structural self-check, both harnesses
 python3 scripts/init_context.py "my-product"   # bootstrap your first project
 ```
 
-In Codex, run `/hooks` once to trust the enforcement scripts by content hash, and again after any edit to `hooks/*.sh`. Claude Code reads `.claude/settings.json` and needs no trust step.
+In Codex, run `/hooks` once to trust the enforcement scripts by content hash, and again after any edit to `hooks/*.sh` or to `.codex/hooks.json` itself. Claude Code reads `.claude/settings.json` and needs no trust step.
 
 Then talk to the orchestrator, or call any skill by name. This prompt is the one to paste first:
 
@@ -199,11 +199,11 @@ PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py
 |---|---|---|
 | Hook wiring | `.claude/settings.json` | `.codex/hooks.json` |
 | Skill discovery | `.claude/skills/` (generated) | `.agents/skills/` (generated) |
-| Trust step | none | `/hooks`, by content hash, re-run after any edit to `hooks/*.sh` |
+| Trust step | none | `/hooks`, by content hash, re-run after any edit to `hooks/*.sh` or to `.codex/hooks.json` |
 | Doctrine file | `CLAUDE.md` | `AGENTS.md` |
 | Project-isolation warning | yes | not yet |
 
-The routing contract each adapter must satisfy is `hooks/contract.json`, and `scripts/test_hook_contract.py` asserts that both adapters route the same events to the same scripts, that a malformed Codex envelope exits 2, and that the configured write commands really block a marker.
+`hooks/contract.json` declares the required routes for each harness separately, including the ones that differ — it records that Codex does not wire the project-isolation warning, and that Codex `apply_patch` reaches the shared write gates through `.codex/adapters/pretooluse.py`. `scripts/test_hook_contract.py` verifies that each adapter matches its own route set, that a malformed Codex envelope exits 2, and that the configured write routes really block a marker.
 
 </details>
 
@@ -345,7 +345,7 @@ Shared product logic — skills, enforcement, doctrine — lives once, at the to
 - **A file edit is blocked by inference discipline:** resolve the unresolved inference markers (INFER, ASSUMING, UNVERIFIED, FROM MEMORY, RECALL), or explicitly approve and mark the exact exception.
 - **Workflow stage output is too thin:** check `.ai/memory/active-context.md` has `Current stage` set to one of the canonical slugs in `skills/WORKFLOW.md`.
 - **A mirror looks stale or edits to a skill aren't showing up in Codex (or vice versa):** run `python3 scripts/sync_skills.py` — edits go in `skills/` only; `.claude/skills/` and `.agents/skills/` are generated and never hand-edited.
-- **Hooks aren't firing in Codex after a change to `hooks/*.sh`:** Codex requires trusting hooks by content hash; re-run `/hooks` in the Codex CLI after any edit to a shared script.
+- **Hooks aren't firing in Codex after a change to `hooks/*.sh` or `.codex/hooks.json`:** Codex tracks trust by content hash; re-run `/hooks` in the Codex CLI after any edit to a shared script or to the adapter file itself.
 - **CI fails on a count in this README:** a skill, a script, an agent or an eval was added and the README still states the old number. `validate_repo.py` derives every count from the tree; update the sentence it names. [`CONTRIBUTING.md`](CONTRIBUTING.md) explains why that is deliberate.
 
 </details>
