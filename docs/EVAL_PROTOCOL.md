@@ -77,6 +77,19 @@ identifier the tag resolves to is carried by the run metadata instead: `record_e
 `repo_commit` from `git rev-parse HEAD` into every recorded run, and the report quotes it from
 there.
 
+Naming both is not the same as binding them, so the binding is checked at both ends. Before the
+measured iteration records anything, resolve the tag and require the checkout to match it:
+`git rev-parse <tag>^{commit}` and `git rev-parse HEAD` must give the same value. At report time,
+require every recorded run's `meta.json.repo_commit` to equal that same value. Without both checks
+the failure is silent and plausible: the tag is created correctly, HEAD moves or never matched, the
+iteration runs, and the run metadata is internally consistent while describing a different
+instrument from the pre-registered one. A single mismatch invalidates the iteration rather than
+costing it one run, because a matching output cannot be told apart from a non-matching one without
+already knowing which revision produced it. The report records the resolved identifier next to the
+tag name, and the pre-registration still contains no identifier of its own, so the circularity stays
+solved. Neither check exists in the runner today; enforcing them there is a backlog candidate, not a
+promise this section makes.
+
 ### The order of operations
 
 This sequences what the sections below specify. It does not replace them.
@@ -97,18 +110,23 @@ to be.
 4. Add the verified harness version to `verified_harness_versions`, and the harness, version and
    model to the pre-registration, leaving the criteria block untouched.
 5. Commit that state and tag it `pilot-<harness>-<n>-instrument`. That tag is the measured revision.
-6. Start a fresh `iteration-<harness>-<n>` from that tag and record 30 outputs per harness: 15
+6. Resolve the tag and confirm the checkout matches it before anything is recorded:
+   `git rev-parse <tag>^{commit}` and `git rev-parse HEAD` must agree.
+7. Start a fresh `iteration-<harness>-<n>` from that tag and record 30 outputs per harness: 15
    prompts in both configurations.
-7. A fresh isolated session for every output.
-8. Keep every attempt, the failed ones included.
-9. Label each output `good`, `weak` or `fail`, with a classification and a reason.
-10. Blind the first human read to the configuration where the tooling allows it. Where it does not,
+8. A fresh isolated session for every output.
+9. Keep every attempt, the failed ones included.
+10. Label each output `good`, `weak` or `fail`, with a classification and a reason.
+11. Blind the first human read to the configuration where the tooling allows it. Where it does not,
     say so in the report rather than leaving the read to look blind.
-11. Report paired counts, critical failures, negative controls, grader disagreement, token cost and
+12. Report paired counts, critical failures, negative controls, grader disagreement, token cost and
     duration.
-12. Write one report per harness, with the smoke outputs excluded from it.
-13. Attribute no difference to the harness when the models differ.
-14. Write the keep, fix, simplify or remove decision for each pilot skill, against the conditions
+13. Before the report is written, confirm every recorded run's `meta.json.repo_commit` equals the
+    commit the tag resolves to. One mismatch invalidates the iteration.
+14. Write one report per harness, with the smoke outputs excluded from it and the resolved
+    40-character identifier recorded beside the tag name.
+15. Attribute no difference to the harness when the models differ.
+16. Write the keep, fix, simplify or remove decision for each pilot skill, against the conditions
     the pre-registration set.
 
 ### What the per-skill counts can carry
