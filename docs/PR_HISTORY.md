@@ -1,6 +1,6 @@
 # Integrated pull requests
 
-Backfill verified against GitHub PR metadata on 2026-09-10; rows for #19 to #25 added on 2026-09-14 and 2026-09-16 from the same metadata. Titles below are concise descriptions, not verbatim PR titles. Original discussions remain linked. Squash integrations are included; a merge-only git log would omit them.
+Backfill verified against GitHub PR metadata on 2026-09-10; rows for #19 to #26 added on 2026-09-14 and 2026-09-16 from the same metadata. Titles below are concise descriptions, not verbatim PR titles. Original discussions remain linked. Squash integrations are included; a merge-only git log would omit them.
 
 | PR | Integrated (UTC) | Change | Main commit |
 |---|---|---|---|
@@ -29,3 +29,4 @@ Backfill verified against GitHub PR metadata on 2026-09-10; rows for #19 to #25 
 | [#23](https://github.com/lukesw55/ai-pm-toolkit/pull/23) | 2026-09-16T00:08:43Z | B41: standard blocks check relations too, so every one of the 85 evals carries a strict pair; the grader reads each assertion through a soft-wrap normaliser and the repo-doctor eval accepts an honest zero, over three review rounds | `44b7e5164852156b12b6e63d6148d77bea2b4abc` |
 | [#24](https://github.com/lukesw55/ai-pm-toolkit/pull/24) | 2026-09-16T14:47:25Z | B42: labelled grader disagreements become review proposals a person decides on, and product golden sets get the script for the paths eval-design.md already published; six defects found by an adversarial review and three by the owner's, all fixed before merge | `efcba289899a2adc63a778fa8617372fbb6ae746` |
 | [#25](https://github.com/lukesw55/ai-pm-toolkit/pull/25) | 2026-09-16T15:40:48Z | B43: a README for the person deciding whether to use this, with every stated count derived from the tree by `check_readme_contract`, plus `CONTRIBUTING.md`, `SECURITY.md` and a pull request template; four review rounds, reviewed at head `43a84cd` | `1487044ad8513dd8516d9fcf3432cbb249dd4ffa` |
+| [#26](https://github.com/lukesw55/ai-pm-toolkit/pull/26) | 2026-09-16T18:44:51Z | Close the #25 records, register the audit candidates B44, B45 and B46, and hand off the B25 pilot in `docs/EVAL_PROTOCOL.md` with the frozen measurement instrument, a two-phase pre-registration bound to an annotated tag rather than to its own commit, and the real per-skill denominators; five review rounds, reviewed at head `be135d3` | `8a93f431dbafc3b9d5bd7854b03993a20a065434` |
