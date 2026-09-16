@@ -148,19 +148,28 @@ def classify(current: list[dict], stale: list[dict], grading: dict) -> str:
 
 
 def implicated(category: str, grading: dict, checks: list, pair: dict | None) -> dict | None:
-    """Which assertions the disagreement points at, or None when the category is not about
-    the assertions at all. For a false reject, the ones that rejected it. A false accept is a
-    binarised pass, which is the rate clearing the threshold and not a clean sheet, so any
-    check that did fail is named too: it fires on exactly the output a human rejected. The
-    other mechanical signal is which of the passing checks also pass on this eval's own bad
-    and keyword-only fixtures: a check a wrong answer already satisfies is the one least
-    likely to be checking behaviour."""
+    """The assertions this proposal asks a human to change, and nothing else in `labels`.
+
+    For a false reject they are the ones that rejected the output: loosening those is what
+    lets it through. For a false accept they are candidates among the checks that *passed*,
+    because the binarised result is a pass and only a check that currently passes can start
+    rejecting this output and move the rate under the threshold. A check that already fails
+    contributes nothing to the rate, so tightening it cannot change the outcome; those are
+    reported as `already_failing`, which is a diagnostic and never a target.
+
+    A candidate is a passing check that also passes this eval's own bad fixture, or failing
+    that its keyword-only fixture: a check a wrong answer already satisfies is the one least
+    likely to be checking behaviour. With neither, there is no defensible mechanical target
+    and `labels` is empty, which the card says rather than naming one anyway."""
     if category not in ("false-accept", "false-reject"):
         return None
-    labels = [e["text"] for e in grading["expectations"] if not e["passed"]]
+    failing = [e["text"] for e in grading["expectations"] if not e["passed"]]
+    if category == "false-reject":
+        return {"rule": "failing-assertions", "labels": failing, "already_failing": [],
+                "also_pass_on_bad_fixture": [], "also_pass_on_keyword_only_fixture": []}
     also_bad: list[str] = []
     also_keyword: list[str] = []
-    if category == "false-accept" and pair:
+    if pair:
         for (label, check), expectation in zip(checks, grading["expectations"]):
             if not expectation["passed"]:
                 continue
@@ -172,11 +181,26 @@ def implicated(category: str, grading: dict, checks: list, pair: dict | None) ->
             except Exception:  # an assertion that raises is already reported by grade_run
                 continue
     return {
-        "rule": "failing-assertions" if category == "false-reject" else "passing-assertions",
-        "labels": labels,
+        "rule": "passing-assertions",
+        "labels": also_bad or also_keyword,
+        "already_failing": failing,
         "also_pass_on_bad_fixture": also_bad,
         "also_pass_on_keyword_only_fixture": also_keyword,
     }
+
+
+def checks_to_flip(grading: dict) -> int | None:
+    """How many of the checks that pass today would have to start failing for the binarised
+    result to flip. It is the difference between a card that says change one assertion and
+    one that says a single change cannot get there: at 4 of 5 one is enough (0.60), at 9 of
+    10 it is not (0.80 still clears). None when the run is not a binarised pass."""
+    passed, total = grading["passed"], grading["total"]
+    if not total or passed / total < ge.PASS_THRESHOLD:
+        return None
+    for flipped in range(1, passed + 1):
+        if (passed - flipped) / total < ge.PASS_THRESHOLD:
+            return flipped
+    return passed
 
 
 def fixture_suggestion(category: str, verdict: str | None, index: int | None, pair: dict | None, text: str) -> dict | None:
@@ -226,24 +250,27 @@ def fixture_suggestion(category: str, verdict: str | None, index: int | None, pa
     }
 
 
-def assertion_change(category: str, implicated_labels: dict | None, current: list[dict]) -> dict | None:
+def assertion_change(category: str, implicated_labels: dict | None, current: list[dict], grading: dict) -> dict | None:
     """A direction and a rule in plain English, composed only from the assertion labels
     involved and the reason the labeler wrote. No regex is generated: a pattern written
     from one output matches that output, and the person who writes it has to own it."""
     if category not in ("false-accept", "false-reject") or implicated_labels is None:
         return None
     reasons = [record["verdict_reason"] for record in current]
+    flip = checks_to_flip(grading)
     if category == "false-accept":
-        failing = implicated_labels["labels"]
-        targets = failing or implicated_labels["also_pass_on_bad_fixture"] or implicated_labels["also_pass_on_keyword_only_fixture"]
+        targets = implicated_labels["labels"]
         direction = "tighten"
-        if failing:
-            rule = ("An assertion has to reject the behaviour the labeler describes below. Checks already failed "
-                    "on this output and the grader still counted a pass, because the rate cleared the threshold "
-                    "rather than the sheet being clean: the ones named below are where to look first.")
+        if targets:
+            rule = ("A check that currently passes has to start rejecting the behaviour the labeler describes "
+                    f"below. {flip} of the checks that pass today would have to fail for the binarised result to "
+                    "flip. The ones named below pass here and also pass this eval's own wrong answers, so they "
+                    "are the least likely to be checking behaviour and the first place to look.")
         else:
-            rule = ("An assertion has to reject the behaviour the labeler describes below. "
-                    "Every assertion passed on this output, so the gap is not a failing check but a missing one.")
+            rule = ("A check that currently passes has to start rejecting the behaviour the labeler describes "
+                    "below, or a new check has to. No passing check on this output also passes this eval's own "
+                    "wrong answers, so there is no mechanical candidate: the labeler's reason is the evidence, "
+                    "and the reviewer picks the check to change or writes the one that is missing.")
     else:
         targets = implicated_labels["labels"]
         direction = "loosen or re-shape"
@@ -252,6 +279,7 @@ def assertion_change(category: str, implicated_labels: dict | None, current: lis
     return {
         "direction": direction,
         "targets": targets,
+        "checks_to_flip": flip,
         "rule_in_plain_english": rule,
         "reasons_quoted": reasons,
         "regex": None,
@@ -368,7 +396,7 @@ def build_proposal(root: Path, iteration: str, key: tuple, labels_by_key: dict, 
         },
         "implicated_assertions": marks,
         "fixture_suggestion": fixture_suggestion(category, verdict, index, pair, text),
-        "assertion_change": assertion_change(category, marks, current),
+        "assertion_change": assertion_change(category, marks, current, grading),
         "rubric_impact": rubric_impact(labels_by_key, skill, eval_id) if category == "eval-defect" else None,
         "human_decisions": decisions_for(category, {"skill": skill, "eval_name": eval_name, "config": config}, iteration),
         "excerpt": excerpt(text, limit, full),
@@ -460,33 +488,40 @@ def render_markdown(proposal: dict) -> str:
     else:
         out.append("## Implicated assertions")
         out.append("")
-        if marks["labels"]:
+        flip = (proposal["assertion_change"] or {}).get("checks_to_flip")
+        if marks["already_failing"]:
             out.append(f"{grader['passed']} of {grader['total']} assertions passed. The grader counted a pass because "
-                       f"the rate cleared {grader['threshold']}, not because the sheet was clean: these failed on this "
-                       "output, so they are the checks closest to the behaviour the labeler rejected.")
+                       f"the rate cleared {grader['threshold']}, not because the sheet was clean.")
+            out.append("")
+            out.append("These already fail on this output:")
+            out.append("")
+            for label in marks["already_failing"]:
+                out.append(f"- {label}")
+            out.append("")
+            out.append("They are not the ones to change. A check that already returns false contributes nothing to the "
+                       f"rate, so tightening it leaves the result exactly where it is: {flip} of the checks that pass "
+                       "today would have to start failing for the binarised result to flip. They are named because a "
+                       "block where a real failure still clears the threshold is worth a second look on its own.")
+        else:
+            out.append(f"Every assertion passed, and the binarised result is a pass. {flip} of them would have to "
+                       f"start rejecting this output for the rate to fall under {grader['threshold']}.")
+        out.append("")
+        if marks["labels"]:
+            fixture = "bad" if marks["also_pass_on_bad_fixture"] else "keyword-only"
+            out.append(f"These pass on this output and also pass this eval's own {fixture} fixture, so they are the "
+                       "least likely to be checking behaviour and the first candidates to tighten:")
             out.append("")
             for label in marks["labels"]:
                 out.append(f"- {label}")
-            out.append("")
-            out.append("The labeler's reason:")
         else:
-            out.append("Every assertion passed, so no failing check points at the gap. The labeler's reason is the "
-                       "only evidence of which behaviour goes unchecked:")
+            out.append("No check that passes here also passes this eval's own wrong answers, so there is no mechanical "
+                       "candidate to name. The gap is a check that is missing rather than one that is too loose, and "
+                       "the reviewer picks what to write.")
+        out.append("")
+        out.append("The labeler's reason is the evidence of which behaviour goes unchecked:")
         out.append("")
         for record in human["labels"]:
             out.append(f"> {record['verdict_reason']} — {record['labeler']}")
-        if marks["also_pass_on_bad_fixture"]:
-            out.append("")
-            out.append("Assertions that also pass on this eval's own bad fixture, so they are the least likely to be checking behaviour:")
-            out.append("")
-            for label in marks["also_pass_on_bad_fixture"]:
-                out.append(f"- {label}")
-        if marks["also_pass_on_keyword_only_fixture"]:
-            out.append("")
-            out.append("Assertions that also pass on its keyword-only fixture:")
-            out.append("")
-            for label in marks["also_pass_on_keyword_only_fixture"]:
-                out.append(f"- {label}")
     out.append("")
     if proposal["rubric_impact"]:
         out.append("## Rubric impact")

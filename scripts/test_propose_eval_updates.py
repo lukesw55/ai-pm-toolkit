@@ -43,12 +43,19 @@ class ProposeTests(unittest.TestCase):
         base=dict(skill=self.skill,eval=self.eval,config='with_skill',iteration=self.iteration,verdict='good',classification=[],reason='usable as delivered',labeler='lucas',labels_file=None,supersede=False)
         base.update(over);lr.label(argparse.Namespace(**base),self.root)
 
-    def write_fixture_pair(self):
+    def write_fixture_pair(self,**over):
         path=self.root/pe.FIXTURES;path.parent.mkdir(parents=True,exist_ok=True)
         pair={'skill':self.skill,'eval':self.eval,'good':self.good,'bad':'delta: a plausible wrong answer',
               'keyword_only':'alpha. beta.','near_miss':{'text':'alpha only','fails':'mentions beta'}}
+        pair.update(over)
         path.write_text(json.dumps([pair],indent=2)+'\n',encoding='utf-8')
         return pair
+
+    def five_checks(self):
+        """alpha, beta, synthetic and fixture pass on self.good; epsilon does not."""
+        return {self.skill:{self.eval:[('mentions alpha',ge.has('alpha')),('mentions beta',ge.has('beta')),
+                                       ('mentions synthetic',ge.has('synthetic')),('mentions fixture',ge.has('fixture')),
+                                       ('mentions epsilon',ge.has('epsilon'))]}}
 
     def meta(self,config='with_skill'):
         directory=pe.run_dir(self.root,self.iteration,self.skill,self.spec['id'],self.eval,config)
@@ -101,27 +108,62 @@ class ProposeTests(unittest.TestCase):
         self.assertEqual(proposal['fixture_suggestion']['slot'],'near_miss')
         self.assertIn('Scores every dimension but never applies the lock',markdown)
         self.assertIn(self.meta()['output_sha256'],markdown)
-        # every assertion passed, so the mechanical signal is which also pass on the wrong answers
-        self.assertEqual(proposal['implicated_assertions']['labels'],[])
+        # every assertion passed, so the candidates are the ones a wrong answer also satisfies
+        self.assertEqual(proposal['implicated_assertions']['already_failing'],[])
+        self.assertEqual(proposal['implicated_assertions']['labels'],['mentions alpha','mentions beta'])
 
-    def test_a_false_accept_with_a_failing_check_names_it(self):
-        """A binarised pass is the rate clearing the threshold, not a clean sheet: at 0.80 four
-        of five checks passed and the fifth fired on exactly the output the human rejected."""
+    def test_a_false_accept_reports_the_failing_check_without_targeting_it(self):
+        """A binarised pass is the rate clearing the threshold, not a clean sheet. The check that
+        already fails is diagnostic: tightening it cannot move a rate it contributes nothing to."""
         self.write_fixture_pair()
-        five={self.skill:{self.eval:[('mentions alpha',ge.has('alpha')),('mentions beta',ge.has('beta')),
-                                     ('mentions synthetic',ge.has('synthetic')),('mentions fixture',ge.has('fixture')),
-                                     ('mentions epsilon',ge.has('epsilon'))]}}
         self.label(verdict='weak',classification=['skipped-method'],reason='Scores every dimension but never applies the lock')
-        with patch.dict(ge.ASSERTIONS,five):
+        with patch.dict(ge.ASSERTIONS,self.five_checks()):
             pe.propose(self.args(),self.root)
         proposal,markdown=self.one_proposal()
         self.assertEqual(proposal['category'],'false-accept')
         self.assertEqual(proposal['grader']['pass_rate'],0.8)
-        self.assertEqual(proposal['implicated_assertions']['labels'],['mentions epsilon'])
-        self.assertEqual(proposal['assertion_change']['targets'],['mentions epsilon'])
+        self.assertEqual(proposal['implicated_assertions']['already_failing'],['mentions epsilon'])
+        self.assertNotIn('mentions epsilon',proposal['assertion_change']['targets'])
         self.assertIn('4 of 5 assertions passed',markdown)
-        self.assertIn('- mentions epsilon',markdown)
+        self.assertIn('They are not the ones to change',markdown)
         self.assertNotIn('Every assertion passed',markdown)
+
+    def test_a_false_accept_targets_a_check_that_can_flip_it(self):
+        """The remediation candidate is a check that passes today, so changing it can actually
+        take the rate under the threshold. Here 4 of 5 pass and 3 of 5 is 0.60."""
+        self.write_fixture_pair(bad='alpha, but delta is the wrong call')
+        self.label(verdict='weak',classification=['skipped-method'],reason='Applies the ruler but never the lock')
+        with patch.dict(ge.ASSERTIONS,self.five_checks()):
+            pe.propose(self.args(),self.root)
+        proposal,markdown=self.one_proposal()
+        marks,change=proposal['implicated_assertions'],proposal['assertion_change']
+        passing=[e['text'] for e in proposal['grader']['expectations'] if e['passed']]
+        self.assertEqual(change['targets'],['mentions alpha'])
+        self.assertTrue(set(change['targets']) <= set(passing),'a target has to be a check that passes today')
+        self.assertEqual(marks['already_failing'],['mentions epsilon'])
+        self.assertEqual(change['checks_to_flip'],1)
+        grader=proposal['grader']
+        self.assertLess((grader['passed']-change['checks_to_flip'])/grader['total'],grader['threshold'],
+                        'flipping that many checks has to put the rate under the threshold')
+        self.assertIn('first candidates to tighten',markdown)
+
+    def test_a_false_accept_without_a_mechanical_target_says_so(self):
+        self.write_fixture_pair(keyword_only='delta. epsilon.')
+        self.label(verdict='weak',classification=['skipped-method'],reason='Applies the ruler but never the lock')
+        with patch.dict(ge.ASSERTIONS,self.five_checks()):
+            pe.propose(self.args(),self.root)
+        proposal,markdown=self.one_proposal()
+        self.assertEqual(proposal['assertion_change']['targets'],[])
+        self.assertIn('no mechanical candidate',markdown)
+        self.assertIn('the reviewer picks what to write',markdown)
+
+    def test_checks_to_flip_counts_what_a_change_has_to_move(self):
+        """One check is enough at 4 of 5 and is not at 9 of 10, which is the difference between
+        a card that asks for one assertion and one that says a single change cannot get there."""
+        self.assertEqual(pe.checks_to_flip({'passed':4,'total':5}),1)
+        self.assertEqual(pe.checks_to_flip({'passed':9,'total':10}),2)
+        self.assertEqual(pe.checks_to_flip({'passed':8,'total':8}),2)
+        self.assertIsNone(pe.checks_to_flip({'passed':3,'total':5}),'not a binarised pass')
 
     def test_an_eval_without_assertions_is_reported_not_proposed(self):
         """A card would name the assertions to change and have none to name."""
