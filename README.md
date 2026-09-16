@@ -1,6 +1,6 @@
 # ai-pm-toolkit
 
-**PM skills for Claude Code and Codex. The skills ask nicely; four gates run in the harness, on the tool call and at the end of the turn, and the model does not get to opt out of those.**
+**PM skills for Claude Code and Codex. The skills ask nicely; four gates run in the harness, on the tool calls they are wired to and at the end of every turn.**
 
 [![validate](https://github.com/lukesw55/ai-pm-toolkit/actions/workflows/validate.yml/badge.svg)](https://github.com/lukesw55/ai-pm-toolkit/actions/workflows/validate.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -9,7 +9,7 @@
 [![Built for Codex](https://img.shields.io/badge/built%20for-Codex-412991)](https://developers.openai.com/codex/cli)
 [![Contributions](https://img.shields.io/badge/contributions-welcome-brightgreen)](CONTRIBUTING.md)
 
-An operating system for product managers who drive a coding agent. It turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered memory that survives context switching, and 4 blocking hooks that reject slop patterns, unresolved inference markers and unmarked outbound prose, three of them before the write or the publish happens and one at the end of every reply. The repository ships eval cases and a grader for recorded with-skill and no-skill runs; no measured benchmark result is published yet.
+An operating system for product managers who drive a coding agent. It turns a vague idea into a shipped increment through an 8-stage pipeline, 21 hard-skill PM skills, layered memory that survives context switching, and 4 blocking hooks that reject slop patterns, unresolved inference markers and unmarked outbound prose on the routes they are wired to, three of them before the write or the publish happens and one at the end of every reply. The repository ships eval cases and a grader for recorded with-skill and no-skill runs; no measured benchmark result is published yet.
 
 It is the company-agnostic core of a working PM toolkit: the skills, agents, hooks and doctrine one PM uses daily, with the employer-specific stack and customer evidence stripped out.
 
@@ -74,7 +74,9 @@ flowchart LR
 
 Three different things happen in that loop, and it is worth keeping them apart.
 
-**Enforced by the harness.** The four blocking gates: `anti-slop-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for every write and edit, `humanize-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for publish tools, and `scope-bloat-gate.sh` on `Stop` for the reply itself. A block is a refusal the model cannot argue past, only override per content.
+**Enforced by the harness, on the routes it is wired to.** The four blocking gates: `anti-slop-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for the write tools (`Write`, `Edit`, `NotebookEdit`, and Codex `apply_patch` through its adapter), `humanize-gate.sh` and `inference-discipline-gate.sh` on `PreToolUse` for the listed publish tools, and `scope-bloat-gate.sh` on `Stop` for the reply itself. On those routes a block is a refusal the model cannot argue past, only override per content.
+
+The routes are the boundary, and they are not all of them: `hooks/contract.json` declares `Bash` with an empty handler list, so a file written through a shell command is not seen by these gates. That is a quality boundary on the paths an agent normally takes, not a sandbox, which is what [`SECURITY.md`](SECURITY.md) says in its own words.
 
 **Injected context.** `hooks/memory-context.sh` puts the memory pointer in at `SessionStart`; `scripts/stage_context.py` puts the current stage in on every `UserPromptSubmit`. Both are wired the same way in `.claude/settings.json` and `.codex/hooks.json`. They shape what the model sees rather than what it is allowed to do.
 
@@ -99,7 +101,7 @@ flowchart LR
 
 The solid line is the default path. During Discovery, evidence updates the Impact Brief instead of leaving its commercial case frozen. Engineering joins that work when feasibility is material, before the One Pager hardens a direction. The other dotted edges return unsupported bets to the opportunity tree, failed prototype directions to the One Pager, and measured delivery impact to the next opportunity.
 
-Each stage has a skill that produces its artefact and a gate that must pass before advancing:
+Each stage has a skill that produces its artefact and a gate it should clear before advancing. The gates are a Definition of Done in [`WORKFLOW.md`](skills/WORKFLOW.md), read by whoever reviews the artefact; `advance_stage.py` moves the pointer and does not check them.
 
 | # | Stage | Skill | Artefact | Gate |
 |---|---|---|---|---|
@@ -134,11 +136,11 @@ Skills support three output profiles (see [`docs/patterns/COMMUNICATION_MODES.md
 
 ## Enforcement, not vibes
 
-The gates in [`hooks/`](hooks/) reject bad output at tool-call time, in both harnesses, wired through [`.claude/settings.json`](.claude/settings.json) and [`.codex/hooks.json`](.codex/hooks.json):
+The gates in [`hooks/`](hooks/) reject bad output through the configured `PreToolUse` and `Stop` routes in both harnesses, wired through [`.claude/settings.json`](.claude/settings.json) and [`.codex/hooks.json`](.codex/hooks.json):
 
 | Hook | Fires on | Blocks |
 |---|---|---|
-| `anti-slop-gate.sh` | every file write/edit | forbidden file artefacts (unrequested PLAN/SUMMARY/NOTES files), banner comments, decorative emoji headings |
+| `anti-slop-gate.sh` | the configured write tools | forbidden file artefacts (unrequested PLAN/SUMMARY/NOTES files), banner comments, decorative emoji headings |
 | `inference-discipline-gate.sh` | writes and outbound publishes | five literal unresolved inference markers; semantic fact-checking remains the skill's responsibility |
 | `humanize-gate.sh` | Confluence / Slack / Jira publish tools | AI-tinted prose shipping outbound before a `humanizer` pass, tracked by a per-content sha256 sentinel |
 | `scope-bloat-gate.sh` | end of every reply (Stop) | em-dash density, label-colon bullet runs, headers on short questions, scope bloat |
@@ -178,7 +180,7 @@ PII and raw-evidence paths are never rotated, distilled, or ingested: `memory.py
 
 ## Four things people use it for
 
-**A vague feature request lands and you have no evidence.** Invoke `pm-phase-discover`. It frames the problem before any solution, designs the research, and produces `discovery/<topic>/synthesis.md` plus an opportunity tree where every unverified assumption carries either a test or an accepted-risk decision with a named owner. The gate will not let the stage advance while an assumption is floating.
+**A vague feature request lands and you have no evidence.** Invoke `pm-phase-discover`. It frames the problem before any solution, designs the research, and produces `discovery/<topic>/synthesis.md` plus an opportunity tree where every unverified assumption carries either a test or an accepted-risk decision with a named owner. Before Discovery counts as complete, its Definition of Done in [`WORKFLOW.md`](skills/WORKFLOW.md) requires every unverified assumption to carry either a test or an explicit accepted-risk decision with a named owner.
 
 **A PRD is due and the tracking plan is an afterthought.** Invoke `pm-phase-develop`. The PRD comes back with goals and non-goals, given-when-then criteria, the event schema with properties, a primary metric with baseline and target, guardrails, and a rollback criterion with a threshold. Instrumentation is part of the artefact rather than a follow-up ticket.
 
