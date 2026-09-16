@@ -150,42 +150,67 @@ it as one.
 
 Rule 3 pre-registers a decision for each pilot skill. It does not say what the pilot as a whole
 means, and deciding that after the results are in has the same defect as writing the per-skill
-criteria then: the outcome describes the results. So the verdict for the run as a whole is
-pre-registered in the same file and the same commit as the per-skill conditions, before any
-measured output exists.
+criteria then: the outcome describes the results. So the verdict for the run is pre-registered in
+the same file and the same commit as the per-skill conditions, before any measured output exists.
 
-Nothing below is a statistical test. Each line is a way of describing counts over 6, 5 and 4 pairs.
+**One verdict per harness.** The comparison is paired inside one harness, two harnesses run
+different models, and the protocol forbids attributing a difference to the harness when the models
+differ. Pooling the two would do exactly that, so each harness iteration gets its own verdict from
+the procedure below, and the pilot summary carries both side by side. A toolkit-level decision
+requires the same verdict from both harnesses; otherwise the toolkit-level reading is inconclusive.
+Two harness verdicts that differ are not evidence about the harnesses.
 
-**Useful signal**, when all of these hold:
+Nothing below is a statistical test. Each term is defined by something observable in the recorded
+run, and each verdict is reached by an ordered procedure, so one evidence state maps to exactly one
+verdict.
 
-- at least two of the three skills show a consistent paired improvement;
-- no skill regresses on critical failures;
-- negative controls do not get materially worse;
-- the improvement is not explained by length alone;
-- the grader's direction and the human judgement broadly agree.
+#### What the terms mean, fixed before the run
 
-**Inconclusive**, when any of these holds:
+- **Movement** in a pair: the human verdict category changes between the two configurations, or a
+  pre-registered critical failure appears or disappears. A grader score that moves without changing
+  the human category is not movement.
+- **A skill improves materially**: more of its pairs move up than down, and none of its pairs moves
+  down by gaining a critical failure.
+- **A skill regresses materially**: more of its pairs move down than up.
+- **A skill regresses on critical failures**: any pair carries a pre-registered critical failure
+  under `with_skill` that its `without_skill` counterpart does not.
+- **A negative control is materially worse**: its human verdict category drops, or it gains a
+  pre-registered critical failure.
+- **An improvement is explained by length**: the labeler's recorded reason for the upward move cites
+  added length or the wording of the assertion rather than the behaviour that assertion names.
+- **Grader and human agree on a skill**: the direction the grader shows and the direction the human
+  verdicts show are the same, or the difference between them does not change that direction.
+- **A skill is unreadable**: `investigate_grader` fires for it and its human verdicts do not settle
+  the direction.
+- **A pair is contaminated**: its run failed and was retried, or its recorded envelope does not match
+  the pre-registered harness version, model or isolation configuration.
 
-- gains and regressions are mixed across skills;
-- human and grader disagreement is wide enough that the pairs cannot be read;
-- harness or model failures contaminate pairs that matter;
-- the reading depends on a handful of ambiguous cases.
+#### The procedure, evaluated in order, first match wins
 
-**Negative signal**, when any of these holds:
+0. **No verdict.** The iteration is void if rule 1 was broken or the tag binding failed. Void is not
+   a result; the iteration is re-run under a new pre-registration.
+1. **Negative signal**, if any of: a skill regresses on critical failures; no skill improves
+   materially and at least one regresses materially; every material improvement is explained by
+   length; no skill improves materially and cost or latency rises.
+2. **Inconclusive**, if any of: a skill is unreadable; a contaminated pair would change a skill's
+   direction; a skill's direction rests on a single pair whose human verdict is a split.
+3. **Useful signal**, only if all of: at least two of the three skills improve materially; no
+   negative control is materially worse; grader and human agree on every skill.
+4. **Inconclusive** otherwise. This is the residual case and it is reached deliberately, so an
+   evidence state that satisfies nothing above still has exactly one verdict.
 
-- no material paired improvement anywhere;
-- critical failures increase;
-- the apparent gain is mostly verbosity or rubric gaming;
-- cost or latency rises without a proportional gain in quality.
+Cost and latency are always reported, and they only ever trigger a verdict through step 1, where the
+quality condition is already that no skill improved materially. A rise in cost alongside a real
+quality gain is reported and does not by itself make the run negative.
 
-"Material" is a judgement recorded with its evidence, not a number: the report names which pairs
-moved and in which direction, per skill, against that skill's denominator. A reader who disagrees
-with the verdict can therefore check the pairs rather than argue with a threshold.
+The report names which pairs moved and in which direction, per skill, against that skill's
+denominator of 6, 5 or 4, so a reader who disagrees with the verdict can check the pairs rather than
+argue with a threshold.
 
 Inconclusive is a legitimate outcome and the likely one at this size. It is not a failure to be
 argued away, and it does not license a second reading of the same outputs under different criteria.
-Changing the criteria means a new pre-registration and a new iteration, by rule 1.
-
+Changing any definition or any step above means a new pre-registration and a new iteration, by
+rule 1.
 
 ## Assertion and fixture contract
 
