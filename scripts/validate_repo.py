@@ -30,6 +30,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from urllib.parse import unquote as unquote_url
 
 try:
     import yaml  # type: ignore
@@ -409,10 +410,8 @@ def check_backtick_paths(errors: list[str]) -> None:
 
 
 README = ROOT / "README.md"
-# Every number the README states about the tree, and where the tree says it. Each pattern has
-# to match exactly once. Zero matches means the sentence was reworded and the check quietly
-# stopped protecting anything, which is worse than a wrong number, and more than one means the
-# count is written twice and the copies will drift. So: a validated count is a digit, said once.
+# Inventory claims are optional. Recognised numeric claims still have to match
+# the tree and appear once; these patterns do not fact-check arbitrary prose.
 README_COUNTS = (
     ("skills", r"\b(\d+) hard-skill PM skills\b"),
     ("blocking hooks", r"\b(\d+) blocking hooks\b"),
@@ -420,6 +419,10 @@ README_COUNTS = (
     ("eval cases", r"\b(\d+) eval cases\b"),
     ("eval categories", r"\b(\d+) standard, (\d+) doctrine-adversarial, (\d+) skill-functional-adversarial"
                        r" and (\d+) negative controls\b"),
+)
+README_REQUIRED_LINKS = (
+    "SKILL.md", "skills/WORKFLOW.md", "docs/memory/MEMORY_SYSTEM.md",
+    "docs/EVAL_PROTOCOL.md", "CLAUDE.md", "AGENTS.md", "CONTRIBUTING.md", "SECURITY.md",
 )
 
 
@@ -483,24 +486,80 @@ MANIFEST_COUNTS = ("eval cases", "eval categories")
 
 
 def anchor(heading: str) -> str:
-    """GitHub's own rule for a heading anchor: lowercase, punctuation dropped, spaces hyphened."""
-    kept = "".join(c for c in heading.lower() if c.isalnum() or c in " -")
+    """Slug a Markdown heading, preserving underscores and hyphens."""
+    heading = re.sub(r"!?\[([^\]]+)\]\([^)]+\)", r"\1", heading)
+    kept = "".join(c for c in heading.lower() if c.isalnum() or c in " _-")
     return kept.strip().replace(" ", "-")
 
 
+def markdown_headings(text: str) -> list[tuple[int, str]]:
+    headings: list[tuple[int, str]] = []
+    fence = ""
+    for line in text.splitlines():
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if fence:
+            if (marker and marker[1][0] == fence[0] and len(marker[1]) >= len(fence)
+                    and not marker[2].strip()):
+                fence = ""
+            continue
+        if marker:
+            fence = marker[1]
+            continue
+        heading = re.match(r"^ {0,3}(#{1,6})\s+(.+)$", line)
+        if heading:
+            title = re.sub(r"\s+#+\s*$", "", heading[2]).strip()
+            headings.append((len(heading[1]), title))
+    return headings
+
+
+def markdown_anchors(text: str) -> set[str]:
+    anchors: set[str] = set()
+    for _level, heading in markdown_headings(text):
+        slug = anchor(heading)
+        candidate, suffix = slug, 0
+        while candidate in anchors:
+            suffix += 1
+            candidate = f"{slug}-{suffix}"
+        anchors.add(candidate)
+    return anchors
+
+
 def check_readme_contract(errors: list[str]) -> None:
-    """B43: the README states counts, lists every script and carries a table of contents, and
-    nothing checked any of the three. A 22nd skill or a new script is meant to fail here until
-    the README is updated; that is the point, and CONTRIBUTING.md says so."""
+    """Check the entry point and its references without requiring an inventory or contents list."""
     if not README.is_file():
         err(errors, "README.md: missing")
         return
     text = README.read_text(encoding="utf-8")
+    if not any(level == 1 and title for level, title in markdown_headings(text)):
+        err(errors, "README.md: missing top-level title")
+    linked_files: set[Path] = set()
+    for link in re.findall(r"\[[^\]]+\]\(([^)]+)\)", text):
+        link = link.strip()
+        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", link):
+            continue
+        file_part, _separator, fragment = link.partition("#")
+        target = (README.parent / unquote_url(file_part)).resolve() if file_part else README.resolve()
+        try:
+            target.relative_to(ROOT.resolve())
+        except ValueError:
+            err(errors, f"README.md: local link outside repository -> {link}")
+            continue
+        linked_files.add(target)
+        # Missing files are reported by check_markdown_links; fragments need a
+        # separate check because that function only checks the file path.
+        if fragment and target.is_file() and target.suffix.lower() == ".md":
+            if unquote_url(fragment) not in markdown_anchors(target.read_text(encoding="utf-8")):
+                err(errors, f"README.md: broken heading anchor -> {link}")
+    for required in README_REQUIRED_LINKS:
+        if (ROOT / required).resolve() not in linked_files:
+            err(errors, f"README.md: missing documentation link -> {required}")
     facts, manifests_ok = readme_facts()
     for name, pattern in README_COUNTS:
         if not manifests_ok and name in MANIFEST_COUNTS:
             continue  # check_eval_coverage reports the manifest itself; see eval_categories
         found = re.findall(pattern, text)
+        if not found:
+            continue
         if len(found) != 1:
             err(errors, f"README.md: the {name} count must be stated exactly once as a digit; "
                         f"the pattern for it matched {len(found)} time(s)")
@@ -509,20 +568,6 @@ def check_readme_contract(errors: list[str]) -> None:
         if stated != facts[name]:
             err(errors, f"README.md: says {name} {', '.join(str(n) for n in stated)}; the tree has "
                         f"{', '.join(str(n) for n in facts[name])}")
-
-    listed = set(re.findall(r"^\| `([a-z0-9_]+\.(?:py|sh))` \|", text, re.M))
-    on_disk = {path.name for path in (ROOT / "scripts").iterdir() if path.suffix in (".py", ".sh")}
-    for missing in sorted(on_disk - listed):
-        err(errors, f"README.md: the scripts table has no row for scripts/{missing}")
-    for extra in sorted(listed - on_disk):
-        err(errors, f"README.md: the scripts table names scripts/{extra}, which does not exist")
-
-    headings = [line[3:].strip() for line in text.splitlines() if line.startswith("## ")]
-    linked = re.findall(r"^- \[[^\]]+\]\(#([a-z0-9-]+)\)$", text, re.M)
-    expected = [anchor(h) for h in headings]
-    if linked != expected:
-        err(errors, "README.md: the contents list and the top-level headings disagree; "
-                    f"listed {linked}, headings {expected}")
 
 
 def check_workflow_contract(errors: list[str]) -> None:

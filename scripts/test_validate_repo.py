@@ -21,10 +21,10 @@ load_frontmatter: one canonical fixture checks the parsed *value*, not just
 the absence of a finding, so a block-scalar marker such as ">-" cannot pass as
 a description the way it used to.
 
-check_readme_contract: six cases build a tiny tree with two skills, one gate, one agent
-and two scripts, then feed the check a README that matches it and five that drift — a
-wrong count, a count stated twice, a missing table row, a row for a script that is gone,
-and a contents list out of step with the headings.
+check_readme_contract: a short entry point needs a title and documentation links,
+but no inventory or contents list. Broken file references and heading anchors fail;
+optional recognised counts still match the tree. Malformed eval manifests must not
+abort the check before check_eval_coverage can report their defects.
 
 check_backtick_paths and check_markdown_links: a generated eval proposal quotes a
 recorded output, so it may carry a path that never existed. Two cases assert the
@@ -285,25 +285,54 @@ def main() -> int:
             for e in errors:
                 print(f"      {e}")
 
-    # check_readme_contract: every count comes from the tree, so a README that drifts is a
-    # finding rather than a thing someone notices six months later.
+    essential_links = "\n".join(f"[{name}]({name})" for name in vr.README_REQUIRED_LINKS)
+    lean_readme = "# Toolkit\n\n" + essential_links + "\n"
+
+    def write_readme_docs(tree: Path) -> None:
+        for name in vr.README_REQUIRED_LINKS:
+            path = tree / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("# Guide\n\n## Next_step\n\n## Next_step\n", encoding="utf-8")
+
     readme_cases = [
         ("a README that matches the tree", lambda t: t, [], 0),
+        ("a lean README without counts, inventory or contents", lambda t: lean_readme, [], 0),
+        ("a missing README", lambda t: None, ["README.md: missing"], 1),
+        ("a missing title", lambda t: lean_readme.replace("# Toolkit\n", ""),
+         ["missing top-level title"], 1),
+        ("a title inside a code fence", lambda t: lean_readme.replace("# Toolkit", "```\n# Toolkit\n```"),
+         ["missing top-level title"], 1),
+        ("a missing contribution link", lambda t: t.replace("[CONTRIBUTING.md](CONTRIBUTING.md)", ""),
+         ["missing documentation link -> CONTRIBUTING.md"], 1),
+        ("an external URL is not a local documentation link",
+         lambda t: t.replace("(CONTRIBUTING.md)", "(https://example.com/CONTRIBUTING.md)"),
+         ["missing documentation link -> CONTRIBUTING.md"], 1),
         ("a count that drifted", lambda t: t.replace("2 hard-skill", "9 hard-skill"),
          ["says skills 9; the tree has 2"], 1),
         ("a count stated twice", lambda t: t + "\n\nStill 2 hard-skill PM skills.\n",
          ["stated exactly once as a digit", "matched 2 time(s)"], 1),
-        ("a script with no row", lambda t: t.replace("| `two.py` | second |\n", ""),
-         ["no row for scripts/two.py"], 1),
-        ("a row for a script that is gone", lambda t: t.replace("| `two.py` |", "| `three.py` |"),
-         ["no row for scripts/two.py", "names scripts/three.py, which does not exist"], 2),
-        ("a contents list out of step with the headings",
-         lambda t: t.replace("- [Second](#second)\n", ""),
-         ["contents list and the top-level headings disagree"], 1),
+        ("an optional script inventory", lambda t: t.replace("| `two.py` | second |\n", ""), [], 0),
+        ("a broken script link", lambda t: t + "\n[Script](scripts/missing.py)\n",
+         ["broken local link -> scripts/missing.py"], 1),
+        ("a broken backtick script path", lambda t: t + "\nRun `scripts/missing.py`.\n",
+         ["backtick path not found -> scripts/missing.py"], 1),
+        ("an optional partial contents list", lambda t: t.replace("- [Second](#second)\n", ""), [], 0),
+        ("a broken contents anchor", lambda t: t.replace("(#second)", "(#missing)"),
+         ["broken heading anchor -> #missing"], 1),
+        ("cross-file anchors with underscores and duplicate headings",
+         lambda t: t + "\n[Guide](SKILL.md#next_step) [Again](SKILL.md#next_step-1)\n", [], 0),
+        ("a broken cross-file anchor", lambda t: t + "\n[Guide](SKILL.md#missing)\n",
+         ["broken heading anchor -> SKILL.md#missing"], 1),
+        ("a fenced heading is not an anchor",
+         lambda t: t + "\n```markdown\n## Hidden\n```\n[Hidden](#hidden)\n",
+         ["broken heading anchor -> #hidden"], 1),
+        ("a link outside the repository", lambda t: t + "\n[Outside](../outside.md)\n",
+         ["local link outside repository -> ../outside.md"], 1),
     ]
     for name, mutate, expected, expected_count in readme_cases:
         with tempfile.TemporaryDirectory() as td:
             tree = Path(td)
+            write_readme_docs(tree)
             for skill in ("alpha", "beta"):
                 (tree / "skills" / skill / "evals").mkdir(parents=True)
                 (tree / "skills" / skill / "SKILL.md").write_text("x", encoding="utf-8")
@@ -322,13 +351,18 @@ def main() -> int:
                 "2 standard, 0 doctrine-adversarial, 0 skill-functional-adversarial and 2 negative controls.",
                 "", "- [First](#first)", "- [Second](#second)", "",
                 "## First", "", "| Script | Purpose |", "|---|---|",
-                "| `one.py` | first |", "| `two.py` | second |", "", "## Second", "", "done.", ""])
-            (tree / "README.md").write_text(mutate(readme), encoding="utf-8")
+                "| `one.py` | first |", "| `two.py` | second |", "", "## Second", "", "done.", "",
+                essential_links, ""])
+            changed = mutate(readme)
+            if changed is not None:
+                (tree / "README.md").write_text(changed, encoding="utf-8")
             saved = (vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README)
             vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = tree, tree / "skills", tree / "hooks", tree / "README.md"
             try:
                 readme_errors: list[str] = []
                 vr.check_readme_contract(readme_errors)
+                vr.check_markdown_links(readme_errors)
+                vr.check_backtick_paths(readme_errors)
             finally:
                 vr.ROOT, vr.SKILLS, vr.HOOKS, vr.README = saved
         joined = " ".join(readme_errors)
@@ -347,6 +381,7 @@ def main() -> int:
                     orphan: object = None, extra_skill: bool = False,
                     raw: "bytes | None" = None) -> Path:
         tree = Path(td)
+        write_readme_docs(tree)
         (tree / "skills" / "fake-skill" / "evals").mkdir(parents=True)
         (tree / "skills" / "fake-skill" / "SKILL.md").write_text("x", encoding="utf-8")
         manifest = tree / "skills" / "fake-skill" / "evals" / "evals.json"
@@ -371,7 +406,8 @@ def main() -> int:
             "# t", "",
             f"{skills_said} hard-skill PM skills, 1 blocking hooks, 1 agents, {evals_said} eval cases:",
             "9 standard, 0 doctrine-adversarial, 0 skill-functional-adversarial and 0 negative controls.",
-            "", "- [First](#first)", "", "## First", "", "done.", ""]), encoding="utf-8")
+            "", "- [First](#first)", "", "## First", "", "done.", "",
+            essential_links, ""]), encoding="utf-8")
         return tree
 
     def run_readme_contract(payload: object, skills_said: int = 1, **kwargs) -> tuple[list[str], str]:
