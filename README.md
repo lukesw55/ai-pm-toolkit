@@ -65,9 +65,41 @@ It sequences four phases:
 
 The [team workflow](skills/WORKFLOW.md) maps these phases to eight stages, from Discovery Prioritization to Delivery, with deliverables and review criteria. Evidence can justify returning to an earlier stage or skipping one with a recorded rationale. Moving the stage pointer does not validate an artefact or approve a decision.
 
+```mermaid
+flowchart LR
+    subgraph problem [Problem space]
+        S1["1. Discovery<br/>Prioritization"] --> S2["2. Impact<br/>Brief"] --> S3["3. Discovery<br/>with Engineering"] --> S4["4. One<br/>Pager"]
+    end
+    subgraph solution [Solution space]
+        S5["5. Bet Selection<br/>+ Scope Slicing"] --> S6["6. PRD +<br/>Prototype"] --> S7["7. Tech<br/>Kickoff"] --> S8["8. Delivery"]
+    end
+    S4 --> S5
+    S3 -.->|evidence reshapes impact| S2
+    S4 -.->|evidence does not hold| S3
+    S6 -.->|prototype kills the direction| S4
+    S8 -.->|impact measured| S3
+```
+
 Each skill defines its method in a `SKILL.md`. Most include a progressive-loading map, such as the [discovery reference map](skills/pm-phase-discover/references/progressive-loading.md), that directs the agent to the reference needed for the task, such as research design, PRD writing, or launch readiness. This is progressive loading: instructions select supporting material as work requires it.
 
 Phase skills can be combined with stakeholder, analysis, documentation, and communication skills. AI, enterprise, growth, and platform lenses add domain-specific concerns.
+
+### A request through the toolkit
+
+```mermaid
+flowchart TD
+    U["Your request + injected context"] --> S["Agent selects a skill<br/>and its references"]
+    S --> G["PreToolUse checks<br/>configured writes or publishes"]
+    G -->|blocked: revise| S
+    G -->|allowed| W["Tool writes or publishes"]
+    W --> Q["Stop: check the reply<br/>and remind about missing logs"]
+    S -->|no write needed| Q
+    Q -->|reply blocked: revise| S
+    S -.->|agent records durable context| M["memory.py log"]
+    M -.->|available next session| U
+```
+
+With hooks enabled and trusted, checks run on the configured routes. The dotted memory branch depends on the agent; the reminder neither blocks nor writes the log. The sections below describe context injection and the limits of each check.
 
 ### Project memory
 

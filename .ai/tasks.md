@@ -25,3 +25,5 @@ Project tasks live in `.ai/memory/projects/<slug>/tasks.md`. Toolkit implementat
 - [x] Owner-only, on GitHub, done 2026-09-16: `main` is protected. Verified by API — a pull request is required, the aggregate `validate` status is a required check, branch deletion is blocked, and non-fast-forward and force pushes are blocked; `required_approving_review_count` is 0 and Code Owner review is off, so the ruleset stops accidental direct pushes and red merges rather than acting as a review gate. Confirmed by the owner but not verifiable through the API available here: private vulnerability reporting is enabled, which is the path `SECURITY.md` points at.
 
 - [x] Review PR #28 (2026-09-30): fix the README reference that blocked CI; preserve validation rules; pass the 20-command battery on Ubuntu/WSL Python 3.12.3. Native Windows path assertions and live harness behavior remain outside this correction.
+
+- [x] Preserve both README diagrams in PR #28: restore the eight-stage workflow and correct the interaction flow; verify local Mermaid rendering and the full validation battery.
