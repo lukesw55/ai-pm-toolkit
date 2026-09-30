@@ -65,7 +65,7 @@ It sequences four phases:
 
 The [team workflow](skills/WORKFLOW.md) maps these phases to eight stages, from Discovery Prioritization to Delivery, with deliverables and review criteria. Evidence can justify returning to an earlier stage or skipping one with a recorded rationale. Moving the stage pointer does not validate an artefact or approve a decision.
 
-Each skill defines its method in a `SKILL.md`. Most include a `references/progressive-loading.md` map that directs the agent to the reference needed for the task, such as research design, PRD writing, or launch readiness. This is progressive loading: instructions select supporting material as work requires it.
+Each skill defines its method in a `SKILL.md`. Most include a progressive-loading map, such as the [discovery reference map](skills/pm-phase-discover/references/progressive-loading.md), that directs the agent to the reference needed for the task, such as research design, PRD writing, or launch readiness. This is progressive loading: instructions select supporting material as work requires it.
 
 Phase skills can be combined with stakeholder, analysis, documentation, and communication skills. AI, enterprise, growth, and platform lenses add domain-specific concerns.
 
