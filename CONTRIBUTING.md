@@ -49,9 +49,11 @@ That last one is the point of the exercise. An assertion a list of the right wor
 
 ## The README is checked
 
-`validate_repo.py` derives the skill, hook, agent and eval counts from the tree and compares them against the sentences in `README.md`, requires a row in the scripts table for every file in `scripts/`, and requires the contents list to match the headings. Adding a skill or a script therefore turns CI red until the README says so.
+`validate_repo.py` requires a title and local links to the orchestration, workflow, memory, eval, harness, contribution and security documentation. Local file links and backtick paths are checked by the existing reference checks; Markdown heading anchors in README links are checked too.
 
-That is deliberate: a README that drifts is worse than no README, because it is read as current. Each validated count is written once, as a digit, and the error message names both numbers.
+An inventory of every script, numeric totals and a table of contents are optional. If you include a recognised numeric claim about skills, blocking hooks, agents, eval cases or eval categories, the validator compares it with the tree and rejects duplicates. It does not fact-check arbitrary wording. A contents list can be partial, but its links must resolve.
+
+Adding a skill or script does not require changing the README unless its guidance changes or an optional count becomes stale. Skill coverage, hook wiring, mirror parity and eval consistency remain checked independently of the README.
 
 ## Pull requests
 
