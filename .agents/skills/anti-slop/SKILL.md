@@ -277,7 +277,7 @@ Several patterns sit on the seam between anti-slop and `humanizer`. Both skills 
 | Doc structure (headings, bullets, TOC, glossary, metadata blocks, PR templates) | **anti-slop** (catalogue B) |
 | Doc prose body (paragraphs, opening sentences, narrative arc) | **humanizer** |
 | Outbound publish gate (Confluence / Slack / Jira) | `humanize-deliverables` (sha256 hard gate via `humanize-gate.sh`) |
-| Approval flow for inferences and hallucination claims | `inference-discipline` |
+| Material factual uncertainty and authorization boundaries | `inference-discipline` |
 | Visual / UI / design slop | a dedicated visual-design reviewer |
 
 When a single artefact mixes prose and structure (PRD, ADR, exec memo): run anti-slop first for the structural pass, then `humanizer` for the prose paragraphs. The catalogues do not conflict; they catch different surfaces of the same draft.

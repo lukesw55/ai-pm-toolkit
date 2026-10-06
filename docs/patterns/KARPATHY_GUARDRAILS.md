@@ -13,17 +13,17 @@ Behavioral rules to reduce common LLM engineering mistakes.
 
 ## Operating rules
 
-### Name uncertainty early
-If something is ambiguous, say so before implementation.
+### Resolve material uncertainty
+Check available sources first. If materially different outcomes remain, ask before the dependent change; state and proceed on low-risk reversible assumptions inside the request.
 
 ### Prefer the boring solution
 Use the simplest approach that satisfies the requirement and fits the existing system.
 
 ### Do not optimize imaginary futures
-Only add flexibility when a second real need appears.
+Add flexibility for a demonstrated need. A second real use is a useful reuse signal, not a prerequisite for justified security, capacity, or operational requirements.
 
 ### Use explicit success criteria
-Translate requests into outcomes that can be checked.
+Translate substantial work into outcomes that can be checked. Do this internally for clear, routine tasks; explain criteria when they affect a decision or review.
 
 ### Keep the diff surgical
 Unrelated cleanup can wait unless it blocks the task.

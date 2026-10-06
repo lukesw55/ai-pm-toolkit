@@ -151,12 +151,14 @@ Guarantees: content is moved, never deleted; the archive is rebuilt into a sibli
 
 ## Retrieval protocol
 
-Before a task:
+For tasks that need product or project context:
 
-1. read `active-context.md`
-2. read the active project's `state.md`, then `session-kickoff.md`
-3. scan `profile.md`, `decisions.md`, `experiments.md`, and the newest `changelog.md` entries
+1. read `active-context.md` when it exists and resolve the project slug before opening project files
+2. read that project's `state.md`, then `session-kickoff.md`
+3. scan only relevant files among `profile.md`, `decisions.md`, `experiments.md`, and the newest `changelog.md` entries
 4. when the task needs company context, personas, competitors or goals, read the one file under `org/` that answers it, never all four
+
+A missing pointer does not identify a project. Do not create project memory for a task that does not need durable project context. When durable context is needed, initialize only from a project name supplied by the user or established by the task; unfilled fields remain unknown. Toolkit maintenance uses `.ai/backlog.md` for implementation status and `.ai/changelog.md` for toolkit history, not project memory.
 
 From the cold layer (grep-first, read-before-reasoning):
 
@@ -165,12 +167,7 @@ From the cold layer (grep-first, read-before-reasoning):
 3. cite the heading and its date when you reason from the block. If the fact matters again, rewrite it into the warm set (`decisions.md`, `state.md`) instead of reopening the archive next session.
 4. `raw-evidence/` is PII and script-free: search it in place (`grep -ril "<term>" .ai/memory/projects/<slug>/raw-evidence/`), read only the passage you need, and never paste a transcript into memory or chat. A manual index inside that folder (`.ai/memory/projects/<slug>/raw-evidence/index.md`, one line per file: date, source type, topic) is optional and is never touched or injected by a script.
 
-After a task:
-
-1. append decision or experiment entries when relevant
-2. refresh `active-context.md` if focus changed
-3. update `index.md` if a new project was added
-4. if the Stop reminder fires, the session changed files without touching the changelog: log before closing
+After a task, update durable project memory only when the task changed durable project context: append decision or experiment entries when relevant, refresh `active-context.md` if focus changed, and update `index.md` if a project was added. A read-only answer needs no memory update. For toolkit work, update `.ai/backlog.md` or `.ai/changelog.md` when status or history changes. If the Stop reminder fires after file changes, log the relevant project or toolkit work before closing.
 
 ## What belongs in memory
 
@@ -197,11 +194,7 @@ The target is **retrievable memory**.
 
 ## Project context and toolkit history
 
-Resolve the active slug from `.ai/memory/active-context.md`. Read the active project's
-`app.md`, `design.md` and `tasks.md` under `.ai/memory/projects/<slug>/`, alongside its
-warm memory. Unfilled template fields are unknown, not verified facts. New projects
-receive these files from the tracked templates. Re-running `init_context.py` fills
-missing files without resetting stage, state or parked projects.
+When a task needs project context, resolve the active slug from `.ai/memory/active-context.md` before reading project files. Read only relevant files such as `app.md`, `design.md` and `tasks.md` under `.ai/memory/projects/<slug>/`, alongside relevant warm memory. Unfilled template fields are unknown, not verified facts. New projects receive these files from the tracked templates. Re-running `init_context.py` fills missing files without resetting stage, state or parked projects; do this only when the task needs durable project context and the project name is known.
 
 For an existing workspace, explicitly run `python3 scripts/init_context.py --migrate-legacy <project-name>`
 to copy legacy repo-level app/design/tasks into missing project files. It keeps the

@@ -29,16 +29,15 @@ Use Umberto when you need to:
 
 ## Load order
 
-Read these in order before substantial work:
+Read the harness instructions and `.ai/rules.md` first. Then load context for the task:
 
 1. `CLAUDE.md` (Claude Code) or `AGENTS.md` (Codex)
 2. `.ai/rules.md`
-3. `.ai/changelog.md`
-4. `.ai/memory/projects/<slug>/app.md`
-5. `.ai/memory/active-context.md`
-6. active project memory under `.ai/memory/projects/<slug>/`
+3. For toolkit work, the relevant entries in `.ai/changelog.md`, `.ai/backlog.md`, and `docs/DECISIONS.md`
+4. For product work, `.ai/memory/active-context.md`; resolve the slug before reading its files
+5. Relevant project files under `.ai/memory/projects/<slug>/`
 
-> Runtime memory under `.ai/memory/` (active-context, index, per-project state) is created on first use by `scripts/init_context.py`; a fresh clone ships only the templates and an example.
+Runtime project memory is created on first use; a fresh clone ships only templates and an example. Bootstrap only when the task needs project memory. If the pointer is absent, do not invent a project or create one for a task that does not need it. Reuse already loaded guidance unless context was lost or freshness matters.
 
 Only load extra docs when needed:
 
@@ -47,7 +46,7 @@ Only load extra docs when needed:
 - `docs/patterns/KARPATHY_GUARDRAILS.md` — anti-overengineering and anti-assumption rules
 - `docs/patterns/COMMUNICATION_MODES.md` — Standard / Lean / Caveman output profiles
 - `skills/WORKFLOW.md` — 8-stage team workflow mapped to skills + stage-advance hooks
-- `skills/DOCTRINE.md` — calibrated disagreement: load before substantive pushback or concession, not just at session start
+- `skills/DOCTRINE.md` — calibrated disagreement: consult for difficult pushback or concession
 - `docs/REPO_HEALTH.md` — the toolkit's own validation suite; run it before committing changes under `skills/`, `hooks/`, or `scripts/`
 
 ## PM hard-skill toolkit (`skills/`)
@@ -68,7 +67,7 @@ Domain skills organised by Double Diamond phase + transversals. Load the specifi
 | Transversal | `pm-storytelling` | narrative spine (tension → insight → change → takeaway) for memos, PRD openers, discovery syntheses, QBR storylines |
 | Transversal | `pm-product-sense` | BUILD (6-step decision framework) + EVALUATE (5-dimension rubric); mandatory non-blocking shadow evaluation at stages 4 and 6 |
 | Transversal | `data-science-analyst` | technical correctness of the analysis itself: dataset profiling, SQL audits, A/B validation, leakage checks |
-| Quality gate | `inference-discipline` | every inference labelled and approved before action; the hallucination gate behind `inference-discipline-gate.sh` |
+| Quality gate | `inference-discipline` | verify material claims, preserve uncertainty, and ask only for a real blocker or missing authorization; `inference-discipline-gate.sh` scans configured routes for five literal markers |
 | Quality gate | `anti-slop` + `humanizer` + `humanize-deliverables` | slop removal split by surface — see the slop-removal table in `WORKFLOW.md` |
 
 The 8-stage workflow and hooks for stage-advancement are documented in `skills/WORKFLOW.md`. The archetype lenses (`pm-archetype-ai`, `pm-archetype-enterprise`, `pm-archetype-growth`, `pm-archetype-platform`) are skills too — they stack on top of any phase skill when the product context is non-default.
@@ -93,7 +92,7 @@ Choose the lightest valid path:
 - **Bug mode** — gather evidence fast, define failure mode, patch, verify, log learning
 - **Rescue mode** — project drift, too much scope, unclear priorities; re-run Discover and Define before more build work
 
-If the user asks for implementation but the problem is still ambiguous, push back and do the missing phase work first.
+If materially different solutions remain after safe investigation, clarify the blocking choice before the dependent implementation. Continue independent work where possible.
 
 ## Phase 1 — Discover
 
@@ -165,7 +164,8 @@ Always:
 - run tests and checks
 - instrument success criteria where possible
 - write user-facing errors clearly
-- update memory, tasks, app notes, and changelog
+- update the active project's durable memory and tasks when their state changes
+- update toolkit backlog/changelog when toolkit status or history changes
 
 At the end of Deliver, decide:
 
@@ -187,41 +187,32 @@ Use this loop whenever uncertainty is material:
 
 ## Memory protocol
 
-Before work:
+Before project work that needs memory:
 
-- read active context
-- read latest relevant decisions and experiments
-- when the warm set lacks a fact, search the cold layer grep-first (`memory.py index <slug>`, then the one block that matched); never read an archive wholesale
-- identify what is still assumed versus evidenced
+- read `.ai/memory/active-context.md` when it exists and resolve the slug before opening project files
+- if the pointer is absent, do not invent a project; initialize only when durable project context is needed and its name is known
+- read relevant decisions, experiments, and state
+- when the warm set lacks a fact, search the cold layer grep-first (`memory.py index <slug>`, then the matching block); never read an archive wholesale
+- identify material assumptions and evidence gaps
+
+For toolkit work, use `.ai/backlog.md`, `.ai/changelog.md`, and `docs/DECISIONS.md` as relevant. A task without project context does not require creating project memory.
 
 During work:
 
 - keep raw notes in `.ai/memory/inbox.md` if needed (manual scratch; no script reads or writes it)
-- link new findings to project memory
+- link durable findings to project memory when relevant
 - mark when assumptions become evidence
 
 After work:
 
-- update active project memory
-- append key decision and rationale
-- append experiment result if one occurred
-- update `.ai/memory/projects/<slug>/tasks.md`
-- update `.ai/changelog.md`
-- a Stop hook (`hooks/memory-reminder.sh`) reminds you when files changed after your last `memory.py log`; it never blocks
+- record durable project changes, decisions, or experiment results in that project's memory
+- update project tasks only when their status changes
+- log toolkit changes in `.ai/changelog.md` and update `.ai/backlog.md` when toolkit task status changes
+- a Stop hook (`hooks/memory-reminder.sh`) reminds you when files changed after the last log; it never blocks or writes the log
 
 ## Response contract
 
-Unless the user asks for something else, structure outputs as:
-
-```text
-Mode
-Current phase
-What is known
-What is assumed
-Options considered
-Recommended next move
-Files to update
-```
+Match the response to the request and put the requested answer or artefact first. Include context, uncertainty, options, a recommendation, or file paths only when they affect the decision or are needed to use the deliverable. Do not force headings onto simple answers. Use Lean, Standard, or Caveman as described below without dropping material evidence or constraints.
 
 ## Communication modes
 
@@ -235,11 +226,11 @@ Default to **Lean** for routine work.
 
 ## Non-negotiables
 
-- do not silently assume
+- do not present material assumptions as verified facts
 - do not add speculative abstractions
 - do not write broad solutions for narrow problems
 - do not skip tests on code changes
-- do not leave memory stale after meaningful work
+- update durable memory when project or toolkit state changes; do not create entries for transient work
 - do not confuse activity with progress
 
 ## Success criteria

@@ -49,6 +49,7 @@ Coluna Status: **feito** (executado e verificado nesta branch), **em execução*
 | B44 | A tabela de hooks do README e `hooks/contract.json` podem divergir sem nada apontar | Docs | verificado | 2 | 2 | 2 | 8 | candidato |
 | B45 | `memory.py doctor` cego para a árvore `evals/` de projeto | Memória | verificado | 1 | 1 | 2 | 2 | candidato |
 | B46 | Endurecimento e prontidão de release, tudo dependente da evidência do piloto | Infra | pesquisa | 2 | 2 | 3 | 12 | candidato (bloqueado no B25) |
+| B47 | Contrato de autonomia e fontes de memória divergente entre CLAUDE, Codex, skills e agentes | Epistêmica + Docs + Evals | verificado | 4 | 4 | 4 | 64 | feito |
 
 ## Detalhe por item
 

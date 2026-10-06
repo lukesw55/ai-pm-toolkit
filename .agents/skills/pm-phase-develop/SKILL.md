@@ -120,12 +120,12 @@ Anti-patterns: demo mistaken for feasibility, merging the prototype branch, PM a
 
 ## Workflow
 
-1. **Load context** — `.ai/memory/active-context.md`, PRD/spec if present, priorities from `pm-phase-define`, tracking plan if any. When present, `.ai/memory/org/personas.md` names the archetype the PRD serves.
+1. **Load context when relevant** — for project work, read `.ai/memory/active-context.md` first when present and resolve `<slug>` before opening relevant project files: PRD/spec, priorities, and tracking plan. If no pointer exists, do not infer a project; bootstrap only when durable project context is needed and the name is known. When present, `.ai/memory/org/personas.md` names the archetype the PRD serves.
 2. **Classify the ask** — PRD, slicing, dependency/risk, orchestration, instrumentation, or tech fluency?
 3. **Anchor on the wedge** — restate the problem + success criteria + non-goals from Define. If missing, loop back.
 4. **Draft the smallest useful artefact** — PRD that fits on ~3 pages, not 20; tracking plan that tracks the 5 events that matter, not 50.
 5. **Name dependencies and risks explicitly** — each with owner and mitigation.
-6. **Persist** — PRD → `.ai/memory/projects/<slug>/prds/<name>.md`; dependencies → `.ai/memory/projects/<slug>/raid.md`; tracking plan → `tracking.md`; prototype decision → `prototypes/<name>.md`.
+6. **Persist durable outputs** — when this task creates or materially changes project context, save the PRD, dependencies, tracking plan, or prototype decision under `.ai/memory/projects/<slug>/` in the relevant files. Read-only or transient work needs no memory entry.
 
 ## Output contract
 

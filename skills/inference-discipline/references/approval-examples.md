@@ -1,29 +1,34 @@
-# Approval examples
+# Inference examples
 
-Use these only when the approval flow is ambiguous.
+Ask only when a material decision remains unresolved after safe investigation.
 
-## Ambiguous scope
+## Ambiguous scope that blocks the edit
 
 ```markdown
-## Knowns (verified this turn)
-- User asked to "fix the flow".
-- The repo has both onboarding and checkout flows.
-
-## Inferences (need OK)
-- [INFER: "the flow" means onboarding] because the last file read was onboarding-related.
-
-## Unknowns
-- Whether checkout is also in scope.
-
-## Proposed next step
-Reply with the two possible scopes and ask which one to edit.
+The request says "fix the flow". I found separate onboarding and checkout flows, and neither has a failure or target file identified. Which flow and failure should I address? I can inspect the relevant area once you choose; I have not edited either one.
 ```
+
+## Clear, reversible edit
+
+```markdown
+I changed `release.md` from a two-week to a four-week pilot and re-read the section. No other content changed.
+```
+
+The request named the file, value, and edit. No approval ritual or inference markers are needed.
 
 ## Memory as prior
 
 ```markdown
-[FROM MEMORY: launch target was Q3 in a prior session]
-[UNVERIFIED: the launch target is still Q3 today]
+Memory has the launch target as Q3, but that may be stale. I’ll check the current release plan before using it in the status message.
 
-Before writing outbound status, re-read current project docs or ask the owner.
+If the current plan confirms Q3, state it as confirmed. If no current source supports it, mark it as a target to confirm or leave the date out. Do not ask the user to re-confirm a fact that an available source can establish.
+```
+
+## Authorization is separate from evidence
+
+```markdown
+I drafted the Slack update with the rollout marked “still unconfirmed.” The request asked for a draft, so I have not sent it. Sending requires an explicit request to send.
+```
+
+Approval to proceed with a hypothesis preserves it as a hypothesis; it does not change its evidence status.
 ```

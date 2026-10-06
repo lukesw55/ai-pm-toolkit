@@ -229,7 +229,7 @@ Communication modes follow `../../docs/patterns/COMMUNICATION_MODES.md`. Per-ski
 - a QA / test-strategy pass — chain when the question is "what should we test about this data path?" rather than "is this analysis right?".
 - `humanize-deliverables` / `humanizer` — apply before any prose artefact (Confluence, Slack, exec memo) leaves the workspace; it is non-optional for outbound prose per the standing feedback rule.
 - **PostHog MCP** — when the user asks for cohort/funnel/retention/SRM and the data lives in product analytics, prefer querying via MCP over asking for a CSV export. See `references/posthog-mcp-patterns.md` for tool-mapped recipes.
-- **Memory hooks** — before non-trivial work, read `.ai/memory/active-context.md` and the active project's memory; after, update `insights.md` / `experiments.md` / `decisions.md` and append to `.ai/changelog.md`. Preserve raw signal (file paths, query hashes, sample sizes).
+- **Memory hooks** — when project context matters, read `.ai/memory/active-context.md` if present and resolve the slug before opening relevant project files. Record durable findings in that project's `insights.md`, `experiments.md`, or `decisions.md`; use its changelog for project history. Toolkit maintenance uses `.ai/backlog.md` and `.ai/changelog.md`. Read-only answers and transient work need no log. Preserve raw signal (file paths, query hashes, sample sizes).
 
 ---
 

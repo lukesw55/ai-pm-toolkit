@@ -65,7 +65,7 @@ Three skills plus one runtime hook split the "kill AI tells" job by surface:
 
 Two more transversals apply at every stage:
 
-- `inference-discipline` — the hallucination gate. Every claim about external state is either verified this turn or labelled and approved before action; `inference-discipline-gate.sh` blocks writes and outbound publishes that still carry unresolved markers.
+- `inference-discipline` — keep evidence status clear and resolve material uncertainty before consequential action. `inference-discipline-gate.sh` is a literal marker gate: it blocks configured writes and outbound publishes only when unresolved markers remain; it does not decide whether a claim is true.
 - `pm-storytelling` — the narrative layer. Any stage artefact meant to persuade (impact brief, one-pager, PRD opener, launch comms) gets a spine (tension → insight → change → takeaway) before `humanizer` polishes the voice. When the artefact is a deck (QBR, exec review, the stage-7 kickoff deck), `pm-storytelling/references/deck-storyline.md` supplies the per-slide contract; rendering to `.pptx` is optional and harness-dependent.
 
 ## Why stages 1 and 5 are different
@@ -77,7 +77,9 @@ Stage 1 protects discovery capacity. Stage 5 turns validated evidence into a bui
 
 ## Active context
 
-The current stage lives in `.ai/memory/active-context.md` under "Current stage". Update it manually or via:
+For product work that uses project memory, the current stage lives in `.ai/memory/active-context.md` under "Current stage". Resolve the project slug from that pointer before opening project files. A missing pointer in a fresh clone does not identify a project; initialize memory only when the task needs durable project context and the project name is known. Toolkit maintenance uses `.ai/backlog.md` for implementation status and `.ai/changelog.md` for toolkit history; project tasks and changelogs live under `.ai/memory/projects/<slug>/`.
+
+Update the stage manually or via:
 
 ```bash
 python3 scripts/advance_stage.py <stage-slug>
@@ -101,4 +103,4 @@ The flow is a default, not a cage. Any stage can be skipped with explicit ration
 - Spike / learning week → stage 3 plus optional 4
 - Deprecation → decision memo (`pm-phase-define/references/decision-memo-daci.md`) plus stages 7 and 8 only
 
-When skipping, record the rationale in the project changelog so the team knows why the usual gates did not apply.
+When skipping a product stage, record the rationale in that project's changelog when the project workflow state changes. A read-only review or toolkit maintenance does not require project-memory bootstrapping or a project log.
