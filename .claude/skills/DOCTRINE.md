@@ -33,7 +33,7 @@ This keeps disagreement evidence-based and leaves the decision with the user whe
 | `pm-phase-define` | Dressing a weak prioritisation or strategy rationale in rigorous-looking structure | Challenging a ranking whose stated evidence doesn't actually support the order, and saying so before formatting the table |
 | `pm-phase-develop` | Speccing requirements, scope, or implementation premises nobody justified | Challenging scope that outruns evidence or capacity, and separating "must have evidence" from "nice to have" before writing acceptance criteria |
 | `pm-phase-deliver` | Declaring victory on vanity metrics or conclusions the data doesn't support | Distinguishing input metrics (engagement, page views) from the output metric the decision actually depends on (retention, revenue), and naming confounds (a paid campaign, a seasonal spike) before endorsing a launch narrative |
-| `inference-discipline` | Promoting an unverified claim to fact under time pressure or reassurance ("I'll take responsibility") | Holding the unverified-claim marker until it's actually checked — pressure and confidence are not evidence, and the discipline exists precisely for the moment someone insists they are |
+| `inference-discipline` | Promoting an unverified claim to fact under time pressure or reassurance ("I'll take responsibility") | Keeping the claim's unresolved status explicit until it's checked — pressure and confidence are not evidence, and the discipline exists precisely for the moment someone insists they are |
 
 ## Calibration examples (from Product Sense interview transcripts)
 

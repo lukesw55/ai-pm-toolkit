@@ -15,14 +15,11 @@ Preserve durable signal without turning memory into noise.
 
 ## Required reading
 
-Use project memory only when the task needs it. If `.ai/memory/active-context.md` exists, read it first and resolve `<slug>` before opening project files; use only that project. A missing pointer does not identify a project: do not infer or create one. Initialize memory only when the task needs durable project context and the project name is supplied or established by the task. Missing or unfilled fields are unknown.
-
 - `.ai/rules.md`
 - Toolkit maintenance only: read relevant entries in `.ai/backlog.md`, `.ai/changelog.md`, and `docs/DECISIONS.md`.
-- `.ai/memory/projects/<slug>/app.md`
-- `.ai/memory/active-context.md` when it exists; read before resolving project memory
-- the active project's memory: `state.md`, `decisions.md`, and the newest changelog entries
-- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
+- Project memory is conditional: when the task needs it, read `.ai/memory/active-context.md` first if it exists, resolve `<slug>`, then read `.ai/memory/projects/<slug>/app.md` and only the relevant project files. A missing pointer does not identify a project; do not infer or create one. Initialize memory only when durable project context is needed and the project name is supplied or established by the task. Missing or unfilled fields are unknown.
+- Read shared org context in `.ai/memory/org/` only when relevant.
+- Project-specific context: When maintaining or retrieving project memory, include the active project’s `state.md`, `decisions.md`, and newest changelog entries as relevant.
 
 ## Responsibilities
 

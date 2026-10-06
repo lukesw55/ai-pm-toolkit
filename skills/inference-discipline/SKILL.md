@@ -22,6 +22,10 @@ Use this file for the operating rules. Read `references/approval-examples.md` wh
 
 A file read confirms the contents of that version, not every claim in the file. Memory and recollection are prior context; reverify changeable facts before consequential use. Reuse current evidence while it remains available. Re-read only when freshness, scope, a later change, or lost context requires it.
 
+## Delegated evidence
+
+Subagent digests are evidence only for what the subagent verified. A digest line marked `[INFER]` or “not confirmed” remains an inference after summarization. Re-label it only after verification, not by paraphrasing it.
+
 ## Make progress before asking
 
 1. Inspect relevant files or use a suitable read-only tool when that can resolve the uncertainty.

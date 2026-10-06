@@ -138,6 +138,8 @@ Index (one line per archived block, file order; grep here before opening a block
 - 2026-09-16 Review: critical-failure state gets a tracked source for both configurations
 - 2026-09-30 README entry point and validation contract
 - 2026-09-30 Reviewed PR #28 against main 415b246 and reproduced its C...
+- 2026-09-30 Restored both README diagrams in PR #28 at the owner requ...
+- 2026-10-06 Evidence-aware autonomy and calibrated memory use
 
 ## 2026-09-08: session log
 
@@ -696,4 +698,12 @@ Applied the owner-approved README (1,277 words, down from 4,568). Revised its va
 ## 2026-09-30: Reviewed PR #28 against main 415b246 and reproduced its C...
 
 Reviewed PR #28 against main 415b246 and reproduced its CI failure at dbb9e8f: the README cited a generic reference path as a real file. Replaced it with a link to the discovery reference map, keeping all validation checks intact. The 20-command CONTRIBUTING.md battery passed on Ubuntu/WSL with Python 3.12.3, including 93 validator cases. Native Windows/Python 3.13.14 ran the validator regression suite with eight failures involving backslash path messages; no live harness session was tested. Formal approval requires another account because the authenticated account is the PR author.
+
+## 2026-09-30: Restored both README diagrams in PR #28 at the owner requ...
+
+Restored both README diagrams in PR #28 at the owner request. Preserved the eight-stage pipeline and evidence feedback loops; revised the interaction flow to place PreToolUse checks before configured tool operations and Stop checks at reply completion. Memory logging remains agent-driven and its reminder nonblocking. Both Mermaid diagrams rendered in a local Chrome preview. The full 20-command CONTRIBUTING.md battery passed on Ubuntu/WSL Python 3.12.3. No runtime code or hook configuration changed.
+
+## 2026-10-06: Evidence-aware autonomy and calibrated memory use
+
+Aligned instructions, agents and memory references with evidence-aware autonomy; expanded inference evals with routine-edit positive control. Validation passed: full docs/REPO_HEALTH suite, 86 evals/713 fixtures, mirror parity, validator and hook tests. Pilot dry-run planned 30 calls and executed none; no live model benchmark.
 
