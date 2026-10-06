@@ -66,20 +66,12 @@ Anti-patterns: defaulting to whichever channel is already open, letting a negoti
 2. **Classify the ask** — email, chat, or "this actually needs a doc" (→ `pm-transversal-stakeholder`)?
 3. **Name the one ask** — one message, one action. Split multi-ask messages.
 4. **Draft with the structure, not around it** — SCQA for email, BLUF for chat. The structure is the discipline, not decoration.
-5. **Check the claims** — anything asserted as fact that hasn't been verified this turn is inference-discipline's job before it ships (`../inference-discipline/SKILL.md`); this applies as much to a heated three-line Slack message as to a formal memo.
+5. **Check material claims** — use `../inference-discipline/SKILL.md` when facts are uncertain, changeable, variant-specific, or consequential. Reuse suitable evidence already available; recheck when freshness or scope requires it. Keep a material gap visible in the draft instead of turning it into certainty.
 6. **Humanize before sending** — route through `../humanizer/SKILL.md` and the `humanize-deliverables` gate for anything leaving the workspace.
 
 ## Output contract
 
-```text
-## [Email / Chat message]
-
-### Reader + what they already know
-### The one ask (what action, by when)
-### Draft
-### Channel recommendation (if ambiguous)
-### Open verifications (facts not yet confirmed)
-```
+Return the email or chat draft directly in the requested form. Add the reader, ask, channel, source, or open verification only when it changes the draft materially or the user requests that context. Do not force headings around a straightforward message.
 
 ## Integration
 

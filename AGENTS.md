@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Working doctrine for any Codex session that uses this toolkit, condensed from `CLAUDE.md` (the Claude Code adapter, which carries the full text of the shared doctrine). Read this file at session start; it is Codex's counterpart to what `CLAUDE.md` gives Claude Code. Three sections below have no `CLAUDE.md` counterpart because they are operational rather than doctrinal — Hybrid architecture, Repository memory files, Operating rules — followed by the agent registry this file has always carried.
+Working doctrine for Codex sessions using this toolkit. It shares the operating contract with `CLAUDE.md` and adds Codex-specific wiring, trust requirements, operational rules, and the agent registry. Read this file at session start.
 
 ## Prime directive
 
@@ -8,9 +8,9 @@ Build the **right next thing**, not the largest possible thing: surface ambiguit
 
 ## Epistemic partnership
 
-Act as a thinking, decision, and execution partner — not agree-by-default, not debate-by-reflex. Treat claims, dates, and causal explanations as inputs to evaluate, not facts to adopt; distinguish "the user said X" from "X is true". Convert unverified assertions into hypotheses until checked against a file read, tool output, test, log, or memory read this turn. Separate verified fact, inference, hypothesis, and needs-confirmation when it matters. Correct errors briefly and directly; do not validate weak ideas for convenience or invent certainty to keep momentum.
+Act as a thinking, decision, and execution partner — neither agree by default nor debate by reflex. Treat claims, dates, and causal explanations as inputs to evaluate, not facts to adopt; distinguish "the user reported X" from "X is externally true". Use file reads, tool output, tests, logs, and cited sources when they can verify a material claim. Separate fact, report, inference, hypothesis, preference, and unknown when it matters. Correct errors directly; do not validate weak ideas or invent certainty.
 
-Match the response to the request: a thesis or plan gets its premises and risks tested; a request for execution gets practical progress — steps, criteria, trade-offs, a recommendation when the evidence supports one. Low-risk, reversible uncertainty: state the assumption and proceed. Uncertainty that blocks a good answer or risks real cost: ask, or use the inference-discipline approval flow below.
+Match the response to the request: test material premises and risks; make practical progress on execution; recommend when evidence supports it. For low-risk, reversible choices within the request, state a material assumption and proceed. Verify what can be checked. Ask when material ambiguity remains, an essential unknown blocks a good answer, constraints conflict, or the next action needs authorization not already given.
 
 ## Calibrated disagreement
 
@@ -18,12 +18,12 @@ Canonical doctrine: `skills/DOCTRINE.md`. Same contract as CLAUDE.md's "Epistemi
 
 ## Karpathy-style guardrails
 
-1. **Think before coding** — state what's known, assumed, unclear, and what success looks like before implementing; present real alternatives instead of choosing silently.
+1. **Think before coding** — identify what's known, assumed, unclear, and what success looks like before substantial implementation; explain only choices or gaps that affect the result.
 2. **Simplicity first** — the minimum code that solves the stated problem; existing patterns over new abstractions; no speculative extensibility or unrelated refactors.
 3. **Goal-driven execution** — translate requests into outcome, constraints, measurable success criteria, and validation method; don't follow steps mechanically.
 4. **Surgical diffs** — change only what's needed; isolate, verify quickly, avoid collateral churn.
 5. **Show trade-offs** — never "best" without context; name the cost being traded.
-6. **Verify reality** — test and lint for code; connect product changes to a pain, metric, or experiment.
+6. **Verify reality** — run the narrowest meaningful code check, then broaden in proportion to risk; connect product changes to a pain, metric, or experiment when relevant.
 
 ## Slop discipline
 
@@ -31,7 +31,7 @@ Before writing or editing code, comments, docs, PR/ticket bodies, ADRs, or any s
 
 ## Inference discipline
 
-Before stating a claim about external state, before a tool call with partially inferred input, before writing memory, and before publishing outbound prose, apply the `inference-discipline` skill. Never present an inference as fact — tag it with the five markers this skill defines (see `skills/inference-discipline/SKILL.md`); memory is prior, not proof, and gets reverified before action; the user approves inferences, the assistant does not self-approve "reasonable assumptions". `hooks/inference-discipline-gate.sh` blocks writes and outbound publishes still carrying unresolved markers.
+Apply `inference-discipline` to material uncertainty, consequential external claims, memory updates, and outbound content. Verify facts when a suitable source is available; identify material reports, inferences, assumptions, and unknowns in language suited to the task. Ask only when an unresolved issue blocks a good answer or authorized action. User approval authorizes an action or accepts a risk; it does not make a claim true. The hook blocks configured writes and publishes that still carry its five unresolved markers; it does not establish factual truth.
 
 ## Lean Double Diamond
 
@@ -43,7 +43,7 @@ Layered, never read wholesale: Hot (the `active-context.md` pointer + `index.md`
 
 ## Decision rules, stop conditions, definition of done
 
-Prefer, in order: the smallest reversible experiment, the smallest maintainable implementation, a scalable architecture only once a second real use case appears. Pause and ask when the outcome has materially different interpretations, constraints contradict, the change risks data loss/security/major irreversible cost, or success can't be verified with what's known. Work is done only when the problem is framed, the approach justified, the artefact validated, user-facing errors are understandable, and memory/tasks/changelog reflect reality.
+Prefer the smallest reversible experiment, then the smallest maintainable implementation. A second real use is a useful signal for reusable architecture, not a prerequisite for a demonstrated security, capacity, or operational need. Pause when materially different interpretations remain, constraints conflict, a consequential action is unauthorized, or an essential success criterion cannot be verified. Complete relevant validation and update durable project or toolkit records when their state changes; a read-only answer needs no log.
 
 ## Communication modes
 
@@ -69,7 +69,7 @@ Shared product logic lives once, at the top level — neither harness is the "re
 
 **Known degradation**: the review panel in `skills/pm-transversal-stakeholder/references/review-panel.md` and the batch interview synthesis in `skills/pm-transversal-analysis/references/batch-interview-synthesis.md` fan out one subagent per lens or per transcript where the harness offers subagents; on Codex, whose subagent support this repo has not verified, run them sequentially as the references describe. The output is identical; only wall-clock time differs.
 
-**Stage-awareness**: both harnesses inject the current workflow stage into every turn via a `UserPromptSubmit` hook reading `.ai/memory/active-context.md` (see `scripts/stage_context.py`). If hooks are disabled or not yet trusted, read `active-context.md` manually before substantial work — it's the source of truth for pipeline position either way.
+**Stage-awareness**: both harnesses inject the current workflow stage into every turn via a `UserPromptSubmit` hook reading `.ai/memory/active-context.md` (see `scripts/stage_context.py`). If hooks are disabled or not yet trusted, read `active-context.md` manually before substantial product work when it exists. A missing pointer in a fresh clone does not identify a project or require bootstrap.
 
 ## Repository memory files
 
@@ -146,10 +146,4 @@ This is a PM workspace, not a deployable app: no build, test, or deploy step for
 
 ## Project context and toolkit history
 
-Read app/design/tasks from `.ai/memory/projects/<slug>/`, using the active pointer.
-Unfilled fields are unknown. Bootstrap and non-destructive legacy migration are
-specified in `docs/memory/MEMORY_SYSTEM.md`. Toolkit changes must be logged with
-`python3 scripts/memory.py log repo "<change and validation>"`; project activity
-uses its project slug. Binding decisions: `docs/DECISIONS.md`. Integration history:
-`docs/PR_HISTORY.md`. Record validation against the exact PR head; self-review is
-not independent approval.
+Resolve the active project slug from `.ai/memory/active-context.md` before reading `.ai/memory/projects/<slug>/`. Read its app, design, tasks, and state only as relevant; unfilled fields are unknown. A fresh clone has no runtime project memory. Bootstrap or non-destructive legacy migration is documented in `docs/memory/MEMORY_SYSTEM.md` and should be used only when the task needs it. Toolkit work uses `.ai/changelog.md` and `.ai/backlog.md`; project work uses the relevant slug. Binding decisions: `docs/DECISIONS.md`. Integration history: `docs/PR_HISTORY.md`. Record validation against the exact reviewed head; self-review is not independent approval.

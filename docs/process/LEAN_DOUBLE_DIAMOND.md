@@ -98,7 +98,7 @@ Ship the smallest useful slice and learn.
 - verification evidence
 - release decision
 - learning summary
-- updated memory and backlog
+- updated project memory or toolkit backlog when durable context or implementation status changed
 
 ### Exit criteria
 A validated increment is shipped or the team knowingly returns to an earlier phase.
@@ -112,7 +112,7 @@ Run this when uncertainty is non-trivial:
 3. **Test** — how will we gather evidence?
 4. **Learn** — what happened?
 5. **Decide** — continue, pivot, stop, or deepen
-6. **Log** — record it in memory
+6. **Log** — record a durable decision or experiment result in the relevant project's memory; do not create an entry for transient work.
 
 ## Artifacts to maintain
 

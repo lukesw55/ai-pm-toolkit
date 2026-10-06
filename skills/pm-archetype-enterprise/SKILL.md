@@ -48,7 +48,7 @@ For a B2B SaaS product this archetype applies to most of the product surface —
 
 ## Required reading before output
 
-- `.ai/rules.md`, `.ai/memory/projects/<slug>/app.md`, `.ai/memory/active-context.md`
+- `.ai/rules.md`; for project work, read `.ai/memory/active-context.md` first when present and resolve `<slug>` before opening relevant project files. If no pointer exists, do not infer a project; initialize only when durable project context is needed and the project name is known.
 - relevant project memory — **prior compliance decisions are especially important**; precedents bind future work
 - shared org context in `.ai/memory/org/` when present (`personas.md`, `competitors.md`, `goals.md`); open the file the task needs, not all four
 

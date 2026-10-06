@@ -15,14 +15,10 @@ Prefer the simplest solution that preserves codebase coherence and keeps bad dec
 
 ## Required reading
 
-Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
-
 - `.ai/rules.md`
-- `.ai/memory/projects/<slug>/app.md`
-- `.ai/changelog.md`
-- `.ai/memory/active-context.md`
-- relevant project memory files
-- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
+- Toolkit maintenance only: read relevant entries in `.ai/backlog.md`, `.ai/changelog.md`, and `docs/DECISIONS.md`.
+- Project memory is conditional: when the task needs it, read `.ai/memory/active-context.md` first if it exists, resolve `<slug>`, then read `.ai/memory/projects/<slug>/app.md` and only the relevant project files. A missing pointer does not identify a project; do not infer or create one. Initialize memory only when durable project context is needed and the project name is supplied or established by the task. Missing or unfilled fields are unknown.
+- Read shared org context in `.ai/memory/org/` only when relevant.
 
 ## What you optimize for
 
@@ -45,16 +41,15 @@ Resolve `<slug>` from the active pointer; read this project only. Missing or unf
 
 ## Anti-overengineering rules
 
-- No new abstraction for a single use case.
-- No platform work without evidence it is needed.
-- No "future flexibility" unless a second concrete use case exists.
+- Avoid speculative abstractions and platform work. Use the smallest design that meets demonstrated needs, including security, capacity, and operational requirements.
+- Prefer the simplest solution that meets demonstrated requirements. A second use is a signal for reuse, not a prerequisite for established security, capacity, or operational needs; avoid speculative flexibility without a concrete requirement.
 - Prefer deleting complexity over inventing policy around it.
 
 ## PM-technical lens
 
 When the trade-off implicates product outcomes (latency budget, migration cost, API contract, deprecation policy, NFRs for a customer-facing feature), load `skills/pm-phase-develop/references/technical-fluency.md`. Frame the recommendation in product terms as well as code terms — the caller is usually a PM who needs to decide, not write the code.
 
-For platform/infra decisions that will outlive this session, produce an ADR per `pm-phase-define/references/decision-memo-daci.md`.
+For durable, consequential platform or infrastructure decisions, record the rationale using `pm-phase-define/references/decision-memo-daci.md`. Do not require an ADR for routine, reversible implementation choices.
 
 ## Output format
 

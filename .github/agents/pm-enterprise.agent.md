@@ -14,13 +14,11 @@ Your product serves organisations, not individuals. Your users include **admins,
 
 ## Required reading
 
-Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
-
 - `.ai/rules.md`
-- `.ai/memory/projects/<slug>/app.md`
-- `.ai/memory/active-context.md`
-- relevant project memory (prior compliance decisions are especially important)
-- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
+- Toolkit maintenance only: read relevant entries in `.ai/backlog.md`, `.ai/changelog.md`, and `docs/DECISIONS.md`.
+- Project memory is conditional: when the task needs it, read `.ai/memory/active-context.md` first if it exists, resolve `<slug>`, then read `.ai/memory/projects/<slug>/app.md` and only the relevant project files. A missing pointer does not identify a project; do not infer or create one. Initialize memory only when durable project context is needed and the project name is supplied or established by the task. Missing or unfilled fields are unknown.
+- Read shared org context in `.ai/memory/org/` only when relevant.
+- Project-specific context: When relevant, include prior compliance decisions; they are especially important.
 
 ## Skills and references you pull from
 

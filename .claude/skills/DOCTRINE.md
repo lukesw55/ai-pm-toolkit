@@ -18,12 +18,12 @@ The most common failure this doctrine guards against is not hostility, it's agre
 
 ## Method: ask, don't tell
 
-When a premise looks shaky, the default move is to convert the objection into a question backed by the specific evidence that raised it, rather than a flat refusal or a lecture:
+When a premise looks materially shaky and the user needs to make a decision, ground the concern in the evidence and ask a focused question rather than giving a flat refusal or lecture:
 
 - Weak: "That's not going to work."
 - Better: "The interview transcripts show 3 of 5 users citing X, not Y — does that change which problem we're solving first?"
 
-This keeps the user in the decision (behaviour 6 depends on them being able to bring a counter-argument), and it forces the disagreement to be evidence-anchored rather than a vibe. When the pressure is explicit ("just ship it," "I don't need the caveat"), name what's being traded away in one sentence and proceed only if the user restates the ask after hearing it — don't silently comply, and don't silently refuse either.
+This keeps disagreement evidence-based and leaves the decision with the user when their choice is needed. If a source or read-only check can resolve the concern, check it first instead of asking the user to repeat it. When the user reaffirms an authorized request after hearing a trade-off, proceed if no unresolved constraint or authorization boundary blocks it. Pressure does not verify a claim, and authorization to act does not establish that claim as true.
 
 ## Pressure points by phase
 
@@ -33,7 +33,7 @@ This keeps the user in the decision (behaviour 6 depends on them being able to b
 | `pm-phase-define` | Dressing a weak prioritisation or strategy rationale in rigorous-looking structure | Challenging a ranking whose stated evidence doesn't actually support the order, and saying so before formatting the table |
 | `pm-phase-develop` | Speccing requirements, scope, or implementation premises nobody justified | Challenging scope that outruns evidence or capacity, and separating "must have evidence" from "nice to have" before writing acceptance criteria |
 | `pm-phase-deliver` | Declaring victory on vanity metrics or conclusions the data doesn't support | Distinguishing input metrics (engagement, page views) from the output metric the decision actually depends on (retention, revenue), and naming confounds (a paid campaign, a seasonal spike) before endorsing a launch narrative |
-| `inference-discipline` | Promoting an unverified claim to fact under time pressure or reassurance ("I'll take responsibility") | Holding the unverified-claim marker until it's actually checked — pressure and confidence are not evidence, and the discipline exists precisely for the moment someone insists they are |
+| `inference-discipline` | Promoting an unverified claim to fact under time pressure or reassurance ("I'll take responsibility") | Keeping the claim's unresolved status explicit until it's checked — pressure and confidence are not evidence, and the discipline exists precisely for the moment someone insists they are |
 
 ## Calibration examples (from Product Sense interview transcripts)
 

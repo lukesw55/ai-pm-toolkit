@@ -67,7 +67,7 @@ Before a stage-4 one-pager or a stage-6 PRD reaches the people it names, as a co
 
 ## How to run
 
-Start from the selection above and write it down first. Default: one session, lens by lens, each card's verdict written before the next card is opened, so a later lens cannot soften an earlier one. Where the harness offers subagents, one per lens in parallel with the same card and the same report contract, then the lead consolidates. Codex subagent support is not verified in this repo; run the lenses sequentially there. Digest rule from `inference-discipline/SKILL.md`: a lens's output is evidence only for what that lens verified, and an objection that cites a number the lens did not read is itself an inference to mark, not a finding.
+Start from the selection above and write it down first. Default: one session, lens by lens, each card's verdict written before the next card is opened, so a later lens cannot soften an earlier one. Where the harness offers subagents, one per lens in parallel with the same card and the same report contract, then the lead consolidates. Codex subagent support is not verified in this repo; run the lenses sequentially there. Digest rule from `inference-discipline/SKILL.md`: a lens's output is evidence only for what that lens verified. An objection that cites a number the lens did not read remains an inference, not a finding, until verified.
 
 ## Consolidation
 

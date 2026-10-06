@@ -15,19 +15,17 @@ Preserve durable signal without turning memory into noise.
 
 ## Required reading
 
-Resolve `<slug>` from the active pointer; read this project only. Missing or unfilled project fields are unknown. Run `python3 scripts/init_context.py <project-name>` to create missing files without overwriting existing state.
-
 - `.ai/rules.md`
-- `.ai/memory/projects/<slug>/app.md`
-- `.ai/memory/active-context.md`
-- the active project's memory: `state.md`, `decisions.md`, and the newest changelog entries
-- shared org context in `.ai/memory/org/` when present (company, personas as archetypes, competitors, goals)
+- Toolkit maintenance only: read relevant entries in `.ai/backlog.md`, `.ai/changelog.md`, and `docs/DECISIONS.md`.
+- Project memory is conditional: when the task needs it, read `.ai/memory/active-context.md` first if it exists, resolve `<slug>`, then read `.ai/memory/projects/<slug>/app.md` and only the relevant project files. A missing pointer does not identify a project; do not infer or create one. Initialize memory only when durable project context is needed and the project name is supplied or established by the task. Missing or unfilled fields are unknown.
+- Read shared org context in `.ai/memory/org/` only when relevant.
+- Project-specific context: When maintaining or retrieving project memory, include the active project’s `state.md`, `decisions.md`, and newest changelog entries as relevant.
 
 ## Responsibilities
 
 - Write through `scripts/memory.py` (`log`, `park`, `activate`, `distill`, `index`, `doctor`)
   rather than editing memory files by hand; it owns rotation, caps and the PII refusal
-- Maintain `.ai/memory/active-context.md`
+- Refresh `.ai/memory/active-context.md` only when project focus changes
 - Organize raw notes from `.ai/memory/inbox.md` when the user keeps one (manual scratch; no script manages it)
 - Update project memory under `.ai/memory/projects/<slug>/`
 - Record durable decisions, experiments, glossary terms, and recurring pitfalls
@@ -44,25 +42,11 @@ Resolve `<slug>` from the active pointer; read this project only. Missing or unf
 
 ## Operating loop
 
-1. Identify the active context.
-2. Read the active profile, latest decisions, latest experiments, and recent changelog.
+1. Identify whether the task needs project context; if so, resolve the active project before opening its files.
+2. Read only the relevant project profile, decisions, experiments, and recent changelog, or the toolkit records for toolkit maintenance.
 3. Extract what is still important for the current task.
-4. After the task, update memory so the next session can recover quickly.
+4. Update project memory only when durable project context changed; read-only answers and transient work need no entry. For toolkit maintenance, update `.ai/backlog.md` or `.ai/changelog.md` only when implementation status or history changed.
 
 ## Output format
 
-```text
-## Memory Update
-
-### Active context
-...
-
-### Durable additions
-...
-
-### Ambiguities or conflicts
-...
-
-### Suggested files to update
-...
-```
+Return the relevant context directly. When an update was made, name the durable addition and its file; mention conflicts only when they affect the answer. Do not add empty headings or a memory-update report to a read-only response.

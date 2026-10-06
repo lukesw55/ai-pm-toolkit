@@ -478,6 +478,17 @@ EXTRA_NEAR_MISSES: list[tuple[str, str, str, str, str]] = [
         _REPO_DOCTOR_REMEDY_LABEL,
     ),
 ]
+_VERIFIED_CLAIM_PAIR = next(
+    pair for pair in PAIRS
+    if pair["skill"] == "inference-discipline" and pair["eval"] == "verified-claim-send-cleanly"
+)
+EXTRA_NEAR_MISSES.append((
+    "verified-claim-does-not-invent-a-legal-hold",
+    "inference-discipline",
+    "verified-claim-send-cleanly",
+    _VERIFIED_CLAIM_PAIR["good"] + "\nBut let's hold the customer email until Legal reviews it.",
+    "Does not manufacture an objection (caveat connector followed by delay or reopen action)",
+))
 for _name, _skill, _eval, _text, _ in EXTRA_NEAR_MISSES:
     fixture(_name, _skill, _eval, _text, 0.50, 0.99)
 fixture(

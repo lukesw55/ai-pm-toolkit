@@ -111,12 +111,12 @@ Anti-patterns: one-metric obsession, shipping on averages that hide segment harm
 
 ## Workflow
 
-1. **Load context** — `.ai/memory/active-context.md`, PRD and tracking plan from `pm-phase-develop`, priorities from Define. When present, `.ai/memory/org/goals.md` and `competitors.md` frame the launch narrative.
+1. **Load context when relevant** — for project work, read `.ai/memory/active-context.md` first when present and resolve `<slug>` before opening relevant project files: PRD, tracking plan, and priorities. If no pointer exists, do not infer a project; bootstrap only when durable project context is needed and the name is known. When present, `.ai/memory/org/goals.md` and `competitors.md` frame the launch narrative.
 2. **Classify the ask** — readiness, release notes, monitoring, A/B interpretation, analytics narrative, or metric-quality check?
 3. **Anchor on the hypothesis** — what were we trying to learn/achieve? State it upfront so the readout compares actuals to expectations.
 4. **Respect the guardrails** — check reliability, support load, satisfaction, and revenue side-effects before calling a result a "win".
 5. **Decide the move** — iterate, scale, hold, rollback, or stop. Decisions beat descriptions.
-6. **Persist** — launch memo → `.ai/memory/projects/<slug>/launches/<name>.md`; experiment results → `experiments.md` using the template; close-out → `retrospective.md`. If the launch changes what we know about a persona, competitor or goal, update the matching `.ai/memory/org/` file (versioned in a fork) and log it with `memory.py log`.
+6. **Persist durable outputs** — when this task creates or materially changes project context, save a launch memo, experiment result, or close-out under `.ai/memory/projects/<slug>/` in the relevant files. If evidence materially changes a persona, competitor, or goal, update the matching `.ai/memory/org/` file and log the evidence in the relevant project changelog. A read-only answer needs no memory entry.
 
 ## Output contract
 

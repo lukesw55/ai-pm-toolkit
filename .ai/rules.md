@@ -1,45 +1,25 @@
 # Instructions
 
-This repository is a reusable operating system for product and engineering work across multiple projects and contexts.
+This repository is Umberto, a reusable toolkit for product and engineering work across projects. Its canonical skills and shared hooks live at the repository root; Claude Code and Codex use generated skill mirrors.
 
-## Briefing
+## Context and sources
 
-You are working inside **Umberto**, a Lean Double Diamond skill repo for discovery, definition, prototyping, implementation, and learning.
+- Project-specific context lives under `.ai/memory/projects/<slug>/` and is selected by `.ai/memory/active-context.md`.
+- Resolve the active slug before reading project files. Read app, design, tasks, decisions, and state only as relevant. Unfilled fields are unknown.
+- `.ai/app.md` and `.ai/design.md` are legacy migration guides, not current project definitions. Use `docs/memory/MEMORY_SYSTEM.md` for non-destructive migration or bootstrap when the task requires project memory.
+- `.ai/backlog.md` tracks toolkit implementation status; `.ai/changelog.md` records toolkit changes. Project tasks and changelogs belong under that project's memory.
+- Before substantial toolkit work, read the relevant changelog/backlog entries and `docs/DECISIONS.md`; project work uses that project's relevant memory instead.
+- This repo also contains GitHub Copilot-style agents under `.github/agents/`.
 
-The active project is defined in `.ai/memory/active-context.md`.
-The product definition lives in `.ai/app.md`.
+## Working rules
 
-## Environment
-
-- Hybrid: Claude Code (`CLAUDE.md`, `.claude/`) and Codex (`AGENTS.md`, `.codex/`) run as peers over the same canonical `skills/` and `hooks/` trees; neither is the "real" copy the other degrades from
-- Also present: GitHub Copilot-style agent docs in `.github/agents/`
-- Dependency philosophy: zero-dependency by default; add tooling only when it materially improves leverage
-- Memory system: file-based durable memory under `.ai/memory/`
-- Delivery style: lean startup loop inside the Double Diamond
-- Validation style: smallest meaningful verification first, then broader checks as risk increases
-
-## Required reading before meaningful work
-
-1. `.ai/changelog.md`
-2. `.ai/app.md`
-3. `.ai/memory/active-context.md`
-4. active project memory under `.ai/memory/projects/<slug>/`
-
-## Rules
-
-You must always follow these rules:
-
-- Start by identifying the current phase: Discover, Define, Develop, or Deliver.
-- Do not jump to implementation if the problem, user, or success criteria are still unclear.
-- Name assumptions explicitly. If an assumption is material, turn it into an experiment, question, or validation step.
-- Prefer the smallest reversible move that can produce evidence.
-- Keep raw evidence and durable decisions in memory; do not rely on transient chat context.
-- When writing code, use test-first or verification-first thinking appropriate to the task risk.
-- Run the narrowest useful validation after each meaningful change.
-- Do not introduce speculative abstractions, configuration, or platform work without a second real use case.
-- When touching user-facing UX, follow `.ai/design.md` and use clear recovery-oriented error copy.
-- When a task is completed, update `.ai/tasks.md` and `.ai/changelog.md`.
-- When a durable product, architecture, or process decision is made, update project memory.
-- Keep changes small, intentional, and easy to review.
-- Prefer explaining tradeoffs over pretending there is one obvious answer.
-- Use Lean mode by default; use Caveman mode only when requested or clearly beneficial.
+- Identify a Double Diamond stage for product work when it helps choose the next step; do not force stages onto simple answers or clear maintenance.
+- Test material premises. Verify uncertain facts with available sources before asking the user. State low-risk, reversible assumptions and proceed when they stay inside the request.
+- Ask when materially different outcomes remain, an essential unknown blocks the work, constraints conflict, or the next action needs authorization not already given.
+- Keep user reports, preferences, evidence, assumptions, and verified facts distinct when the difference matters. User approval accepts an action or risk; it does not establish an external fact.
+- Prefer the smallest reversible move that can produce evidence. Add abstractions or platform work for a demonstrated requirement, including security, capacity, or operational needs; a second use case is a reuse signal, not an absolute prerequisite.
+- Use verification-first thinking proportionate to task risk. Run the narrowest useful check after a meaningful change.
+- When touching user-facing UX, follow the project's design guidance when present and use clear, recovery-oriented error copy.
+- Update project memory when durable project context changes. Update toolkit backlog/changelog for toolkit work when its status or history changes. A read-only answer with no durable change needs no log.
+- Keep changes small and reviewable. State material trade-offs; do not create process artefacts just to show activity.
+- Use Lean by default; use Standard when nuance matters and Caveman only when requested or clearly useful.
